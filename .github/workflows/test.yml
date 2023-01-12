@@ -15,8 +15,13 @@ jobs:
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: build-essential python3
-    - name: Install library
-      run: pip3 install -e .
+    - name: Install libraries
+      run: |
+        pip3 install pandas
+        pip3 install sklearn
+        pip3 install setuptools
+        pip3 install pytest
+        pip3 install -e .
     - name: Run tests
       run: |
         cd tests
