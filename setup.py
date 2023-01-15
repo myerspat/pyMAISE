@@ -13,9 +13,10 @@ setup(
     install_requires=[
         "pandas",
         "sklearn",
+        "scikit-optimize",
         "matplotlib",
     ],
-    extras_require={"test": ["pytest"]},
+    extras_require={"test": ["pytest"], "stats": ["scipy"]},
     package_data={"pyMAISE.data": ["*.csv"]},
     author="Patrick Myers",
     author_email="myerspat@umich.edu",
