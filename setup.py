@@ -14,6 +14,8 @@ setup(
         "pandas",
         "sklearn",
         "scikit-optimize",
+        "keras",
+        "scikeras",
         "matplotlib",
     ],
     extras_require={"test": ["pytest"], "stats": ["scipy"]},
