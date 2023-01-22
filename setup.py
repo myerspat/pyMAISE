@@ -15,6 +15,7 @@ setup(
         "sklearn",
         "scikit-optimize",
         "keras",
+        "tensorflow",
         "scikeras",
         "matplotlib",
     ],
