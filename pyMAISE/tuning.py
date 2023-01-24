@@ -37,6 +37,8 @@ class Tuning:
                 self._models[model] = DecisionTreeRegression(parameters=parameters)
             elif model == "rforest":
                 self._models[model] = RandomForestRegression(parameters=parameters)
+            elif model == "nn":
+                self._models[model] = NeuralNetsRegression(parameters=parameters)
             else:
                 raise Exception(
                     "The model requested ("
