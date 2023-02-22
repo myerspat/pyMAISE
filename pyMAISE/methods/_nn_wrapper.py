@@ -163,7 +163,7 @@ class NeuralNetsWrapper(BaseEstimator):
         return layers
 
     def fit(self, x, y):
-        self._model.fit(x, y)
+        return self._model.fit(x, y)
 
     def predict(self, x):
         return self._model.predict(x)
@@ -240,6 +240,7 @@ class NeuralNetsWrapper(BaseEstimator):
                 setattr(self, key, value)
 
         self = self.NeuralNetsRegressor()
+
         return self
 
     def NeuralNetsRegressor(self):

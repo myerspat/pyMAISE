@@ -1,4 +1,4 @@
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression as LinearRegressor
 
 
 class LinearRegression:
@@ -17,7 +17,7 @@ class LinearRegression:
     # ===========================================================
     # Methods
     def regressor(self):
-        return LinearRegression(
+        return LinearRegressor(
             fit_intercept=self._fit_intercept,
             copy_X=self._copy_X,
             n_jobs=self._n_jobs,
