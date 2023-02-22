@@ -11,10 +11,20 @@ def load_xs():
     return PreProcesser(get_full_path("data/xs.csv"), slice(0, -1), slice(-1))
 
 
-# Load benchmark BWR control rod positions
-def load_rod_positions():
+# Load benchmark MIT reactor data
+def load_MITR():
     return PreProcesser(
-        get_full_path("data/rod_positions.csv"),
-        slice(0, 6),
-        slice(6, 29),
+        [get_full_path("data/crx.csv"), get_full_path("data/powery.csv")],
     )
+
+
+# Load benchmark fuel perfromance data
+def load_fp():
+    return PreProcesser(
+        [get_full_path("data/fp_inp.csv"), get_full_path("data/fp_out.csv")]
+    )
+
+
+# Load benchmark fuel centerline temperature data
+def load_heat():
+    return PreProcesser(get_full_path("data/heat.csv"), slice(0, -1), slice(-1))
