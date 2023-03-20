@@ -75,6 +75,10 @@ class PostProcessor:
         yhat_test = []
         histories = []
 
+        ytrain = self._ytrain
+        if ytrain.shape[1] == 1:
+            ytrain = self._ytrain.values.ravel()
+
         # Fit each model and predict outcomes
         for i in range(self._models.shape[0]):
             # Estract regressor for the configuration
@@ -84,20 +88,78 @@ class PostProcessor:
 
             # Append learning curve history of neural networks and run fit for all
             if self._models["Model Types"][i] != "nn":
-                regressor.fit(self._xtrain, self._ytrain)
+                regressor.fit(self._xtrain, ytrain)
                 histories.append(None)
             else:
                 histories.append(
-                    regressor.fit(self._xtrain, self._ytrain).model.history.history
+                    regressor.fit(self._xtrain, ytrain).model.history.history
                 )
 
             # Append training and testing predictions
-            yhat_train.append(regressor.predict(self._xtrain))
-            yhat_test.append(regressor.predict(self._xtest))
+            yhat_train.append(
+                regressor.predict(self._xtrain).reshape(self._ytrain.shape)
+            )
+            yhat_test.append(regressor.predict(self._xtest).reshape(self._ytest.shape))
 
         return (yhat_train, yhat_test, histories)
 
-    def metrics(self, sort_by="Test R2"):
+    def metrics(self, sort_by="Test R2", model_type: str = None, y=None):
+        # Get the list of y if not provided
+        if y == None:
+            y = slice(0, len(self._ytrain.columns) + 1)
+        elif isinstance(y, str):
+            y = self._ytrain.columns.get_loc(y)
+
+        train_r2 = []
+        train_mae = []
+        train_mse = []
+        train_mse = []
+        train_rmse = []
+        test_r2 = []
+        test_mae = []
+        test_mse = []
+        test_mse = []
+        test_rmse = []
+
+        for i in range(self._models.shape[0]):
+            # Get predictions
+            yhat_train = self._models["Train Yhat"][i]
+            yhat_test = self._models["Test Yhat"][i]
+
+            # Calculate performance metrics and append to lists
+            train_r2.append(
+                r2_score(self._ytrain[self._ytrain.columns[y]], yhat_train[:, y])
+            )
+            train_mae.append(
+                mean_absolute_error(
+                    self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                )
+            )
+            train_mse.append(
+                mean_squared_error(
+                    self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                )
+            )
+            train_rmse.append(math.sqrt(train_mse[i]))
+            test_r2.append(
+                r2_score(self._ytest[self._ytest.columns[y]], yhat_test[:, y])
+            )
+            test_mae.append(
+                mean_absolute_error(
+                    self._ytest[self._ytest.columns[y]], yhat_test[:, y]
+                )
+            )
+            test_mse.append(
+                mean_squared_error(self._ytest[self._ytest.columns[y]], yhat_test[:, y])
+            )
+            test_rmse.append(math.sqrt(test_mse[i]))
+
+        # If the sort_by is anything other than R2, metrics is ascending
+        ascending = True
+        if sort_by == "Test R2" or sort_by == "Train R2":
+            ascending = False
+
+        # Combine models and performance metrics
         if {
             "Train R2",
             "Train MAE",
@@ -108,38 +170,6 @@ class PostProcessor:
             "Test MSE",
             "Test RMSE",
         }.issubset(self._models) == False:
-            train_r2 = []
-            train_mae = []
-            train_mse = []
-            train_mse = []
-            train_rmse = []
-            test_r2 = []
-            test_mae = []
-            test_mse = []
-            test_mse = []
-            test_rmse = []
-
-            for i in range(self._models.shape[0]):
-                # Get predictions
-                yhat_train = self._models["Train Yhat"][i]
-                yhat_test = self._models["Test Yhat"][i]
-
-                # Calculate performance metrics and append to lists
-                train_r2.append(r2_score(self._ytrain, yhat_train))
-                train_mae.append(mean_absolute_error(self._ytrain, yhat_train))
-                train_mse.append(mean_squared_error(self._ytrain, yhat_train))
-                train_rmse.append(math.sqrt(train_mse[i]))
-                test_r2.append(r2_score(self._ytest, yhat_test))
-                test_mae.append(mean_absolute_error(self._ytest, yhat_test))
-                test_mse.append(mean_squared_error(self._ytest, yhat_test))
-                test_rmse.append(math.sqrt(test_mse[i]))
-
-            # If the sort_by is anything other than R2, metrics is ascending
-            ascending = True
-            if sort_by == "Test R2" or sort_by == "Train R2":
-                ascending = False
-
-            # Combine models and performance metrics
             self._models = pd.concat(
                 [
                     self._models,
@@ -157,9 +187,18 @@ class PostProcessor:
                     ),
                 ],
                 axis=1,
-            ).sort_values(sort_by, ascending=[ascending])
+            )
+        else:
+            self._models["Train R2"] = train_r2
+            self._models["Train MAE"] = train_mae
+            self._models["Train MSE"] = train_mse
+            self._models["Train RMSE"] = train_rmse
+            self._models["Test R2"] = test_r2
+            self._models["Test MAE"] = test_mae
+            self._models["Test MSE"] = test_mse
+            self._models["Test RMSE"] = test_rmse
 
-        return self._models[
+        models = self._models[
             [
                 "Model Types",
                 "Parameter Configurations",
@@ -173,6 +212,13 @@ class PostProcessor:
                 "Test RMSE",
             ]
         ]
+
+        if model_type == None:
+            return models.sort_values(sort_by, ascending=[ascending])
+        else:
+            return models[models["Model Types"] == model_type].sort_values(
+                sort_by, ascending=[ascending]
+            )
 
     def _get_idx(self, idx: int = None, model_type: str = None, sort_by="Test R2"):
         # Determine the index of the model in the DataFrame
@@ -272,8 +318,11 @@ class PostProcessor:
             ax = plt.gca()
 
         for y_idx in y:
-            ax.scatter(yhat_train[y_idx], ytrain[y_idx], c="b", marker="o")
-            ax.scatter(yhat_test[y_idx], ytest[y_idx], c="r", marker="o")
+            if isinstance(y_idx, str):
+                y_idx = self._ytest.columns.get_loc(y_idx)
+
+            ax.scatter(yhat_train[:, y_idx], ytrain[:, y_idx], c="b", marker="o")
+            ax.scatter(yhat_test[:, y_idx], ytest[:, y_idx], c="r", marker="o")
 
         lims = [
             np.min([ax.get_xlim(), ax.get_ylim()]),
