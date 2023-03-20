@@ -163,8 +163,8 @@ class PreProcesser:
 
         # Add annotations of each value in square if annotations == True
         if annotations:
-            for i in range(len(corr.columns) - 1):
-                for j in range(len(corr.columns) - 1):
+            for i in range(len(corr.columns)):
+                for j in range(len(corr.columns)):
                     ax.text(
                         j,
                         i,
