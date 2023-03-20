@@ -1,3 +1,8 @@
+import os
+import random
+import numpy as np
+import tensorflow as tf
+
 # Class for global settings
 class Settings:
     def __init__(self, update: dict = None):
@@ -12,6 +17,16 @@ class Settings:
         if update != None:
             for key, value in update.items():
                 setattr(self, key, value)
+
+        if self._random_state != None:
+            os.environ["PYTHONHASHSEED"] = str(self._random_state)
+            random.seed(self._random_state)
+            np.random.seed(self._random_state)
+            tf.random.set_seed(self._random_state)
+
+            # Deterministic tensorflow
+            os.environ["TF_DETERMINISTIC_OPS"] = "1"
+            os.environ["TF_CUBNN_DETERMINISTIC"] = "1"
 
     # Getters
     @property
