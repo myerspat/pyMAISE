@@ -53,6 +53,13 @@ class Tuning:
                     + ") is either misspelled or not supported"
                 )
 
+        # For single input or outputs the data must be converted to a 1D array to
+        # get rid of sklearn warnings
+        if self._xtrain.shape[1] == 1:
+            self._xtrain = self._xtrain.iloc[:, 0]
+        if self._ytrain.shape[1] == 1:
+            self._ytrain = self._ytrain.iloc[:, 0]
+
     # ===========================================================
     # Methods
     def manual_search(self, models: list = None, model_settings=None):
@@ -267,7 +274,7 @@ class Tuning:
 
                 # Add tuning results for convergence plot
                 cv_results = pd.DataFrame(resulting_models.cv_results_)
-                self._tuning[model] = cv_results[["mean_test_score", "std_test_score"]]
+                self._tuning[model] = cv_results["mean_test_score"]
 
                 # Place parameter configurations in DataFrame and sort based on rank,
                 # save the top num_configs_saved to the data dictionary
@@ -291,29 +298,29 @@ class Tuning:
 
         return data
 
-    def convergence_plot(self, ax=None, models=None):
+    def convergence_plot(self, ax=None, model_types=None):
         # If no models are provided fit all
-        if models == None:
-            models = self._tuning.keys()
-        elif isinstance(models, str):
-            models = [models]
+        if model_types == None:
+            model_types = self._tuning.keys()
+        elif isinstance(model_types, str):
+            model_types = [model_types]
 
         if ax == None:
             ax = plt.gca()
 
-        for model in models:
+        for model in model_types:
             ax.plot(
                 np.linspace(
                     1, self._tuning[model].shape[0], self._tuning[model].shape[0]
                 ),
-                self._tuning[model]["mean_test_score"],
+                self._tuning[model],
                 linestyle="-",
                 marker="o",
                 label=model,
             )
 
         # Show legend if length of models is more than one
-        if len(models) > 1:
+        if len(model_types) > 1:
             ax.legend()
 
         ax.set_xlabel("Iteration")
