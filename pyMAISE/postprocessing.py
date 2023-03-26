@@ -159,44 +159,14 @@ class PostProcessor:
         if sort_by == "Test R2" or sort_by == "Train R2":
             ascending = False
 
-        # Combine models and performance metrics
-        if {
-            "Train R2",
-            "Train MAE",
-            "Train MSE",
-            "Train RMSE",
-            "Test R2",
-            "Test MAE",
-            "Test MSE",
-            "Test RMSE",
-        }.issubset(self._models) == False:
-            self._models = pd.concat(
-                [
-                    self._models,
-                    pd.DataFrame(
-                        {
-                            "Train R2": train_r2,
-                            "Train MAE": train_mae,
-                            "Train MSE": train_mse,
-                            "Train RMSE": train_rmse,
-                            "Test R2": test_r2,
-                            "Test MAE": test_mae,
-                            "Test MSE": test_mse,
-                            "Test RMSE": test_rmse,
-                        }
-                    ),
-                ],
-                axis=1,
-            )
-        else:
-            self._models["Train R2"] = train_r2
-            self._models["Train MAE"] = train_mae
-            self._models["Train MSE"] = train_mse
-            self._models["Train RMSE"] = train_rmse
-            self._models["Test R2"] = test_r2
-            self._models["Test MAE"] = test_mae
-            self._models["Test MSE"] = test_mse
-            self._models["Test RMSE"] = test_rmse
+        self._models["Train R2"] = train_r2
+        self._models["Train MAE"] = train_mae
+        self._models["Train MSE"] = train_mse
+        self._models["Train RMSE"] = train_rmse
+        self._models["Test R2"] = test_r2
+        self._models["Test MAE"] = test_mae
+        self._models["Test MSE"] = test_mse
+        self._models["Test RMSE"] = test_rmse
 
         models = self._models[
             [
