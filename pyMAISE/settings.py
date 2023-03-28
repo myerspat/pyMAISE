@@ -2,6 +2,7 @@ import os
 import random
 import numpy as np
 import tensorflow as tf
+import warnings
 
 # Class for global settings
 class Settings:
@@ -18,15 +19,30 @@ class Settings:
             for key, value in update.items():
                 setattr(self, key, value)
 
+        if self._verbosity <= 1:
+            os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+            tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+            warnings.simplefilter(action="ignore", category=Warning)
+            warnings.simplefilter(action="ignore", category=FutureWarning)
+
         if self._random_state != None:
             os.environ["PYTHONHASHSEED"] = str(self._random_state)
             random.seed(self._random_state)
             np.random.seed(self._random_state)
-            tf.random.set_seed(self._random_state)
+            tf.compat.v1.set_random_seed(self._random_state)
 
             # Deterministic tensorflow
             os.environ["TF_DETERMINISTIC_OPS"] = "1"
             os.environ["TF_CUBNN_DETERMINISTIC"] = "1"
+
+            session_conf = tf.compat.v1.ConfigProto(
+                intra_op_parallelism_threads=1, inter_op_parallelism_threads=1
+            )
+            sess = tf.compat.v1.Session(
+                graph=tf.compat.v1.get_default_graph(), config=session_conf
+            )
+            tf.compat.v1.keras.backend.set_session(sess)
 
     # Getters
     @property
