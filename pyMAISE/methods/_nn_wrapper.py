@@ -3,7 +3,7 @@ import pyMAISE.settings as settings
 from math import ceil
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from scikeras.wrappers import BaseEstimator, KerasRegressor
 
 
@@ -349,8 +349,6 @@ class NeuralNetsWrapper(BaseEstimator):
             loss_weights=self._loss_weights,
             weighted_metrics=self._weighted_metrics,
             run_eagerly=self._run_eagerly,
-            steps_per_execution=self._steps_per_execution,
-            jit_compile=self._jit_compile,
         )
 
         # Set model to KerasRegressor from scikeras

@@ -13,7 +13,7 @@ class NeuralNetsRegression:
         self._metrics = None
         self._loss_weights = None
         self._weighted_metrics = None
-        self._run_eagerly = None
+        self._run_eagerly = False
         self._steps_per_execution = None
         self._jit_compile = True  # Used for both compile and adam
         self._batch_size = None
