@@ -89,12 +89,12 @@ class Tuning:
 
     def grid_search(
         self,
-        param_grids: dict,
+        param_spaces: dict,
         scoring=None,
         models: list = None,
         n_jobs: int = None,
         refit=True,
-        cv: int = None,
+        cv=None,
         pre_dispatch="2*n_jobs",
     ):
         if models == None:
@@ -105,14 +105,14 @@ class Tuning:
 
         data = {}
         for model in models:
-            if model in param_grids:
+            if model in param_spaces:
                 if settings.values.verbosity > 0:
                     print("-- " + model)
 
                 # Run grid search
                 search = GridSearchCV(
                     estimator=self._models[model].regressor(),
-                    param_grid=param_grids[model],
+                    param_grid=param_spaces[model],
                     scoring=scoring,
                     n_jobs=n_jobs,
                     refit=refit,
@@ -150,13 +150,13 @@ class Tuning:
 
     def random_search(
         self,
-        param_distributions: dict,
+        param_spaces: dict,
         scoring=None,
         models: list = None,
         n_iter: int = 10,
         n_jobs: int = None,
         refit=True,
-        cv: int = None,
+        cv=None,
         pre_dispatch="2*n_jobs",
     ):
         if models == None:
@@ -168,14 +168,14 @@ class Tuning:
         data = {}
 
         for model in models:
-            if model in param_distributions:
+            if model in param_spaces:
                 if settings.values.verbosity > 0:
                     print("-- " + model)
 
                 # Run random search
                 search = RandomizedSearchCV(
                     estimator=self._models[model].regressor(),
-                    param_distributions=param_distributions[model],
+                    param_distributions=param_spaces[model],
                     scoring=scoring,
                     n_iter=n_iter,
                     n_jobs=n_jobs,
@@ -215,7 +215,7 @@ class Tuning:
 
     def bayesian_search(
         self,
-        search_spaces: dict,
+        param_spaces: dict,
         scoring=None,
         models: list = None,
         n_iter: int = 50,
@@ -224,7 +224,7 @@ class Tuning:
         n_jobs: int = None,
         n_points: int = 1,
         refit=True,
-        cv: int = None,
+        cv=None,
         pre_dispatch="2*n_jobs",
     ):
         if models == None:
@@ -235,29 +235,29 @@ class Tuning:
 
         data = {}
         for model in models:
-            if model in search_spaces:
+            if model in param_spaces:
                 if settings.values.verbosity > 0:
                     print("-- " + model)
 
                 # Convert list of values to search space dimensions
-                for key, value in search_spaces[model].items():
+                for key, value in param_spaces[model].items():
                     if isinstance(value[0], int):
-                        search_spaces[model][key] = Integer(
+                        param_spaces[model][key] = Integer(
                             low=np.min(value), high=np.max(value), name=key
                         )
                     elif isinstance(value[0], float):
-                        search_spaces[model][key] = Real(
+                        param_spaces[model][key] = Real(
                             low=np.min(value), high=np.max(value), name=key
                         )
                     elif isinstance(value[0], str):
-                        search_spaces[model][key] = Categorical(
+                        param_spaces[model][key] = Categorical(
                             categories=value, name=key
                         )
 
                 # Run Bayesian search
                 search = BayesSearchCV(
                     estimator=self._models[model].regressor(),
-                    search_spaces=search_spaces[model],
+                    search_spaces=param_spaces[model],
                     n_iter=n_iter,
                     optimizer_kwargs=optimizer_kwargs,
                     scoring=scoring,
