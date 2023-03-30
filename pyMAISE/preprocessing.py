@@ -73,7 +73,7 @@ class PreProcesser:
                 columns=xtrain.columns,
             )
             xtest = pd.DataFrame(
-                self._xscaler.fit_transform(xtest),
+                self._xscaler.transform(xtest),
                 index=xtest.index,
                 columns=xtest.columns,
             )
@@ -87,7 +87,7 @@ class PreProcesser:
                 columns=ytrain.columns,
             )
             ytest = pd.DataFrame(
-                self._yscaler.fit_transform(ytest),
+                self._yscaler.transform(ytest),
                 index=ytest.index,
                 columns=ytest.columns,
             )
@@ -110,7 +110,7 @@ class PreProcesser:
                 columns=xtrain.columns,
             )
             xtest = pd.DataFrame(
-                self._xscaler.fit_transform(xtest),
+                self._xscaler.transform(xtest),
                 index=xtest.index,
                 columns=xtest.columns,
             )
@@ -124,7 +124,7 @@ class PreProcesser:
                 columns=ytrain.columns,
             )
             ytest = pd.DataFrame(
-                self._yscaler.fit_transform(ytest),
+                self._yscaler.transform(ytest),
                 index=ytest.index,
                 columns=ytest.columns,
             )
@@ -163,8 +163,8 @@ class PreProcesser:
 
         # Add annotations of each value in square if annotations == True
         if annotations:
-            for i in range(len(corr.columns) - 1):
-                for j in range(len(corr.columns) - 1):
+            for i in range(len(corr.columns)):
+                for j in range(len(corr.columns)):
                     ax.text(
                         j,
                         i,

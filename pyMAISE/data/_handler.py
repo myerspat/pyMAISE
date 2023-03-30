@@ -8,7 +8,7 @@ def get_full_path(path: str):
 
 # Load benchmark BWR cross section data
 def load_xs():
-    return PreProcesser(get_full_path("data/xs.csv"), slice(0, -1), slice(-1))
+    return PreProcesser(get_full_path("data/xs.csv"), slice(0, -1), slice(-1, None))
 
 
 # Load benchmark MIT reactor data
@@ -27,4 +27,4 @@ def load_fp():
 
 # Load benchmark fuel centerline temperature data
 def load_heat():
-    return PreProcesser(get_full_path("data/heat.csv"), slice(0, -1), slice(-1))
+    return PreProcesser(get_full_path("data/heat.csv"), slice(0, -1), slice(-1, None))

@@ -3,7 +3,7 @@ import pyMAISE.settings as settings
 from math import ceil
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from scikeras.wrappers import BaseEstimator, KerasRegressor
 
 
@@ -162,14 +162,14 @@ class NeuralNetsWrapper(BaseEstimator):
 
         return layers
 
-    def fit(self, x, y):
-        return self._model.fit(x, y)
+    def fit(self, X, y):
+        return self._model.fit(X, y)
 
-    def predict(self, x):
-        return self._model.predict(x)
+    def predict(self, X):
+        return self._model.predict(X)
 
-    def score(self, x, y):
-        return self._model.score(x, y)
+    def score(self, X, y_true):
+        return self._model.score(X, y_true)
 
     def get_params(self, deep=True):
         return {
@@ -247,7 +247,7 @@ class NeuralNetsWrapper(BaseEstimator):
         # Determine number of nodes per layer through supported
         # functions or provided
         layers = []
-        if isinstance(self._mid_num_node_strategy, str):
+        if isinstance(self._mid_num_node_strategy, str) and self._num_layers > 1:
             if self._mid_num_node_strategy == "constant":
                 layers = self.constant(
                     self._num_layers, self._start_num_nodes, self._end_num_nodes
@@ -349,8 +349,6 @@ class NeuralNetsWrapper(BaseEstimator):
             loss_weights=self._loss_weights,
             weighted_metrics=self._weighted_metrics,
             run_eagerly=self._run_eagerly,
-            steps_per_execution=self._steps_per_execution,
-            jit_compile=self._jit_compile,
         )
 
         # Set model to KerasRegressor from scikeras
