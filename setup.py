@@ -12,7 +12,7 @@ setup(
     packages=find_packages(include=["pyMAISE", "pyMAISE.*"]),
     install_requires=[
         "pandas",
-        "sklearn",
+        "scikit-learn",
         "scikit-optimize",
         "keras>=2.12.0",
         "tensorflow>=2.12.0",
