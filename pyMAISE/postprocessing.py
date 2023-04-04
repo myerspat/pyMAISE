@@ -9,7 +9,12 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 class PostProcessor:
     def __init__(
-        self, data: pd.DataFrame, models_list, new_model_settings: dict = None
+        self,
+        data: pd.DataFrame,
+        models_list,
+        new_model_settings: dict = None,
+        xscaler=None,
+        yscaler=None,
     ):
         # Extract data
         self._xtrain = data[0]
@@ -52,6 +57,15 @@ class PostProcessor:
         # Fit each model to training data and get predicted training
         # and testing from each model
         yhat_train, yhat_test, histories = self._fit()
+
+        if xscaler != None:
+            self._xtrain = xscaler.inverse_transform(self._xtrain)
+            self._xtest = xscaler.inverse_transform(self._xtest)
+
+        if yscaler != None:
+            for i in range(len(yhat_train)):
+                yhat_train[i] = yscaler.inverse_transform(yhat_train[i])
+                yhat_test[i] = yscaler.inverse_transform(yhat_test[i])
 
         self._models = pd.concat(
             [
@@ -261,7 +275,6 @@ class PostProcessor:
         idx: int = None,
         model_type: str = None,
         sort_by="Test R2",
-        yscaler=None,
         y: list = None,
     ):
         # Determine the index of the model in the DataFrame
@@ -276,13 +289,6 @@ class PostProcessor:
         yhat_test = self._models["Test Yhat"][idx]
         ytrain = self._ytrain
         ytest = self._ytest
-
-        # Scale outputs if scaler is given
-        if yscaler != None:
-            yhat_train = yscaler.inverse_transform(yhat_train)
-            yhat_test = yscaler.inverse_transform(yhat_test)
-            ytrain = yscaler.inverse_transform(ytrain)
-            ytest = yscaler.inverse_transform(ytest)
 
         if ax == None:
             ax = plt.gca()
@@ -315,7 +321,6 @@ class PostProcessor:
         idx: int = None,
         model_type: str = None,
         sort_by="Test R2",
-        yscaler=None,
         y: list = None,
     ):
         # Determine the index of the model in the DataFrame
@@ -328,11 +333,6 @@ class PostProcessor:
         # Get prediected and actual outputs
         yhat_test = self._models["Test Yhat"][idx]
         ytest = self._ytest
-
-        # Scale outputs if scaler is given
-        if yscaler != None:
-            yhat_test = yscaler.inverse_transform(yhat_test)
-            ytest = yscaler.inverse_transform(ytest)
 
         if ax == None:
             ax = plt.gca()
