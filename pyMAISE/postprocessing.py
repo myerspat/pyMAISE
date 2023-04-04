@@ -59,10 +59,12 @@ class PostProcessor:
         yhat_train, yhat_test, histories = self._fit()
 
         if xscaler != None:
+            self._xscaler = xscaler
             self._xtrain = xscaler.inverse_transform(self._xtrain)
             self._xtest = xscaler.inverse_transform(self._xtest)
 
         if yscaler != None:
+            self._yscaler = yscaler
             for i in range(len(yhat_train)):
                 yhat_train[i] = yscaler.inverse_transform(yhat_train[i])
                 yhat_test[i] = yscaler.inverse_transform(yhat_test[i])
@@ -261,11 +263,17 @@ class PostProcessor:
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
 
+        if self._xscaler:
+            xtrain = self._xscaler.transform(self._xtrain)
+
+        if self._yscaler:
+            ytrain = self._yscaler.transform(self._ytrain)
+
         # Get regressor and fit the model
         regressor = self._models["Model Wrappers"][idx].set_params(
             **self._models["Parameter Configurations"][idx]
         )
-        regressor.fit(self._xtrain, self._ytrain)
+        regressor.fit(xtrain, ytrain)
 
         return regressor
 
