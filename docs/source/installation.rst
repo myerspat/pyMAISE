@@ -2,6 +2,38 @@
 Installation
 ============
 
+.. _prerequisites:
+
+-------------
+Prerequisites
+-------------
+
+.. admonition:: Required
+   :class: error
+
+   - `NumPy <https://numpy.org/>`_
+   
+   - `pandas <https://pandas.pydata.org/>`_
+
+   - `scikit-learn <https://scikit-learn.org/stable/index.html>`_
+
+   - `scikit-optimize <https://scikit-optimize.github.io/stable/>`_
+
+   - `Keras <https://keras.io>`_
+
+   - `TensorFlow <https://tensorflow.org>`_
+
+   - `SciKeras <https://adriangb.com/scikeras/stable/>`_
+
+   - `Matplotlib <https://matplotlib.org/stable/>`_
+
+.. admonition:: Optional
+   :class: note
+
+   - `pytest <https://docs.pytest/en/7.2.x/contents.html>`_
+
+   - `SciPy <https://scipy.org>`_
+
 ---
 Pip
 ---

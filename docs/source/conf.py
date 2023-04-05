@@ -6,24 +6,26 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'pyMAISE'
-copyright = '2023, Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh'
-author = 'Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh'
-release = '0.0.1'
+project = "pyMAISE"
+copyright = "2023, Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh"
+author = "Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh"
+release = "0.0.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx_rtd_theme']
+extensions = ["sphinx_rtd_theme", "nbsphinx"]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_logo = "pyMAISElogo.png"
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_logo = "_images/pyMAISElogo.png"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_title = "pyMAISE Documentation"
+html_favicon = "_images/favicon.ico"

@@ -59,8 +59,16 @@ class PostProcessor:
 
         if yscaler != None:
             self._yscaler = yscaler
-            self._ytrain = yscaler.inverse_transform(self._ytrain)
-            self._ytest = yscaler.inverse_transform(self._ytest)
+            self._ytrain = pd.DataFrame(
+                yscaler.inverse_transform(self._ytrain),
+                index=self._ytrain.index,
+                columns=self._ytrain.columns,
+            )
+            self._ytest = pd.DataFrame(
+                yscaler.inverse_transform(self._ytest),
+                index=self._ytest.index,
+                columns=self._ytest.columns,
+            )
 
             for i in range(len(yhat_train)):
                 yhat_train[i] = yscaler.inverse_transform(yhat_train[i])
@@ -289,8 +297,8 @@ class PostProcessor:
         # Get prediected and actual outputs
         yhat_train = self._models["Train Yhat"][idx]
         yhat_test = self._models["Test Yhat"][idx]
-        ytrain = self._ytrain
-        ytest = self._ytest
+        ytrain = self._ytrain.to_numpy()
+        ytest = self._ytest.to_numpy()
 
         if ax == None:
             ax = plt.gca()
@@ -334,7 +342,7 @@ class PostProcessor:
 
         # Get prediected and actual outputs
         yhat_test = self._models["Test Yhat"][idx]
-        ytest = self._ytest
+        ytest = self._ytest.to_numpy()
 
         if ax == None:
             ax = plt.gca()
