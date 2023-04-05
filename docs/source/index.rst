@@ -10,7 +10,7 @@ pyMAISE is an artificial intelligence (AI) and machine learning (ML) benchmarkin
 - support vector regression,
 - random forest regression,
 - k-nearest neighbors regression,
-- and sequential dense neural networks.
+- sequential dense neural networks.
 
 These models are built using `scikit-learn <https://scikit-learn.org/stable/index.html>`_ and `Keras <https://keras.io>`_. For more information such as installation, examples, and use, refer to the sections below.
 
@@ -24,5 +24,5 @@ Contents
    installation
    user_guide
    models
-   Examples <https://github.com/myerspat/pyMAISE/tree/develop/examples>
+   examples/index
    license

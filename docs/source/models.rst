@@ -26,7 +26,7 @@ This model is based on ``sklearn.linear_model.LinearRegression`` which minimizes
 Lasso Regression
 ----------------
 
-Lasso regression uses the ``sklearn.linear_model.Lasso`` which is a linear regression with L1 prior as regulizer. For more information on the method in Python reger to https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html.
+Lasso regression uses the ``sklearn.linear_model.Lasso`` which is a linear regression with L1 prior as regularizer. For more information on the method in Python reger to https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html.
 
 -------------------------
 Support Vector Regression

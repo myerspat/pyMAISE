@@ -1,0 +1,17 @@
+.wy-nav-content {
+  max-width: 1000px !important;
+}
+
+.wy-side-nav-search {
+  background-color: #FFCB05;
+}
+
+.wy-nav-side {
+  background-color: #00274C;
+}
+
+div#notebook-container.container {
+  padding: 0px;
+  width: auto;
+  box-shadow: none;
+}

@@ -8,7 +8,7 @@ ML generation in pyMAISE is done in five steps:
 2. :ref:`pre-processing <preprocessing>`,
 3. :ref:`Model initialization <model_init>`,
 4. :ref:`hyper-parameter tuning <hyperparameter_tun>`, 
-5. and :ref:`post-processing <postprocessing>`.
+5. :ref:`post-processing <postprocessing>`.
 
 Each step and their respective classes are discussed below.
 
@@ -29,19 +29,12 @@ We shorten ``pyMAISE`` to ``mai`` for readability and convenience.
 Defining Global Settings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Every pyMAISE job requires initialization through the ``Settings`` class. These global settings include:
+Every pyMAISE job requires initialization through the ``Settings`` class. These global settings and their defaults include:
 
-- ``verbosity``: how much pyMAISE outputs to the terminal,
-- ``random_state``: the global random state used by ML pseudo random algorithms during training,
-- ``test_size``: the fraction of data used for model testing,
-- and ``num_configs_saved``: the number of hyper-parameter configurations saved, only the top ``num_configs_saved`` are returned.
-
-These settings are defaulted to the following:
-
-- ``verbosity = 0``,
-- ``random_state = None``,
-- ``test_size = 0.3``,
-- and ``num_configs_saved = 5``.
+- ``verbosity = 0``: how much pyMAISE outputs to the terminal,
+- ``random_state = None``: the global random state used by ML pseudo random algorithms during training,
+- ``test_size = 0.3``: the fraction of data used for model testing,
+- ``num_configs_saved = 5``: the number of hyper-parameter configurations saved, only the top ``num_configs_saved`` are returned.
 
 To initialize pyMAISE with default global variables you run:
 
@@ -49,7 +42,7 @@ To initialize pyMAISE with default global variables you run:
 
    global_settings = mai.settings.init()
 
-However, these defaults can be changed by passing any changed parameters you want in a dicionary. For example, if we wanted a ``verbosity`` of 1 and a ``random_state`` of 42 we define a dictionary,
+However, these defaults can be changed by passing any changed parameters you want in a dictionary. For example, if we wanted a ``verbosity`` of 1 and a ``random_state`` of 42 we define a dictionary,
 
 .. code-block:: python
 
@@ -70,7 +63,7 @@ We can pass that to the initialization function:
 Pre-processing
 --------------
 
-In this section we'll load and scale our data. Additionally, we can generate correlation matricies and retrieve properties such as `xscaler` and `yscaler`.
+In this section we'll load and scale our data. Additionally, we can generate correlation matricies and retrieve properties such as ``xscaler`` and ``yscaler`` (discussed in the `Data Scaling <data_scaling>`_ section).
 
 Loading Data
 ^^^^^^^^^^^^
@@ -104,6 +97,8 @@ If you wish to load the benchmark specific pre-processors run the corresponding 
 - Heat conduction: ``mai.load_heat()``
 - BWR: ``mai.load_BWR()``
 
+.. _data_scaling:
+
 Data Scaling
 ^^^^^^^^^^^^
 
@@ -120,7 +115,7 @@ The performance of many ML models depends on the scaling of the data. pyMAISE of
    # Standard scaling
    data = preprocessor.std_scale()
 
-All three methods return a tuple of training and testing data, ``xtrain, xtest, ytrain, ytest``, and both ``min_max_scale`` and ``std_scale()`` can scale input and/or output data depending on how ``scale_x`` and ``scale_y`` are defined. To min-max scale only the inputs run
+All three methods return a tuple of training and testing data, ``xtrain, xtest, ytrain, ytest``, and both ``min_max_scale`` and ``std_scale`` can scale input and/or output data depending on how ``scale_x`` and ``scale_y`` are defined. Both ``min_max_scale`` and ``std_scale`` use scaling objects from ``sklearn.preprocessing`` that can be retrieved with the ``xscaler`` and ``yscaler`` properties. To min-max scale only the inputs run
 
 .. code-block:: python
 
@@ -162,7 +157,7 @@ pyMAISE supports both classical ML methods and dense sequantial neural networks.
 
 The classical models use `scikit-learn <https://scikit-learn.org/stable/index.html>`_ model wrappers and the neural networks are based on `Keras <https://keras.io>`_. For more information on the models themselves refer to the :ref:`Machine Learning Models <models>` section.
 
-To initialize each of your desired models specify their pyMAISE specific names in the ``models`` list in a dicitonary. Then for each of the models define a dictionary of hyper-parameters you'd like to change. Only parameters with values different from their scikit-learn or Keras defaults must be specified. These parameters will define the values that remain constant throughout tuning or the initial guess for random and Bayesian search. Refer to the :ref:`Model Dictionary Templates <model_temp>` section for a dictionary of parameters for each model. As an example, lets initialize ``linear``, ``lasso``, and ``rforest`` with 200 estimators:
+To initialize each of your desired models, specify their pyMAISE specific names in the ``models`` list in a dicitonary. Then for each of the models define a dictionary of hyper-parameters you'd like to change. Only parameters with values different from their scikit-learn or Keras defaults must be specified. These parameters will define the values that remain constant throughout tuning or the initial guess for random and Bayesian search. Refer to the :ref:`Model Dictionary Templates <model_temp>` section for a dictionary of parameters for each model. As an example, lets initialize ``linear``, ``lasso``, and ``rforest`` with 200 estimators:
 
 .. code-block:: python
 
@@ -185,7 +180,7 @@ We can then initialize the ``Tuning`` class in pyMAISE with our ``data`` tuple a
 Hyper-parameter Tuning
 ----------------------
 
-With all the models of interest initialized in ``tuning``, we can begin hyper-parameter tuning. pyMAISE supports three types of search methods: grid, random, or Bayesian search.
+With all the models of interest initialized in ``tuning``, we can begin hyper-parameter tuning. pyMAISE supports three types of search methods: grid, random, or Bayesian search. Each of the search functions require the definition of parameter search spaces in dictionaries for each model type. The function then pulls the parameter space for each model and passes it to the search function.
 
 Grid Search
 ^^^^^^^^^^^
@@ -217,7 +212,7 @@ As ``grid_search`` uses ``GridSearchCV`` from scikit-learn we can pass other sup
 Random Search
 ^^^^^^^^^^^^^
 
-Random search evaluates hyper-parameter configurations from randomly sampled distributions. As this method in pyMAISE uses ``RandomizedSearchCV`` from scikit-learn, we can define the parameter spaces as dictionaries of scipy.stats.distributions or lists. While the number of evaluated parameter configurations grows quickly in grid search, random search requires you to define the number of iterations to sample and train models. Here is an example with ``lasso`` and ``rforest``:
+Random search evaluates hyper-parameter configurations from randomly sampled distributions. As this method in pyMAISE uses ``RandomizedSearchCV`` from scikit-learn, we can define the parameter spaces as dictionaries of ``scipy.stats`` distributions or lists. While the number of evaluated parameter configurations grows quickly in grid search, random search requires you to define the number of iterations to sample and train models. Here is an example with ``lasso`` and ``rforest``:
 
 .. code-block:: python
 
@@ -302,9 +297,9 @@ The performance metrics we'll use to assess and compare each of the models are
 - r-squared: :math:`R^2 = 1 - \frac{\sum_{i = 1}^{n}(y_i - \hat{y_i})^2}{\sum_{i = 1}^{n}(y_i - \bar{y_i})^2}`,
 - mean absolute error: :math:`MAE = \frac{1}{n}\sum_{i = 1}^{n}|y_i - \hat{y_i}|`,
 - mean squared error: :math:`MSE = \frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y_i})^2`,
-- and root mean squared error: :math:`RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y_i})^2}`.
+- root mean squared error: :math:`RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n(y_i - \hat{y_i})^2}`,
 
-These metrics are computed for both the training and testing data sets and are computed through the ``metrics`` function in the ``PostProcessor``. You can choose how the DataFrame is sorted, whether the features are averaged or only the metrics for one feature is computed, and which models to show. With this information you can compare the performance of each of your models on your data set.
+where :math:`y` is the actual outcome, :math:`\hat{y}` is the model predicted outcome, :math:`\bar` is the average outcome, and :math:`n` is the number of observations. These metrics are computed for both the training and testing data sets and are computed through the ``metrics`` function in the ``PostProcessor``. You can choose how the DataFrame is sorted, whether the features are averaged or only the metrics for one feature is computed, and which models to show. With this information you can compare the performance of each of your models on your data set.
 
 Diagonal Validation Plots
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -328,4 +323,4 @@ Finally, the ``PreProcessor`` is equipped with several additional methods to mod
 
 - ``get_params``: get the parameter configurations from a specific model,
 - ``get_model``: get the model wrapper,
-- and ``get_predictions``: get the training and testing predictions from a specific model.
+- ``get_predictions``: get the training and testing predictions from a specific model.
