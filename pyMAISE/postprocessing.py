@@ -13,7 +13,6 @@ class PostProcessor:
         data: pd.DataFrame,
         models_list,
         new_model_settings: dict = None,
-        xscaler=None,
         yscaler=None,
     ):
         # Extract data
@@ -58,13 +57,11 @@ class PostProcessor:
         # and testing from each model
         yhat_train, yhat_test, histories = self._fit()
 
-        if xscaler != None:
-            self._xscaler = xscaler
-            self._xtrain = xscaler.inverse_transform(self._xtrain)
-            self._xtest = xscaler.inverse_transform(self._xtest)
-
         if yscaler != None:
             self._yscaler = yscaler
+            self._ytrain = yscaler.inverse_transform(self._ytrain)
+            self._ytest = yscaler.inverse_transform(self._ytest)
+
             for i in range(len(yhat_train)):
                 yhat_train[i] = yscaler.inverse_transform(yhat_train[i])
                 yhat_test[i] = yscaler.inverse_transform(yhat_test[i])
@@ -263,9 +260,6 @@ class PostProcessor:
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
 
-        if self._xscaler:
-            xtrain = self._xscaler.transform(self._xtrain)
-
         if self._yscaler:
             ytrain = self._yscaler.transform(self._ytrain)
 
@@ -273,7 +267,7 @@ class PostProcessor:
         regressor = self._models["Model Wrappers"][idx].set_params(
             **self._models["Parameter Configurations"][idx]
         )
-        regressor.fit(xtrain, ytrain)
+        regressor.fit(self._xtrain, ytrain)
 
         return regressor
 
