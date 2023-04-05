@@ -21,3 +21,5 @@ These models are built using [scikit-learn](https://scikit-learn.org/stable/inde
 Refer to the [installation guide](https://pymaise.readthedocs.io/en/latest/installation.html) and [documentation](https://pymaise.readthedocs.io/en/latest/index.html) for help.
 
 ## Benchmark Example Jupyter Notebooks
+
+You can find the pyMAISE benchmarks [here](https://pymaise.readthedocs.io/en/latest/examples/index.html).
