@@ -23,6 +23,7 @@ Contents
    
    installation
    user_guide
+   dev_guide
    models
    examples/index
    license
