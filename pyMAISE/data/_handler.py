@@ -28,3 +28,9 @@ def load_fp():
 # Load benchmark fuel centerline temperature data
 def load_heat():
     return PreProcesser(get_full_path("data/heat.csv"), slice(0, -1), slice(-1, None))
+
+# Rod ejection accident data
+def load_rea():
+    return PreProcesser(
+        [get_full_path("data/rea_inputs.csv"), get_full_path("data/rea_outputs.csv")],
+    )
