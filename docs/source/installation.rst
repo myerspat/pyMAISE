@@ -38,7 +38,10 @@ Prerequisites
 Pip
 ---
 
-This is not supported yet.
+Install through Pip by running
+
+.. code-block:: sh
+   pip3 install pyMAISE
 
 -----------
 From Source

@@ -14,3 +14,4 @@ Welcome to the pyMAISE example Jupyter Notebooks! These notebooks include the ma
    fuel_performance.ipynb
    heat_conduction.ipynb
    bwr.ipynb
+   rod_ejection.ipynb
