@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 DESCRIPTION = "Michigan Artificial Intelligance Standard Environment"
 LONG_DESCRIPTION = "Machine learning and artificial intelligance benchmarking library for nuclear engineering applications."
 
