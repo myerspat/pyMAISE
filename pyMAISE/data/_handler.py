@@ -34,3 +34,18 @@ def load_rea():
     return PreProcesser(
         [get_full_path("data/rea_inputs.csv"), get_full_path("data/rea_outputs.csv")],
     )
+
+# Load BWR micro-reactor data
+def load_bwr():
+    return PreProcesser(
+        [get_full_path("data/bwr_input.csv"), get_full_path("data/bwr_output.csv")],
+    )
+
+# Load HTGR micro reactor quadrant power data before preprocessing
+def load_qpower():
+    return PreProcesser(get_full_path("data/microreactor.csv"), slice(29, 37), slice(4, 8))
+
+# Load HTGR micro-reactor quadrant power data after preprocessing using symmetry conditions
+def load_pqpower():
+    return PreProcesser(get_full_path("data/microreactor_preprocessed.csv"), slice(1,9), slice(9, 14))
+
