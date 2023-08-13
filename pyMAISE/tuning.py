@@ -39,7 +39,7 @@ class Tuning:
                     raise Exception("SVR does not support multi-output data sets")
                 self._models[model] = SVRegression(parameters=parameters)
             elif model == "dtree":
-                self._models[model] = DecisionTreeRegression(parameters=parameters)
+                self._models[model] = DecisionTree(parameters=parameters)
             elif model == "rforest":
                 self._models[model] = RandomForestRegression(parameters=parameters)
             elif model == "knn":
