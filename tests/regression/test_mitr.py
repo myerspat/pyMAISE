@@ -29,6 +29,7 @@ def test_mitr():
         "random_state": 42,
         "test_size": 0.3,
         "num_configs_saved": 1,
+        "regression": True,
     }
     global_settings = mai.settings.init(settings_changes=settings)
 
