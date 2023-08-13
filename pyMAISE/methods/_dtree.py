@@ -1,12 +1,18 @@
 import pyMAISE.settings as settings
 
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 
 
-class DecisionTreeRegression:
+class DecisionTree:
     def __init__(self, parameters: dict = None):
         # Model parameters
-        self._criterion = "squared_error"
+        # Model parameters that are different for regressor versus classifier
+        if settings.values.regression:
+            self._criterion = "squared_error"
+        else:
+            self._criterion = "gini"
+            self._class_weight = None
+
         self._splitter = "best"
         self._max_depth = None
         self._min_samples_split = 2
@@ -25,19 +31,36 @@ class DecisionTreeRegression:
     # ===========================================================
     # Methods
     def regressor(self):
-        return DecisionTreeRegressor(
-            criterion=self._criterion,
-            splitter=self._splitter,
-            max_depth=self._max_depth,
-            min_samples_split=self._min_samples_split,
-            min_samples_leaf=self._min_samples_leaf,
-            min_weight_fraction_leaf=self._min_weight_fraction_leaf,
-            max_features=self._max_features,
-            random_state=settings.values.random_state,
-            max_leaf_nodes=self._max_leaf_nodes,
-            min_impurity_decrease=self._min_impurity_decrease,
-            ccp_alpha=self._ccp_alpha,
-        )
+        if settings.values.regression:
+            return DecisionTreeRegressor(
+                criterion=self._criterion,
+                splitter=self._splitter,
+                max_depth=self._max_depth,
+                min_samples_split=self._min_samples_split,
+                min_samples_leaf=self._min_samples_leaf,
+                min_weight_fraction_leaf=self._min_weight_fraction_leaf,
+                max_features=self._max_features,
+                random_state=settings.values.random_state,
+                max_leaf_nodes=self._max_leaf_nodes,
+                min_impurity_decrease=self._min_impurity_decrease,
+                ccp_alpha=self._ccp_alpha,
+            )
+        else:
+            return DecisionTreeClassifier(
+                criterion=self._criterion,
+                splitter=self._splitter,
+                max_depth=self._max_depth,
+                min_samples_split=self._min_samples_split,
+                min_samples_leaf=self._min_samples_leaf,
+                min_weight_fraction_leaf=self._min_weight_fraction_leaf,
+                max_features=self._max_features,
+                random_state=settings.values.random_state,
+                max_leaf_nodes=self._max_leaf_nodes,
+                min_impurity_decrease=self._min_impurity_decrease,
+                class_weight=self._class_weight,
+                ccp_alpha=self._ccp_alpha,
+            )
+
 
     # ===========================================================
     # Getters
