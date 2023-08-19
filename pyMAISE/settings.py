@@ -12,6 +12,10 @@ class Settings:
         self._random_state = None
         self._test_size = 0.3
         self._num_configs_saved = 5
+        self._regression = False
+        self._classification = False
+
+        print("dict: ", update)
 
         # If a dictionary of key/value pairs is given,
         # update settings
@@ -44,6 +48,9 @@ class Settings:
             )
             tf.compat.v1.keras.backend.set_session(sess)
 
+            assert self._regression == True | self._classification == True
+            assert (self._regression == True & self._classification == True) != True
+
     # Getters
     @property
     def verbosity(self) -> int:
@@ -60,6 +67,14 @@ class Settings:
     @property
     def num_configs_saved(self) -> int:
         return self._num_configs_saved
+    
+    @property
+    def regression(self) -> bool:
+        return self._regression
+
+    @property
+    def classification(self) -> bool:
+        return self._classification
 
     # Setters
     @verbosity.setter
@@ -84,6 +99,15 @@ class Settings:
         assert num_configs_saved > 0
         self._num_configs_saved = num_configs_saved
 
+    @regression.setter
+    def regression(self, regression: bool) -> bool:
+        self._classification = not regression
+        self._regression = regression
+
+    @classification.setter
+    def classification(self, classification: bool) -> bool:
+        self.regression = not classification
+        self._classification = classification
 
 # Initialization function for global settings
 def init(settings_changes: dict = None):
