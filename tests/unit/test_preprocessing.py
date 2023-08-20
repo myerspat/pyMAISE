@@ -12,7 +12,7 @@ def test_data_split():
             "random_state": 0,
             "test_size": 0.3,
             "regression": True,
-            "classification": False
+            "classification": False,
             }
     settings = mai.settings.init(settings_changes=settings)
 
