@@ -36,4 +36,3 @@ def test_data_split():
     assert settings.regression == True
     assert settings.classification == False
 
-test_data_split()
