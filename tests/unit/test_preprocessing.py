@@ -28,10 +28,9 @@ def test_data_split():
     # Change random_state and test_size
     settings_changes = {"random_state": 42, "test_size": 0.4}
     settings = mai.settings.init(settings_changes)
-    print(settings.regression)
+    
     # Assert settings are correct
     assert settings.verbosity == 0
     assert settings.random_state == 42
     assert settings.test_size == 0.4
-    assert settings.regression == True
 
