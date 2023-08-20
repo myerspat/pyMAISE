@@ -7,9 +7,16 @@ def test_data_split():
     xs_preprocessor = mai.load_xs()
 
     # Init settings
-    settings = mai.settings.init()
+    settings = {
+            "verbosity": 0,
+            "random_state": 0,
+            "test_size": 0.4,
+            "regression": True,
+            "classification": False
+            }
+    settings = mai.settings.init(settings_changes=settings)
 
-    # Split data
+# Split data
     xtrain, xtest, ytrain, ytest = xs_preprocessor.data_split()
 
     # Assert DataFrame dimensions and size after split
@@ -26,3 +33,6 @@ def test_data_split():
     assert settings.verbosity == 0
     assert settings.random_state == 42
     assert settings.test_size == 0.4
+    assert settings.regression == True
+    assert settings.classification == False
+

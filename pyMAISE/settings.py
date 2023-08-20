@@ -15,8 +15,6 @@ class Settings:
         self._regression = False
         self._classification = False
 
-        print("dict: ", update)
-
         # If a dictionary of key/value pairs is given,
         # update settings
         if update != None:
@@ -48,7 +46,7 @@ class Settings:
             )
             tf.compat.v1.keras.backend.set_session(sess)
 
-            assert self._regression == True | self._classification == True
+            assert (self._regression == True) | (self._classification == True)
             assert (self._regression == True & self._classification == True) != True
 
     # Getters
