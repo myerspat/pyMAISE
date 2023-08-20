@@ -10,7 +10,7 @@ def test_data_split():
     settings = {
             "verbosity": 0,
             "random_state": 0,
-            "test_size": 0.4,
+            "test_size": 0.3,
             "regression": True,
             "classification": False
             }
