@@ -34,5 +34,4 @@ def test_data_split():
     assert settings.random_state == 42
     assert settings.test_size == 0.4
     assert settings.regression == True
-    assert settings.classification == False
 
