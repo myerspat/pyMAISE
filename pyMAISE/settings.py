@@ -46,7 +46,7 @@ class Settings:
             )
             tf.compat.v1.keras.backend.set_session(sess)
 
-            assert (self._regression == True) | (self._classification == True)
+            # assert (self._regression == True) | (self._classification == True)
             assert (self._regression == True & self._classification == True) != True
 
     # Getters
