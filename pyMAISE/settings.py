@@ -99,10 +99,12 @@ class Settings:
 
     @regression.setter
     def regression(self, regression: bool) -> bool:
+        self._classification = not regression
         self._regression = regression
 
     @classification.setter
     def classification(self, classification: bool) -> bool:
+        self._regression = not classification
         self._classification = classification
 
 # Initialization function for global settings
