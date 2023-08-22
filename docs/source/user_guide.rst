@@ -34,9 +34,11 @@ Every pyMAISE job requires initialization through the ``Settings`` class. These 
 - ``verbosity = 0``: how much pyMAISE outputs to the terminal,
 - ``random_state = None``: the global random state used by ML pseudo random algorithms during training,
 - ``test_size = 0.3``: the fraction of data used for model testing,
-- ``num_configs_saved = 5``: the number of hyper-parameter configurations saved, only the top ``num_configs_saved`` are returned.
+- ``num_configs_saved = 5``: the number of hyper-parameter configurations saved, only the top ``num_configs_saved`` are returned,
+- ``regression = False``: Boolean for regression models,
+- ``classification = False``: Boolean for classification models.
 
-To initialize pyMAISE with default global variables you run:
+Either ``regression`` and ``classification`` must be set to ``True`` depending on your problem. To initialize pyMAISE with default global variables you run:
 
 .. code-block:: python
 
