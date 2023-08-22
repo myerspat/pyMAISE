@@ -1,5 +1,7 @@
-from pyMAISE.preprocessing import PreProcesser
 from pkg_resources import resource_filename
+
+from pyMAISE.preprocessing import PreProcesser
+
 
 # Get full pyMAISE data file path
 def get_full_path(path: str):
@@ -29,23 +31,30 @@ def load_fp():
 def load_heat():
     return PreProcesser(get_full_path("data/heat.csv"), slice(0, -1), slice(-1, None))
 
+
 # Rod ejection accident data
 def load_rea():
     return PreProcesser(
         [get_full_path("data/rea_inputs.csv"), get_full_path("data/rea_outputs.csv")],
     )
 
+
 # Load BWR micro-reactor data
-def load_bwr():
+def load_BWR():
     return PreProcesser(
         [get_full_path("data/bwr_input.csv"), get_full_path("data/bwr_output.csv")],
     )
 
+
 # Load HTGR micro reactor quadrant power data before preprocessing
 def load_qpower():
-    return PreProcesser(get_full_path("data/microreactor.csv"), slice(29, 37), slice(4, 8))
+    return PreProcesser(
+        get_full_path("data/microreactor.csv"), slice(29, 37), slice(4, 8)
+    )
+
 
 # Load HTGR micro-reactor quadrant power data after preprocessing using symmetry conditions
 def load_pqpower():
-    return PreProcesser(get_full_path("data/microreactor_preprocessed.csv"), slice(1,9), slice(9, 14))
-
+    return PreProcesser(
+        get_full_path("data/microreactor_preprocessed.csv"), slice(1, 9), slice(9, 14)
+    )
