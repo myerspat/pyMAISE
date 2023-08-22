@@ -1,6 +1,6 @@
 from ._linear import LinearRegression
 from ._lasso import LassoRegression
-from ._dtree import DecisionTreeRegression
+from ._dtree import DecisionTree
 from ._rforest import RandomForestRegression
 from ._nn import NeuralNetsRegression
 from ._nn_wrapper import NeuralNetsWrapper
