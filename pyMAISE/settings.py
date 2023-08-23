@@ -1,8 +1,10 @@
 import os
 import random
+import warnings
+
 import numpy as np
 import tensorflow as tf
-import warnings
+
 
 # Class for global settings
 class Settings:
@@ -46,8 +48,8 @@ class Settings:
             )
             tf.compat.v1.keras.backend.set_session(sess)
 
-            # assert (self._regression == True) | (self._classification == True)
-            assert (self._regression == True & self._classification == True) != True
+            assert (self._regression == True) | (self._classification == True)
+            assert (self._regression != False) | (self._classification != False)
 
     # Getters
     @property
@@ -65,7 +67,7 @@ class Settings:
     @property
     def num_configs_saved(self) -> int:
         return self._num_configs_saved
-    
+
     @property
     def regression(self) -> bool:
         return self._regression
@@ -106,6 +108,7 @@ class Settings:
     def classification(self, classification: bool) -> bool:
         self._regression = not classification
         self._classification = classification
+
 
 # Initialization function for global settings
 def init(settings_changes: dict = None):
