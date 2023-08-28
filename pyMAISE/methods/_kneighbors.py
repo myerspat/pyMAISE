@@ -1,7 +1,10 @@
-from sklearn.neighbors import KNeighborsRegressor
+import pyMAISE.settings as settings
+
+from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 
 
-class KNeighborsRegression:
+
+class KNeighbors:
     def __init__(self, parameters: dict = None):
         # Model Parameters
         self._n_neighbors = 5
@@ -21,16 +24,29 @@ class KNeighborsRegression:
     # ===========================================================
     # Methods
     def regressor(self):
-        return KNeighborsRegressor(
-            n_neighbors=self._n_neighbors,
-            weights=self._weights,
-            algorithm=self._algorithm,
-            leaf_size=self._leaf_size,
-            p=self._p,
-            metric=self._metric,
-            metric_params=self._metric_params,
-            n_jobs=self._n_jobs,
-        )
+
+        if settings.values.regression:
+            return KNeighborsRegressor(
+                n_neighbors=self._n_neighbors,
+                weights=self._weights,
+                algorithm=self._algorithm,
+                leaf_size=self._leaf_size,
+                p=self._p,
+                metric=self._metric,
+                metric_params=self._metric_params,
+                n_jobs=self._n_jobs,
+            )
+        else:
+            return KNeighborsClassifier(
+                n_neighbors=self._n_neighbors,
+                weights=self._weights,
+                algorithm=self._algorithm,
+                leaf_size=self._leaf_size,
+                p=self._p,
+                metric=self._metric,
+                metric_params=self._metric_params,
+                n_jobs=self._n_jobs,
+            )
 
     # ===========================================================
     # Getters
