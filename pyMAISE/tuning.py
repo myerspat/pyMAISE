@@ -41,9 +41,9 @@ class Tuning:
             elif model == "dtree":
                 self._models[model] = DecisionTree(parameters=parameters)
             elif model == "rforest":
-                self._models[model] = RandomForestRegression(parameters=parameters)
+                self._models[model] = RandomForest(parameters=parameters)
             elif model == "knn":
-                self._models[model] = KNeighborsRegression(parameters=parameters)
+                self._models[model] = KNeighbors(parameters=parameters)
             elif model == "nn":
                 self._models[model] = NeuralNetsRegression(parameters=parameters)
             else:
