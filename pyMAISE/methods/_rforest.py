@@ -1,18 +1,24 @@
 import pyMAISE.settings as settings
 
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
 
-class RandomForestRegression:
+class RandomForest:
     def __init__(self, parameters: dict = None):
         # Model parameters
-        self._n_estimators = 100
-        self._criterion = "squared_error"
+
+        if settings.values.regression:
+            self._criterion = "squared_error"
+            self._max_features = 1.0
+        else:
+            self._criterion = "gini"
+            self._max_features = "sqrt"
+
+        self._n_estimators = 100        
         self._max_depth = None
         self._min_samples_split = 2
         self._min_samples_leaf = 1
         self._min_weight_fraction_leaf = 0.0
-        self._max_features = None
         self._max_leaf_nodes = None
         self._min_impurity_decrease = 0.0
         self._bootstrap = True
@@ -30,25 +36,47 @@ class RandomForestRegression:
     # ===========================================================
     # Methods
     def regressor(self):
-        return RandomForestRegressor(
-            n_estimators=self._n_estimators,
-            criterion=self._criterion,
-            max_depth=self._max_depth,
-            min_samples_split=self._min_samples_split,
-            min_samples_leaf=self._min_samples_leaf,
-            min_weight_fraction_leaf=self._min_weight_fraction_leaf,
-            max_features=self._max_features,
-            random_state=settings.values.random_state,
-            max_leaf_nodes=self._max_leaf_nodes,
-            min_impurity_decrease=self._min_impurity_decrease,
-            bootstrap=self._bootstrap,
-            oob_score=self._oob_score,
-            verbose=settings.values.verbosity,
-            warm_start=self._warm_start,
-            ccp_alpha=self._ccp_alpha,
-            max_samples=self._max_samples,
-            n_jobs=self._n_jobs,
-        )
+        if settings.values.regression:
+                
+            return RandomForestRegressor(
+                n_estimators=self._n_estimators,
+                criterion=self._criterion,
+                max_depth=self._max_depth,
+                min_samples_split=self._min_samples_split,
+                min_samples_leaf=self._min_samples_leaf,
+                min_weight_fraction_leaf=self._min_weight_fraction_leaf,
+                max_features=self._max_features,
+                random_state=settings.values.random_state,
+                max_leaf_nodes=self._max_leaf_nodes,
+                min_impurity_decrease=self._min_impurity_decrease,
+                bootstrap=self._bootstrap,
+                oob_score=self._oob_score,
+                verbose=settings.values.verbosity,
+                warm_start=self._warm_start,
+                ccp_alpha=self._ccp_alpha,
+                max_samples=self._max_samples,
+                n_jobs=self._n_jobs,
+            )
+        else:
+            return RandomForestClassifier(
+                n_estimators=self._n_estimators,
+                criterion=self._criterion,
+                max_depth=self._max_depth,
+                min_samples_split=self._min_samples_split,
+                min_samples_leaf=self._min_samples_leaf,
+                min_weight_fraction_leaf=self._min_weight_fraction_leaf,
+                max_features=self._max_features,
+                random_state=settings.values.random_state,
+                max_leaf_nodes=self._max_leaf_nodes,
+                min_impurity_decrease=self._min_impurity_decrease,
+                bootstrap=self._bootstrap,
+                oob_score=self._oob_score,
+                verbose=settings.values.verbosity,
+                warm_start=self._warm_start,
+                ccp_alpha=self._ccp_alpha,
+                max_samples=self._max_samples,
+                n_jobs=self._n_jobs,
+            )
 
     # ===========================================================
     # Getters

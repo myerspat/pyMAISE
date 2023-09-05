@@ -58,3 +58,10 @@ def load_pqpower():
     return PreProcesser(
         get_full_path("data/microreactor_preprocessed.csv"), slice(1, 9), slice(9, 14)
     )
+
+
+# Filler Iris data from sklearn until a classification model can be used for a regression test of the classification work flow
+def load_iris():
+    return PreProcesser(
+            get_full_path("data/load_iris.csv"), slice(0,4), slice(4,5)
+    )
