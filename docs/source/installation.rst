@@ -54,13 +54,13 @@ To install pyMAISE you can clone the repository. Make sure ``git`` is installed 
 
    git clone https://github.com/myerspat/pyMAISE.git
 
-To get this version run
+To get a specific version, checkout the version's branch,
 
 .. code-block:: sh
 
-   git checkout 0.0.2
+   git checkout <major>.<minor>.<patch>
 
-In the ``pyMAISE`` directory you can run 
+In the ``pyMAISE`` directory you can run, 
 
 .. code-block:: sh
 
