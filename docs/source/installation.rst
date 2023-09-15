@@ -41,6 +41,7 @@ Pip
 Install through Pip by running
 
 .. code-block:: sh
+
    pip3 install pyMAISE
 
 -----------
@@ -52,6 +53,12 @@ To install pyMAISE you can clone the repository. Make sure ``git`` is installed 
 .. code-block:: sh
 
    git clone https://github.com/myerspat/pyMAISE.git
+
+To get this version run
+
+.. code-block:: sh
+
+   git checkout 0.0.2
 
 In the ``pyMAISE`` directory you can run 
 
