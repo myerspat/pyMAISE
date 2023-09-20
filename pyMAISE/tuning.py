@@ -34,6 +34,8 @@ class Tuning:
                 self._models[model] = LinearRegression(parameters=parameters)
             elif model == "lasso":
                 self._models[model] = LassoRegression(parameters=parameters)
+            elif model == "logistic":
+                self._models[model] = Logistic_Regression(parameters=parameters)
             elif model == "svr":
                 if self._ytrain.shape[1] > 1:
                     raise Exception("SVR does not support multi-output data sets")
