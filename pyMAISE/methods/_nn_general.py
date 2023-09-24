@@ -143,6 +143,10 @@ class nnHyperModel(HyperModel):
             for key, value in optimizer_hyperparameters.items():
                 setattr(self, key, value)
 
+        print("--Checking Initialization--")
+        print("opt = ", self._optimizer)
+        print("loss = ", self._loss)
+
     def build(self, hp):
         # Define Keras Model
         model = Sequential()
@@ -159,9 +163,8 @@ class nnHyperModel(HyperModel):
            
 
         # Optimizer if not given one
-        model_optimizer = []
         if self._optimizer == "adam":
-            model_optimizer = Adam(learning_rate=self._learning_rate,
+            self._optimizer = Adam(learning_rate=self._learning_rate,
                                    beta_1=self._beta_1,
                                    beta_2=self._beta_2,
                                    epsilon=self._epsilon,
@@ -177,7 +180,7 @@ class nnHyperModel(HyperModel):
                                    )
 
         # Compile Model
-        model.compile(optimizer= model_optimizer,
+        model.compile(optimizer= self._optimizer,
                       loss=self._loss,
                       metrics=self._metrics,
                       loss_weights=self._loss_weights,
