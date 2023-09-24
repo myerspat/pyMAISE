@@ -413,14 +413,14 @@ class Tuning:
                 )
 
             # Get Hyperparameters
-            best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+            best_hps = tuner.get_best_hyperparameters()[0]
             print("-- Best Hyperparameters")
-            print(best_hps)
+            print(best_hps.values)
 
             # Build model with the optimal hyperparameters and train it on the data for 50 epochs
             model = tuner.hypermodel.build(best_hps)
             history = model.fit(
-                self._xtrain, self._ytrain, epochs=50, validation_split=0.2
+                self._xtrain, self._ytrain, epochs=50
             )
 
             val_acc_per_epoch = history.history["mean_absolute_error"]
@@ -430,7 +430,12 @@ class Tuning:
             # Re-instantiate the hypermoel and train it with the optimal number of epochs from above
             hypermodel = tuner.hypermodel.build(best_hps)
             hypermodel.fit(
-                self._xtrain, self._ytrain, epochs=best_epochs, validation=0.2
+                self._xtrain, self._ytrain, epochs=50
+            )
+
+            print(
+                "[test loss, test accuracy]:",
+                hypermodel.evaluate(self._xtrain, self._ytrain),
             )
 
             # next step in preprocessing eval_results = hypermodel.evaluate()

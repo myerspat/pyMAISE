@@ -154,8 +154,6 @@ class nnHyperModel(HyperModel):
         for key in self._structural_hyperparameters[
             "structural_hyperparameters"
         ].keys():
-            # print("archeteture = ", self._structural_hyperparameters["structural_hyperparameters"].keys())
-            # print("key =", key)
             # Initializing a unique layer with information
             layer = DenseLayerHyperModel(
                 self._structural_hyperparameters["structural_hyperparameters"][str(key)]
@@ -165,26 +163,22 @@ class nnHyperModel(HyperModel):
                 model.add(layer.build(hp))
 
         # Optimizer if not given one
+        modelopt = None
         if self._optimizer == "adam":
-            self._optimizer = Adam(
+            modelopt = Adam(
                 learning_rate=self._learning_rate,
                 beta_1=self._beta_1,
                 beta_2=self._beta_2,
                 epsilon=self._epsilon,
                 amsgrad=self._amsgrad,
-                weight_decay=self._weight_decay,
                 clipnorm=self._clipnorm,
                 clipvalue=self._clipvalue,
                 global_clipnorm=self._global_clipnorm,
-                use_ema=self._use_ema,
-                ema_momentum=self._ema_momentum,
-                ema_overwrite_frequency=self._ema_overwrite_frequency,
-                jit_compile=self._jit_compile,
             )
 
         # Compile Model
         model.compile(
-            optimizer=self._optimizer,
+            optimizer=modelopt,
             loss=self._loss,
             metrics=self._metrics,
             loss_weights=self._loss_weights,
