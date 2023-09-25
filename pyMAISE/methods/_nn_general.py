@@ -10,7 +10,7 @@ from tensorflow import keras
 from tensorflow.keras.optimizers import Adam
 
 import pyMAISE.settings as settings
-
+import re
 
 class DenseLayerHyperModel(HyperModel):
     def __init__(self, parameters: dict = None):
@@ -36,10 +36,10 @@ class DenseLayerHyperModel(HyperModel):
     def build(self, hp):
         if isinstance(self._num_nodes, list):
             num_nodes = hp.Int(
-                "Units",
-                min_value=self._num_nodes[0],
-                max_value=self._num_nodes[1],
-                step=self._num_nodes[2],
+                str(self._num_nodes[0]),
+                min_value=self._num_nodes[1],
+                max_value=self._num_nodes[2],
+                step=self._num_nodes[3],
             )
         else:
             num_nodes = self._num_nodes
@@ -70,6 +70,23 @@ class DenseLayerHyperModel(HyperModel):
                 bias_constraint=self._bias_constraint,
                 input_dim=self._input_dim,
             )
+
+    def reset(self):
+
+        self._input_dim = None
+        # If there is dense layers
+        self._dense = None
+        self._num_nodes = 0
+        self._activation = None
+        self._use_bias = None
+        self._kernel_initializer = "glorot_uniform"
+        self._bias_initializer = "zeros"
+        self._kernel_regularizer = None
+        self._bias_regularizer = None
+        self._activity_regularizer = None
+        self._kernel_constraint = None
+        self._bias_constraint = None
+
 
     @property
     def input_dim(self):
@@ -142,30 +159,41 @@ class nnHyperModel(HyperModel):
             for key, value in optimizer_hyperparameters.items():
                 setattr(self, key, value)
 
-        print("--Checking Initialization--")
-        print("opt = ", self._optimizer)
-        print("loss = ", self._loss)
-
     def build(self, hp):
         # Define Keras Model
         model = Sequential()
-
+        
+        sh = self._structural_hyperparameters["structural_hyperparameters"]
         # Iterating though archetecture and building a model from each layer
-        for key in self._structural_hyperparameters[
-            "structural_hyperparameters"
-        ].keys():
-            # Initializing a unique layer with information
-            layer = DenseLayerHyperModel(
-                self._structural_hyperparameters["structural_hyperparameters"][str(key)]
-            )
-            # adding the layer to the model
-            if key == "dense" or "dense_input" or "dense_output":
+        for layer_name in sh.keys():
+            
+            
+            # If we are just adding the input or output layer
+            if layer_name is "dense_input" or "dense_output":
+                layer = DenseLayerHyperModel(
+                        sh[str(layer_name)]
+                        )
                 model.add(layer.build(hp))
 
+            # adding the hidden layer to the model 
+            if layer_name is "dense" :
+                if "num_layers" in  sh["dense"].keys():
+                    for i in range(hp.Int('layers', sh["dense"]["num_layers"][0], sh["dense"]["num_layers"][1])):
+                        
+                        # Changing name of layer for each new iterative layer added
+                        sh["dense"]["num_nodes"][0] = self._structural_hyperparameters["structural_hyperparameters"]["dense"]["num_nodes"][0] + str(i)
+                        
+                        layer = DenseLayerHyperModel(
+                                sh[str(layer_name)]
+                                )
+                        model.add(layer.build(hp))
+
+            # Reset layer info for next time
+            layer.reset()
+
         # Optimizer if not given one
-        modelopt = None
         if self._optimizer == "adam":
-            modelopt = Adam(
+            self._optimizer = Adam(
                 learning_rate=self._learning_rate,
                 beta_1=self._beta_1,
                 beta_2=self._beta_2,
@@ -178,13 +206,16 @@ class nnHyperModel(HyperModel):
 
         # Compile Model
         model.compile(
-            optimizer=modelopt,
+            optimizer=self._optimizer,
             loss=self._loss,
             metrics=self._metrics,
             loss_weights=self._loss_weights,
             weighted_metrics=self._weighted_metrics,
             run_eagerly=self._run_eagerly,
         )
+        print("--summary--")
+        print(model.summary())
+        print("------------")
         return model
 
     # =============================================================
