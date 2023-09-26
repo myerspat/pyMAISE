@@ -1,3 +1,6 @@
+import copy
+import re
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -55,15 +58,11 @@ class Tuning:
                 self._models[model] = RandomForest(parameters=parameters)
             elif model == "knn":
                 self._models[model] = KNeighbors(parameters=parameters)
-            elif model == "nn":
-                self._models[model] = NeuralNetsRegression(parameters=parameters)
-            elif model == "nn_new":
-                self._models[model] = nnHyperModel(
-                    structural_hyperparameters=model_settings["nn_new"][0],
-                    optimizer_hyperparameters=model_settings["nn_new"][1][
-                        "optimizer_hyperparameters"
-                    ],
-                )
+            elif bool(re.search("nn", model)):
+                if settings.values.new_nn_architecture == True:
+                    self._models[model] = nnHyperModel(parameters=parameters)
+                else:
+                    self._models[model] = NeuralNetsRegression(parameters=parameters)
 
             else:
                 raise Exception(
@@ -258,6 +257,9 @@ class Tuning:
                 if settings.values.verbosity > 0:
                     print("-- " + model)
 
+                if bool(re.search("nn", model)) and settings.values.new_nn_architecture:
+                    continue
+
                 # Convert list of values to search space dimensions
                 for key, value in param_spaces[model].items():
                     if isinstance(value[0], int):
@@ -347,95 +349,67 @@ class Tuning:
 
         return ax
 
-    def bayesian_search_hypermodel(
+    def nn_bayesian_search(
         self,
-        objective,
-        max_trials,
-        directory,
-        project_name,
-        num_folds,
-        shuffle,
-        # callback_loss
+        models=None,
+        objective=None,
+        max_trials=10,
+        num_initial_points=None,
+        alpha=0.0001,
+        beta=2.6,
+        hyperparameters=None,
+        tune_new_entries=True,
+        allow_new_entries=True,
+        max_retries_per_trial=0,
+        max_consecutive_failed_trials=3,
+        overwrite=True,
+        directory="./",
+        project_name="best_hp",
     ):
-        print("Checking if model is initialized")
-        print("optimizer = ", self._models["nn_new"].optimizer)
-        print("loss = ", self._models["nn_new"].loss)
+        if models == None:
+            models = []
+            for model in self._models.keys():
+                if re.search("nn", model):
+                    models.append(model)
 
-        tuner = BayesianOptimization(
-            self._models["nn_new"],
-            objective=objective,
-            max_trials=max_trials,
-            directory=directory,
-            project_name=project_name,
-        )
+        if settings.values.verbosity > 0:
+            print("Hyper-parameter tuning neural networks with bayesian search")
 
-        # ------------------------- For classiification Problem ----------------------------
-
-        # Define cross-validation using Stratified K-Fold
-        if settings.values.classification:
-            kf = StratifiedKFold(
-                n_splits=num_folds,
-                shuffle=shuffle,
-                random_state=settings.values.random_state,
+        data = {}
+        for model in models:
+            # Initialize keras-tuner tuner
+            tuner = BayesianOptimization(
+                hypermodel=self._models[model],
+                objective=objective,
+                max_trials=max_trials,
+                num_initial_points=num_initial_points,
+                alpha=alpha,
+                beta=beta,
+                seed=settings.values.random_state,
+                hyperparameters=hyperparameters,
+                tune_new_entries=tune_new_entries,
+                allow_new_entries=allow_new_entries,
+                max_retries_per_trial=max_retries_per_trial,
+                overwrite=overwrite,
+                directory=directory,
+                project_name=project_name,
             )
 
-            # Perform hyperparameter tuning with cross validation
-            for train_index, val_index in kf.split(self._xtrain, self._ytrain):
-                x_train_fold, x_test_fold = x[train_index], x[val_index]
-                y_train_fold, y_test_fold = y[train_index], y[val_index]
+            if settings.values.verbosity > 0:
+                print("-- " + model)
+                print(tuner.search_space_summary())
 
-        if settings.values.regression:
-            kf = KFold(
-                n_splits=num_folds,
-                shuffle=shuffle,
-                random_state=settings.values.random_state,
-            )
-            print("Tuning")
-            # Perform hyperparameter tuning with cross validation
-            for train_index, test_index in kf.split(self._xtrain):
-                xtrain_fold, xtest_fold = (
-                    self._xtrain.iloc[train_index],
-                    self._xtrain.iloc[test_index],
-                )
-                ytrain_fold, ytest_fold = (
-                    self._ytrain.iloc[train_index],
-                    self._ytrain.iloc[test_index],
-                )
+            tuner.search(x=self._xtrain, y=self._ytrain)
 
-                # hp tuning on kFolds
-                tuner.search(
-                    x=xtrain_fold,
-                    y=ytrain_fold,
-                    epochs=self._models["nn_new"].epochs,
-                    batch_size=self._models["nn_new"].batch_size,
-                    validation_data=(xtest_fold, ytest_fold),
-                    # callbacks=[tf.keras.callbacks.EarlyStopping(monitor=callback_loss, patience=3, restore_best_weights=True)]
-                )
+            if settings.values.verbosity > 0:
+                print("-- " + model)
+                print(tuner.search_space_summary())
+                print(tuner.results_summary())
 
-            # Get Hyperparameters
-            best_hps = tuner.get_best_hyperparameters()[0]
-            print("-- Best Hyperparameters")
-            print(best_hps.values)
+            best_hps = tuner.get_best_hyperparameters(settings.values.num_configs_saved)
 
-            # Build model with the optimal hyperparameters and train it on the data for 50 epochs
-            model = tuner.hypermodel.build(best_hps)
-            history = model.fit(
-                self._xtrain, self._ytrain, epochs=50
-            )
+            top_configs = pd.DataFrame({"params": best_hps})
 
-            val_acc_per_epoch = history.history["mean_absolute_error"]
-            best_epochs = val_acc_per_epoch.index(max(val_acc_per_epoch)) + 1
-            print("Best Epochs: %d" % (best_epochs,))
+            data[model] = (top_configs, tuner.hypermodel)
 
-            # Re-instantiate the hypermoel and train it with the optimal number of epochs from above
-            hypermodel = tuner.hypermodel.build(best_hps)
-            hypermodel.fit(
-                self._xtrain, self._ytrain, epochs=50
-            )
-
-            print(
-                "[test loss, test accuracy]:",
-                hypermodel.evaluate(self._xtrain, self._ytrain),
-            )
-
-            # next step in preprocessing eval_results = hypermodel.evaluate()
+        return data

@@ -16,7 +16,7 @@ class Settings:
         self._num_configs_saved = 5
         self._regression = False
         self._classification = False
-
+        self._new_nn_architecture = True
         # If a dictionary of key/value pairs is given,
         # update settings
         if update != None:
@@ -76,6 +76,10 @@ class Settings:
     def classification(self) -> bool:
         return self._classification
 
+    @property
+    def new_nn_architecture(self) -> bool:
+        return self._new_nn_architecture
+
     # Setters
     @verbosity.setter
     def verbosity(self, verbosity: int):
@@ -108,6 +112,10 @@ class Settings:
     def classification(self, classification: bool) -> bool:
         self._regression = not classification
         self._classification = classification
+
+    @new_nn_architecture.setter
+    def new_nn_architecture(self, new_nn_architecture: bool) -> bool:
+        self._new_nn_architecture = new_nn_architecture
 
 
 # Initialization function for global settings

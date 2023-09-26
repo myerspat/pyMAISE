@@ -1,12 +1,24 @@
-from pyMAISE.methods import *
-import pyMAISE.settings as settings
-
+import copy
 import math
-import pandas as pd
-import numpy as np
+import re
+
 import matplotlib.pyplot as plt
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay
+import numpy as np
+import pandas as pd
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+)
+
+import pyMAISE.settings as settings
+from pyMAISE.methods import *
 
 
 class PostProcessor:
@@ -17,7 +29,6 @@ class PostProcessor:
         new_model_settings: dict = None,
         yscaler=None,
     ):
-        
         # Extract data
         self._xtrain = data[0]
         self._xtest = data[1]
@@ -36,7 +47,7 @@ class PostProcessor:
         for models in models_list:
             for model, configs in models.items():
                 # Fill model types list with string of model type
-                model_types = model_types + [model] * configs[0].shape[0]
+                model_types = model_types + [model] * settings.values.num_configs_saved
 
                 # Fil parameter string with hyper-parameter configurations for each type
                 params = params + configs[0]["params"].tolist()
@@ -44,8 +55,18 @@ class PostProcessor:
                 # Get all model wrappers and update parameter configurations if needed
                 estimator = configs[1]
                 if new_model_settings != None and model in new_model_settings:
-                    estimator = estimator.set_params(**new_model_settings[model])
-                model_wrappers = model_wrappers + [estimator] * configs[0].shape[0]
+                    if (
+                        not re.search("nn", model)
+                        or not settings.values.new_nn_architecture
+                    ):
+                        estimator = estimator.set_params(**new_model_settings[model])
+
+                    else:
+                        estimator.set_params(new_model_settings[model])
+
+                model_wrappers = (
+                    model_wrappers + [estimator] * settings.values.num_configs_saved
+                )
 
         # Create models DataFrame
         self._models = pd.DataFrame(
@@ -106,18 +127,39 @@ class PostProcessor:
         # Fit each model and predict outcomes
         for i in range(self._models.shape[0]):
             # Estract regressor for the configuration
-            regressor = self._models["Model Wrappers"][i].set_params(
-                **self._models["Parameter Configurations"][i]
-            )
+            regressor = None
+            if (
+                not re.search("nn", self._models["Model Types"][i])
+                or not settings.values.new_nn_architecture
+            ):
+                regressor = self._models["Model Wrappers"][i].set_params(
+                    **self._models["Parameter Configurations"][i]
+                )
+            else:
+                regressor = self._models["Model Wrappers"][i].build(
+                    self._models["Parameter Configurations"][i]
+                )
 
             # Append learning curve history of neural networks and run fit for all
-            if self._models["Model Types"][i] != "nn":
+            if not re.search("nn", self._models["Model Types"][i]):
                 regressor.fit(self._xtrain, ytrain)
                 histories.append(None)
             else:
-                histories.append(
-                    regressor.fit(self._xtrain, ytrain).model.history.history
-                )
+                if not settings.values.new_nn_architecture:
+                    histories.append(
+                        regressor.fit(self._xtrain, ytrain).model.history.history
+                    )
+                else:
+                    histories.append(
+                        self._models["Model Wrappers"][i]
+                        .fit(
+                            self._models["Parameter Configurations"][i],
+                            regressor,
+                            self._xtrain,
+                            ytrain,
+                        )
+                        .model.history.history
+                    )
 
             # Append training and testing predictions
             yhat_train.append(
@@ -128,180 +170,103 @@ class PostProcessor:
         return (yhat_train, yhat_test, histories)
 
     def metrics(self, sort_by=None, model_type: str = None, y=None):
+        # Initialize metrics dictionary
+        metrics = {}
+        for split in ["Train", "Test"]:
+            if settings.values.regression:
+                for metric in ["R2", "MAE", "MSE", "RMSE"]:
+                    metrics[f"{split} {metric}"] = []
 
-        # Runs regression test metrics
-        if settings.values.regression:
+            else:
+                for metric in ["Accuracy", "Recall", "Precision", "F1"]:
+                    metrics[f"{split} {metric}"] = []
 
-            # Sets sort_by to default if nothing is initialized
-            if sort_by is None:
+        # Get the list of y if not provided
+        if y == None:
+            y = slice(0, len(self._ytrain.columns) + 1)
+        elif isinstance(y, str):
+            y = self._ytrain.columns.get_loc(y)
+
+        for i in range(self._models.shape[0]):
+            # Get predictions
+            yhat_train = self._models["Train Yhat"][i]
+            yhat_test = self._models["Test Yhat"][i]
+
+            for split in ["Train", "Test"]:
+                if settings.values.regression:
+                    # Regression performance metrics
+                    metrics[f"{split} R2"].append(
+                        r2_score(
+                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                        )
+                    )
+                    metrics[f"{split} MAE"].append(
+                        mean_absolute_error(
+                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                        )
+                    )
+                    metrics[f"{split} MSE"].append(
+                        mean_squared_error(
+                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                        )
+                    )
+                    metrics[f"{split} RMSE"].append(
+                        math.sqrt(self._models[f"{split} MSE"][i])
+                    )
+                else:
+                    # Classification performance metrics
+                    metrics[f"{split} Accuracy"].append(
+                        accuracy_score(
+                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                        )
+                    )
+                    metrics[f"{split} Recall"].append(
+                        recall_score(
+                            self._ytrain[self._ytrain.columns[y]],
+                            yhat_train[:, y],
+                            average="micro",
+                        )
+                    )
+                    metrics[f"{split} Precision"].append(
+                        precision_score(
+                            self._ytrain[self._ytrain.columns[y]],
+                            yhat_train[:, y],
+                            average="micro",
+                        )
+                    )
+                    metrics[f"{split} F1"].append(
+                        f1_score(
+                            self._ytrain[self._ytrain.columns[y]],
+                            yhat_train[:, y],
+                            average="micro",
+                        )
+                    )
+
+        # Determine sort_by depending on problem
+        if sort_by is None:
+            if settings.values.regression:
                 sort_by = "Test R2"
-
-            # Get the list of y if not provided
-            if y == None:
-                y = slice(0, len(self._ytrain.columns) + 1)
-            elif isinstance(y, str):
-                y = self._ytrain.columns.get_loc(y)
-
-            train_r2 = []
-            train_mae = []
-            train_mse = []
-            train_mse = []
-            train_rmse = []
-            test_r2 = []
-            test_mae = []
-            test_mse = []
-            test_mse = []
-            test_rmse = []
-
-            for i in range(self._models.shape[0]):
-                # Get predictions
-                yhat_train = self._models["Train Yhat"][i]
-                yhat_test = self._models["Test Yhat"][i]
-
-                # Calculate performance metrics and append to lists
-                train_r2.append(
-                    r2_score(self._ytrain[self._ytrain.columns[y]], yhat_train[:, y])
-                )
-                train_mae.append(
-                    mean_absolute_error(
-                        self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
-                    )
-                )
-                train_mse.append(
-                    mean_squared_error(
-                        self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
-                    )
-                )
-                train_rmse.append(math.sqrt(train_mse[i]))
-                test_r2.append(
-                    r2_score(self._ytest[self._ytest.columns[y]], yhat_test[:, y])
-                )
-                test_mae.append(
-                    mean_absolute_error(
-                        self._ytest[self._ytest.columns[y]], yhat_test[:, y]
-                    )
-                )
-                test_mse.append(
-                    mean_squared_error(self._ytest[self._ytest.columns[y]], yhat_test[:, y])
-                )
-                test_rmse.append(math.sqrt(test_mse[i]))
-
-            # If the sort_by is anything other than R2, metrics is ascending
-            ascending = True
-            if sort_by == "Test R2" or sort_by == "Train R2":
-                ascending = False
-
-            self._models["Train R2"] = train_r2
-            self._models["Train MAE"] = train_mae
-            self._models["Train MSE"] = train_mse
-            self._models["Train RMSE"] = train_rmse
-            self._models["Test R2"] = test_r2
-            self._models["Test MAE"] = test_mae
-            self._models["Test MSE"] = test_mse
-            self._models["Test RMSE"] = test_rmse
-
-            models = self._models[
-                [
-                    "Model Types",
-                    "Parameter Configurations",
-                    "Train R2",
-                    "Train MAE",
-                    "Train MSE",
-                    "Train RMSE",
-                    "Test R2",
-                    "Test MAE",
-                    "Test MSE",
-                    "Test RMSE",
-                ]
-            ]
-            
-        # If classification model is used runs through classification metrics
-        if settings.values.classification:
-            
-            # If nothing is initialized to sort by then default is set
-            if sort_by is None:
+            else:
                 sort_by = "Test Accuracy"
-            
-            # Get the list of y if not provided
-            if y == None:
-                y = slice(0, len(self._ytrain.columns) + 1)
-            elif isinstance(y, str):
-                y = self._ytrain.columns.get_loc(y)
-            
-            train_accuracy = []
-            train_recall = []
-            train_precision = []
-            train_f1 = []
-            test_accuracy = []
-            test_recall = []
-            test_precision = []
-            test_f1 = []
-            # Iterating through each model and calulating metrics
-            for i in range(self._models.shape[0]):
-                # Get predictions
-                yhat_train = self._models["Train Yhat"][i]
-                yhat_test = self._models["Test Yhat"][i]
-                
-                train_accuracy.append(
-                    accuracy_score(self._ytrain[self._ytrain.columns[y]], yhat_train[:,y])
-                )
-                train_recall.append(
-                    recall_score(self._ytrain[self._ytrain.columns[y]], yhat_train[:,y], average="micro")
-                )
 
-                train_precision.append(
-                    precision_score(self._ytrain[self._ytrain.columns[y]], yhat_train[:,y], average="micro")
-                )
+        ascending = True
+        if (
+            sort_by == "Test R2"
+            or sort_by == "Train R2"
+            or sort_by == "Test Accuracy"
+            or sort_by == "Train Accuracy"
+        ):
+            ascending = False
 
-                train_f1.append(
-                    f1_score(self._ytrain[self._ytrain.columns[y]], yhat_train[:,y], average="micro")
-                )
-                test_accuracy.append(
-                    accuracy_score(self._ytest[self._ytest.columns[y]], yhat_test[:,y])
-                )
+        for key, value in metrics.items():
+            self._models[key] = value
 
-                test_recall.append(
-                    recall_score(self._ytest[self._ytest.columns[y]], yhat_test[:,y], average="micro")
-                )
-
-                test_precision.append(
-                    precision_score(self._ytest[self._ytest.columns[y]], yhat_test[:,y], average="micro")
-                )
-
-                test_f1.append(
-                    f1_score(self._ytest[self._ytest.columns[y]], yhat_test[:,y], average="micro")
-                )
-                
-            # If the sort_by is anything other than R2, metrics is ascending
-            ascending = True
-            if sort_by == "Test Accuracy" or sort_by == "Train Accuracy":
-                ascending = False
-
-            self._models["Train Accuracy"] = train_accuracy
-            self._models["Train Recall"] = train_recall
-            self._models["Train Precision"] = train_precision
-            self._models["Train F1"] = train_f1
-            self._models["Test Accuracy"] = test_accuracy
-            self._models["Test Recall"] = test_recall
-            self._models["Test Precision"] = test_precision
-            self._models["Test F1"] = test_f1
-
-            models = self._models[
-                [
-                    "Model Types",
-                    "Parameter Configurations",
-                    "Train Accuracy",
-                    "Train Recall",
-                    "Train Precision",
-                    "Train F1",
-                    "Test Accuracy",
-                    "Test Recall",
-                    "Test Precision",
-                    "Test F1",
-                ]
+        models = copy.deepcopy(
+            self._models[
+                ["Model Types", "Parameter Configurations"] + list(metrics.keys())
             ]
+        )
 
-        # If the sort_by is anything other than R2, metrics is ascending
         if model_type == None:
             return models.sort_values(sort_by, ascending=[ascending])
         else:
@@ -309,12 +274,23 @@ class PostProcessor:
                 sort_by, ascending=[ascending]
             )
 
-    def _get_idx(self, idx: int = None, model_type: str = None, sort_by="Test R2"):
+    def _get_idx(self, idx: int = None, model_type: str = None, sort_by=None):
+        if sort_by is None:
+            if settings.values.regression == True:
+                sort_by = "Test R2"
+            else:
+                sort_by = "Test Accuracy"
+
         # Determine the index of the model in the DataFrame
         if idx == None:
             if model_type != None:
                 # If an index is not given but a model type is, get index based on sort_by
-                if sort_by == "Test R2" or sort_by == "Train R2":
+                if (
+                    sort_by == "Test R2"
+                    or sort_by == "Train R2"
+                    or sort_by == "Test Accuracy"
+                    or sort_by == "Train Accuracy"
+                ):
                     idx = self._models[self._models["Model Types"] == model_type][
                         sort_by
                     ].idxmax()
@@ -332,13 +308,12 @@ class PostProcessor:
 
         return idx
 
-    def get_predictions(
-        self, idx: int = None, model_type: str = None, sort_by=None
-    ):
-        if settings.values.regression and sort_by is None:
-            sort_by = "Test R2"
-        if settings.values.classification and sort_by is None:
-            sort_by = "Test Accuracy"
+    def get_predictions(self, idx: int = None, model_type: str = None, sort_by=None):
+        if sort_by is None:
+            if settings.values.regression:
+                sort_by = "Test R2"
+            else:
+                sort_by = "Test Accuracy"
 
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
@@ -355,12 +330,12 @@ class PostProcessor:
         sort_by=None,
         full: bool = False,
     ):
+        if sort_by is None:
+            if settings.values.regression:
+                sort_by = "Test R2"
+            else:
+                sort_by = "Test Accuracy"
 
-        if settings.values.regression and sort_by is None:
-            sort_by = "Test R2"
-        if settings.values.classification and sort_by is None:
-            sort_by = "Test Accuracy"
-        
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
 
@@ -374,13 +349,12 @@ class PostProcessor:
         return pd.DataFrame({"Model Types": [model_type], **parameters})
 
     def get_model(self, idx: int = None, model_type: str = None, sort_by=None):
+        if sort_by is None:
+            if settings.values.regression:
+                sort_by = "Test R2"
+            else:
+                sort_by = "Test Accuracy"
 
-
-        if settings.values.regression and sort_by is None:
-            sort_by = "Test R2"
-        if settings.values.classification and sort_by is None:
-            sort_by = "Test Accuracy"
-        
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
 
@@ -400,7 +374,7 @@ class PostProcessor:
         ax=None,
         idx: int = None,
         model_type: str = None,
-        sort_by="Test R2",
+        sort_by=None,
         y: list = None,
     ):
         # Determine the index of the model in the DataFrame
@@ -486,22 +460,26 @@ class PostProcessor:
 
     def nn_learning_plot(
         self,
+        idx=None,
         ax=None,
-        idx: int = None,
-        sort_by="Test R2",
+        sort_by=None,
     ):
-        # Determine the index of the model in the DataFrame
-        idx = self._get_idx(idx=idx, model_type="nn", sort_by=sort_by)
+        nn_models = []
+        ax = ax or plt.gca()
+        for model_type in self._models["Model Types"]:
+            if re.search("nn", model_type) and not any(
+                model_type in x for x in nn_models
+            ):
+                # Determine the index of the model in the DataFrame
+                idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
+                nn_models = nn_models + [model_type]
 
-        if ax == None:
-            ax = plt.gca()
+                history = self._models["History"][idx]
 
-        history = self._models["History"][idx]
-
-        ax.plot(history["loss"], label="Training")
-        ax.plot(history["val_loss"], label="Validation")
-        ax.legend()
-        ax.set_xlabel("Epoch")
-        ax.set_ylabel("Loss")
+                ax.plot(history["loss"], label=model_type + " Training")
+                ax.plot(history["val_loss"], label=model_type + " Validation")
+                ax.legend()
+                ax.set_xlabel("Epoch")
+                ax.set_ylabel("Loss")
 
         return ax
