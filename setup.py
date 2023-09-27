@@ -21,7 +21,6 @@ setup(
         "scikeras",
         "matplotlib",
         "re",
-        "copy",
     ],
     extras_require={"test": ["pytest"], "stats": ["scipy"]},
     package_data={"pyMAISE.data": ["*.csv"]},
