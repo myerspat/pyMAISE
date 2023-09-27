@@ -57,6 +57,7 @@ class PostProcessor:
                 if new_model_settings != None and model in new_model_settings:
                     if (
                         not re.search("nn", model)
+                        and model != "knn"
                         or not settings.values.new_nn_architecture
                     ):
                         estimator = estimator.set_params(**new_model_settings[model])
@@ -130,6 +131,7 @@ class PostProcessor:
             regressor = None
             if (
                 not re.search("nn", self._models["Model Types"][i])
+                and self._models["Model Types"][i] != "knn"
                 or not settings.values.new_nn_architecture
             ):
                 regressor = self._models["Model Wrappers"][i].set_params(
