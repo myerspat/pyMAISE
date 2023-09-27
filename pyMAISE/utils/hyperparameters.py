@@ -1,4 +1,4 @@
-import kerastuner as kt
+import keras_tuner as kt
 
 
 class HyperParameters:

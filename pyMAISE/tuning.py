@@ -4,7 +4,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from kerastuner.tuners import BayesianOptimization, RandomSearch
+from keras_tuner.tuners import BayesianOptimization, RandomSearch
 
 # New packages
 from sklearn.model_selection import (

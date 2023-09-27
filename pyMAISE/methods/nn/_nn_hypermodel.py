@@ -2,11 +2,11 @@ import copy
 import re
 
 from keras.models import Sequential
-from kerastuner import HyperModel
+from keras_tuner import HyperModel
 
 from pyMAISE.methods.nn._adam import AdamOpt
 from pyMAISE.methods.nn._dense import DenseLayer
-from pyMAISE.utils.hyperparameters import Boolean, Choice, HyperParameters, Int
+from pyMAISE.utils.hyperparameters import Choice, HyperParameters
 
 
 class nnHyperModel(HyperModel):

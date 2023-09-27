@@ -141,7 +141,10 @@ class PostProcessor:
                 )
 
             # Append learning curve history of neural networks and run fit for all
-            if not re.search("nn", self._models["Model Types"][i]):
+            if (
+                not re.search("nn", self._models["Model Types"][i])
+                and self._models["Model Types"][i] != "knn"
+            ):
                 regressor.fit(self._xtrain, ytrain)
                 histories.append(None)
             else:
@@ -211,7 +214,7 @@ class PostProcessor:
                         )
                     )
                     metrics[f"{split} RMSE"].append(
-                        math.sqrt(self._models[f"{split} MSE"][i])
+                        math.sqrt(metrics[f"{split} MSE"][i])
                     )
                 else:
                     # Classification performance metrics
@@ -467,8 +470,10 @@ class PostProcessor:
         nn_models = []
         ax = ax or plt.gca()
         for model_type in self._models["Model Types"]:
-            if re.search("nn", model_type) and not any(
-                model_type in x for x in nn_models
+            if (
+                re.search("nn", model_type)
+                and model_type != "knn"
+                and not any(model_type in x for x in nn_models)
             ):
                 # Determine the index of the model in the DataFrame
                 idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
