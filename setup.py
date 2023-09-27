@@ -20,7 +20,6 @@ setup(
         "keras-tuner",
         "scikeras",
         "matplotlib",
-        "re",
     ],
     extras_require={"test": ["pytest"], "stats": ["scipy"]},
     package_data={"pyMAISE.data": ["*.csv"]},
