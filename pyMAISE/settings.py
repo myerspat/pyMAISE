@@ -17,15 +17,24 @@ class Settings:
         self._regression = False
         self._classification = False
         self._new_nn_architecture = True
+        self._cuda_visible_devices = None
+
         # If a dictionary of key/value pairs is given,
         # update settings
         if update != None:
             for key, value in update.items():
                 setattr(self, key, value)
 
+        if self._cuda_visible_devices is not None:
+            os.environ["CUDA_VISIBLE_DEVICES"] = self._cuda_visible_devices
+
         if self._verbosity <= 1:
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
             tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+            print(
+                "Num GPUs Available: ",
+                len(tf.config.experimental.list_physical_devices("GPU")),
+            )
 
             warnings.simplefilter(action="ignore", category=Warning)
             warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -80,6 +89,10 @@ class Settings:
     def new_nn_architecture(self) -> bool:
         return self._new_nn_architecture
 
+    @property
+    def cuda_visible_devices(self):
+        return self._cuda_visible_devices
+
     # Setters
     @verbosity.setter
     def verbosity(self, verbosity: int):
@@ -116,6 +129,10 @@ class Settings:
     @new_nn_architecture.setter
     def new_nn_architecture(self, new_nn_architecture: bool) -> bool:
         self._new_nn_architecture = new_nn_architecture
+
+    @cuda_visible_devices.setter
+    def cuda_visible_devices(self, cuda_visible_devices: bool):
+        self._cuda_visible_devices = cuda_visible_devices
 
 
 # Initialization function for global settings

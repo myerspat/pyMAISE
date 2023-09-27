@@ -365,6 +365,8 @@ class Tuning:
         overwrite=True,
         directory="./",
         project_name="best_hp",
+        cv=5,
+        shuffle=True,
     ):
         if models == None:
             models = []
@@ -374,6 +376,20 @@ class Tuning:
 
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning neural networks with bayesian search")
+
+        if isinstance(cv, int):
+            if settings.values.regression:
+                cv = KFold(
+                    n_splits=cv,
+                    shuffle=shuffle,
+                    random_state=settings.values.random_state,
+                )
+            else:
+                cv = StratifiedKFold(
+                    n_splits=cv,
+                    shuffle=shuffle,
+                    random_state=settings.values.random_state,
+                )
 
         data = {}
         for model in models:
