@@ -6,6 +6,9 @@ from keras_tuner import HyperModel
 
 from pyMAISE.methods.nn._adam import AdamOpt
 from pyMAISE.methods.nn._dense import DenseLayer
+from pyMiase.methods.nn._lstm import LstmLayer
+from pyMAISE.methods.nn._gru import GruLayer
+from pyMAISE.methods.nn._dropout import DropoutLayer
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
 
 
@@ -87,6 +90,13 @@ class nnHyperModel(HyperModel):
     def _get_layer(self, layer_name):
         if bool(re.search("dense", layer_name)):
             return DenseLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("lstm", layer_name)):
+            return LstmLayer(layer_name, self._structural_params[layer_name])
+        
+        elif bool(re.search("gru", layer_name)):
+            return GruLayer(layer_name, self.structural_params[layer_name])
+        elif bool(re.search("dropout", layer_name)):
+            return DropoutLayer(layer_name, self._structural_params[layer_name])
         else:
             raise Exception(
                 f"Layer ({layer_name}) is either not supported or spelled incorrectly"
