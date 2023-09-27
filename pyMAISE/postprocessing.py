@@ -57,7 +57,7 @@ class PostProcessor:
                 if new_model_settings != None and model in new_model_settings:
                     if (
                         not re.search("nn", model)
-                        and model != "knn"
+                        or model == "knn"
                         or not settings.values.new_nn_architecture
                     ):
                         estimator = estimator.set_params(**new_model_settings[model])
@@ -121,7 +121,7 @@ class PostProcessor:
         yhat_test = []
         histories = []
 
-        ytrain = self._ytrain
+        ytrain = copy.deepcopy(self._ytrain)
         if ytrain.shape[1] == 1:
             ytrain = self._ytrain.values.ravel()
 
@@ -131,7 +131,7 @@ class PostProcessor:
             regressor = None
             if (
                 not re.search("nn", self._models["Model Types"][i])
-                and self._models["Model Types"][i] != "knn"
+                or self._models["Model Types"][i] == "knn"
                 or not settings.values.new_nn_architecture
             ):
                 regressor = self._models["Model Wrappers"][i].set_params(
@@ -145,7 +145,7 @@ class PostProcessor:
             # Append learning curve history of neural networks and run fit for all
             if (
                 not re.search("nn", self._models["Model Types"][i])
-                and self._models["Model Types"][i] != "knn"
+                or self._models["Model Types"][i] == "knn"
             ):
                 regressor.fit(self._xtrain, ytrain)
                 histories.append(None)
@@ -197,22 +197,30 @@ class PostProcessor:
             yhat_train = self._models["Train Yhat"][i]
             yhat_test = self._models["Test Yhat"][i]
 
+            data = {
+                "Train": [self._ytrain, self._models["Train Yhat"][i]],
+                "Test": [self._ytest, self._models["Test Yhat"][i]],
+            }
+
             for split in ["Train", "Test"]:
                 if settings.values.regression:
                     # Regression performance metrics
                     metrics[f"{split} R2"].append(
                         r2_score(
-                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} MAE"].append(
                         mean_absolute_error(
-                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} MSE"].append(
                         mean_squared_error(
-                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} RMSE"].append(
@@ -222,27 +230,28 @@ class PostProcessor:
                     # Classification performance metrics
                     metrics[f"{split} Accuracy"].append(
                         accuracy_score(
-                            self._ytrain[self._ytrain.columns[y]], yhat_train[:, y]
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} Recall"].append(
                         recall_score(
-                            self._ytrain[self._ytrain.columns[y]],
-                            yhat_train[:, y],
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                             average="micro",
                         )
                     )
                     metrics[f"{split} Precision"].append(
                         precision_score(
-                            self._ytrain[self._ytrain.columns[y]],
-                            yhat_train[:, y],
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                             average="micro",
                         )
                     )
                     metrics[f"{split} F1"].append(
                         f1_score(
-                            self._ytrain[self._ytrain.columns[y]],
-                            yhat_train[:, y],
+                            data[split][0][data[split][0].columns[y]],
+                            data[split][1][:, y],
                             average="micro",
                         )
                     )
