@@ -112,3 +112,22 @@ class Choice(HyperParameters):
     @property
     def values(self):
         return self.values
+
+
+class Fixed(HyperParameters):
+    def __init__(self, value, parent_name=None, parent_values=None):
+        self._value = value
+
+        HyperParameters.__init__(
+            self, parent_name=parent_name, parent_values=parent_values
+        )
+
+    # ===========================================================
+    # Methods
+    def hp(self, hp, hp_name):
+        return hp.Fixes(
+            name=hp_name,
+            value=self._value,
+            parent_name=self._parent_name,
+            parent_values=self._parent_values,
+        )
