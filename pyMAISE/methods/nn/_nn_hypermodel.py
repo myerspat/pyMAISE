@@ -7,6 +7,7 @@ from keras_tuner import HyperModel
 from pyMAISE.methods.nn._adam import AdamOpt
 from pyMAISE.methods.nn._dense import DenseLayer
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
+import pyMAISE.settings as settings
 
 
 class nnHyperModel(HyperModel):
@@ -19,11 +20,13 @@ class nnHyperModel(HyperModel):
             self._optimizer = parameters["optimizer"]
 
             self._optimizer_params = {}
+
             if isinstance(self._optimizer, Choice):
                 for optimizer in self._optimizer.values:
                     assert parameters[optimizer]
                     self._optimizer_params[optimizer] = parameters[optimizer]
             else:
+                assert parameters[self._optimizer]
                 self._optimizer_params[self._optimizer] = parameters[self._optimizer]
         else:
             self._optimizer = "rmsprop"
@@ -51,16 +54,19 @@ class nnHyperModel(HyperModel):
             layer.reset()
 
         # Compile Model
-        self._compilation_params["optimizer"] = self._get_optimizer().build(hp)
+        self._compilation_params["optimizer"] = self._get_optimizer(hp).build(hp)
         model.compile(**self._compilation_params)
         return model
 
     # Fit function for keras-tuner to allow hyperparameter tuning of fitting parameters
     def fit(self, hp, model, x, y, **kwargs):
+        fitting_params = copy.deepcopy(self._fitting_params)
         for key, value in self._fitting_params.items():
             if isinstance(value, HyperParameters):
-                self._fitting_params[key] = value.hp(hp, key)
-        return model.fit(x, y, **self._fitting_params, **kwargs)
+                fitting_params[key] = value.hp(hp, key)
+        return model.fit(
+            x, y, **fitting_params, **kwargs, verbose=settings.values.verbosity
+        )
 
     # Update parameters after tuning, a common use case is increasing the number of epochs
     def set_params(self, parameters: dict = None):
@@ -92,8 +98,13 @@ class nnHyperModel(HyperModel):
                 f"Layer ({layer_name}) is either not supported or spelled incorrectly"
             )
 
-    def _get_optimizer(self):
-        optimizer = self._optimizer
+    def _get_optimizer(self, hp):
+        optimizer = copy.deepcopy(self._optimizer)
+        if isinstance(self._optimizer, HyperParameters):
+            optimizer = optimizer.hp(hp, "optimizer")
+        
+        assert self._optimizer_params[optimizer]
+
         if optimizer == "adam":
             assert self._optimizer_params[optimizer]
             return AdamOpt(self._optimizer_params[optimizer])
