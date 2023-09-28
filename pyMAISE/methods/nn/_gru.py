@@ -1,6 +1,6 @@
 import copy
 
-from keras.layers import Dense
+from keras.layers import GRU
 
 from pyMAISE.utils.hyperparameters import HyperParameters
 
@@ -35,7 +35,7 @@ class GruLayer:
             else:
                 sampled_data[key] = value
 
-        return Dense(**sampled_data)
+        return GRU(**sampled_data)
 
     def reset(self):
         self._current_layer = 0

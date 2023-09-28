@@ -35,7 +35,7 @@ class Conv1dLayer:
             else:
                 sampled_data[key] = value
 
-        return Dense(**sampled_data)
+        return Conv1D(**sampled_data)
 
     def reset(self):
         self._current_layer = 0
