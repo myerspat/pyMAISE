@@ -5,7 +5,12 @@ import keras_tuner as kt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from keras_tuner.oracles import BayesianOptimizationOracle
+from keras_tuner.oracles import (
+    BayesianOptimizationOracle,
+    GridSearchOracle,
+    HyperbandOracle,
+    RandomSearchOracle,
+)
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     accuracy_score,
@@ -362,6 +367,90 @@ class Tuning:
 
         return ax
 
+    def nn_grid_search(
+        self,
+        models=None,
+        objective=None,
+        max_trials=None,
+        hyperparameters=None,
+        allow_new_entries=True,
+        tune_new_entries=True,
+        max_retries_per_trial=0,
+        max_consecutive_failed_trials=3,
+        overwrite=True,
+        directory="./",
+        project_name="best_hp",
+        cv=5,
+        shuffle=True,
+    ):
+        if settings.values.verbosity > 0:
+            print("Hyper-parameter tuning neural networks with grid search")
+
+        kt_objective = self._determine_kt_objective(objective)
+        oracle = GridSearchOracle(
+            objective=kt_objective[0],
+            max_trials=max_trials,
+            seed=settings.values.random_state,
+            hyperparameters=hyperparameters,
+            tune_new_entries=tune_new_entries,
+            allow_new_entries=allow_new_entries,
+            max_retries_per_trial=max_retries_per_trial,
+            max_consecutive_failed_trials=max_consecutive_failed_trials,
+        )
+        return self._nn_tuning(
+            models=models,
+            objective=objective,
+            cv=cv,
+            shuffle=shuffle,
+            oracle=oracle,
+            metrics=kt_objective[1],
+            overwrite=overwrite,
+            directory=directory,
+            project_name=project_name,
+        )
+
+    def nn_random_search(
+        self,
+        models=None,
+        objective=None,
+        max_trials=10,
+        hyperparameters=None,
+        allow_new_entries=True,
+        tune_new_entries=True,
+        max_retries_per_trial=0,
+        max_consecutive_failed_trials=3,
+        overwrite=True,
+        directory="./",
+        project_name="best_hp",
+        cv=5,
+        shuffle=True,
+    ):
+        if settings.values.verbosity > 0:
+            print("Hyper-parameter tuning neural networks with random search")
+
+        kt_objective = self._determine_kt_objective(objective)
+        oracle = RandomSearchOracle(
+            objective=kt_objective[0],
+            max_trials=max_trials,
+            seed=settings.values.random_state,
+            hyperparameters=hyperparameters,
+            tune_new_entries=tune_new_entries,
+            allow_new_entries=allow_new_entries,
+            max_retries_per_trial=max_retries_per_trial,
+            max_consecutive_failed_trials=max_consecutive_failed_trials,
+        )
+        return self._nn_tuning(
+            models=models,
+            objective=objective,
+            cv=cv,
+            shuffle=shuffle,
+            oracle=oracle,
+            metrics=kt_objective[1],
+            overwrite=overwrite,
+            directory=directory,
+            project_name=project_name,
+        )
+
     def nn_bayesian_search(
         self,
         models=None,
@@ -381,16 +470,98 @@ class Tuning:
         cv=5,
         shuffle=True,
     ):
+        if settings.values.verbosity > 0:
+            print("Hyper-parameter tuning neural networks with bayesian search")
+
+        kt_objective = self._determine_kt_objective(objective)
+        oracle = BayesianOptimizationOracle(
+            objective=kt_objective[0],
+            max_trials=max_trials,
+            num_initial_points=num_initial_points,
+            alpha=alpha,
+            beta=beta,
+            seed=settings.values.random_state,
+            hyperparameters=hyperparameters,
+            tune_new_entries=tune_new_entries,
+            allow_new_entries=allow_new_entries,
+            max_retries_per_trial=max_retries_per_trial,
+            max_consecutive_failed_trials=max_consecutive_failed_trials,
+        )
+        return self._nn_tuning(
+            models=models,
+            objective=objective,
+            cv=cv,
+            shuffle=shuffle,
+            oracle=oracle,
+            metrics=kt_objective[1],
+            overwrite=overwrite,
+            directory=directory,
+            project_name=project_name,
+        )
+
+    def nn_hyperband_search(
+        self,
+        models=None,
+        objective=None,
+        cv=5,
+        shuffle=True,
+        max_epochs=100,
+        factor=3,
+        hyperband_iterations=1,
+        hyperparameters=None,
+        tune_new_entries=True,
+        allow_new_entries=True,
+        max_retries_per_trial=0,
+        max_consecutive_failed_trials=3,
+        overwrite=True,
+        directory="./",
+        project_name="best_hp",
+    ):
+        if settings.values.verbosity > 0:
+            print("Hyper-parameter tuning neural networks with hyperband search")
+
+        kt_objective = self._determine_kt_objective(objective)
+        oracle = HyperbandOracle(
+            objective=kt_objective[0],
+            max_epochs=max_epochs,
+            factor=factor,
+            hyperband_iterations=hyperband_iterations,
+            seed=settings.values.random_state,
+            hyperparameters=hyperparameters,
+            tune_new_entries=tune_new_entries,
+            allow_new_entries=allow_new_entries,
+            max_retries_per_trial=max_retries_per_trial,
+            max_consecutive_failed_trials=max_consecutive_failed_trials,
+        )
+        return self._nn_tuning(
+            models=models,
+            objective=objective,
+            cv=cv,
+            shuffle=shuffle,
+            oracle=oracle,
+            metrics=kt_objective[1],
+            overwrite=overwrite,
+            directory=directory,
+            project_name=project_name,
+        )
+
+    def _nn_tuning(
+        self,
+        models,
+        objective,
+        cv,
+        shuffle,
+        oracle,
+        metrics,
+        overwrite,
+        directory,
+        project_name,
+    ):
         if models == None:
             models = []
             for model in self._models.keys():
                 if re.search("nn", model):
                     models.append(model)
-
-        if settings.values.verbosity > 0:
-            print("Hyper-parameter tuning neural networks with bayesian search")
-
-        kt_objective = self._determine_kt_objective(objective)
 
         data = {}
         for model in models:
@@ -400,19 +571,8 @@ class Tuning:
                 cv=cv,
                 shuffle=shuffle,
                 hypermodel=self._models[model],
-                oracle=BayesianOptimizationOracle(
-                    objective=kt_objective[0],
-                    max_trials=max_trials,
-                    num_initial_points=num_initial_points,
-                    alpha=alpha,
-                    beta=beta,
-                    seed=settings.values.random_state,
-                    hyperparameters=hyperparameters,
-                    tune_new_entries=tune_new_entries,
-                    allow_new_entries=allow_new_entries,
-                    max_retries_per_trial=max_retries_per_trial,
-                ),
-                metrics=kt_objective[1],
+                oracle=oracle,
+                metrics=metrics,
                 overwrite=overwrite,
                 directory=directory,
                 project_name=project_name,
