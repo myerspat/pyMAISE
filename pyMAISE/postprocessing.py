@@ -2,20 +2,14 @@ import copy
 import math
 import re
 
+import keras_tuner as kt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    ConfusionMatrixDisplay,
-    accuracy_score,
-    confusion_matrix,
-    f1_score,
-    mean_absolute_error,
-    mean_squared_error,
-    precision_score,
-    r2_score,
-    recall_score,
-)
+from sklearn.metrics import (ConfusionMatrixDisplay, accuracy_score,
+                             confusion_matrix, f1_score, mean_absolute_error,
+                             mean_squared_error, precision_score, r2_score,
+                             recall_score)
 
 import pyMAISE.settings as settings
 from pyMAISE.methods import *
@@ -280,6 +274,11 @@ class PostProcessor:
                 ["Model Types", "Parameter Configurations"] + list(metrics.keys())
             ]
         )
+
+        for i in range(models.shape[0]):
+            if isinstance(models["Parameter Configurations"][i], kt.HyperParameters):
+                models["Parameter Configurations"][i] = models["Parameter Configurations"][i].values
+
 
         if model_type == None:
             return models.sort_values(sort_by, ascending=[ascending])
