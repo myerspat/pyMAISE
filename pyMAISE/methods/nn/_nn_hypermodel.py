@@ -5,7 +5,23 @@ from keras.models import Sequential
 from keras_tuner import HyperModel
 
 from pyMAISE.methods.nn._adam import AdamOpt
+from pyMAISE.methods.nn._conv1d import Conv1dLayer
+from pyMAISE.methods.nn._conv2d import Conv2dLayer
+from pyMAISE.methods.nn._conv3d import Conv3dLayer
 from pyMAISE.methods.nn._dense import DenseLayer
+from pyMAISE.methods.nn._dropout import DropoutLayer
+from pyMAISE.methods.nn._flatten import FlattenLayer
+from pyMAISE.methods.nn._gru import GruLayer
+from pyMAISE.methods.nn._lstm import LstmLayer
+from pyMAISE.methods.nn._reshape import ReshapeLayer
+from pyMAISE.methods.nn._ada_delta import AdaDeltaOpt
+from pyMAISE.methods.nn._ada_grad import AdaGradOpt
+from pyMAISE.methods.nn._ada_max import AdaMaxOpt
+from pyMAISE.methods.nn._adamw import AdamwOpt
+from pyMAISE.methods.nn._ftrl import FtrlOpt
+from pyMAISE.methods.nn._nadam import NadamOpt
+from pyMAISE.methods.nn._rms_prop import RmsPropOpt
+from pyMAISE.methods.nn._sgd import SgdOpt
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
 import pyMAISE.settings as settings
 
@@ -64,6 +80,7 @@ class nnHyperModel(HyperModel):
         for key, value in self._fitting_params.items():
             if isinstance(value, HyperParameters):
                 fitting_params[key] = value.hp(hp, key)
+
         return model.fit(
             x, y, **fitting_params, **kwargs, verbose=settings.values.verbosity
         )
@@ -93,6 +110,22 @@ class nnHyperModel(HyperModel):
     def _get_layer(self, layer_name):
         if bool(re.search("dense", layer_name)):
             return DenseLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("dropout", layer_name)):
+            return DropoutLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("lstm", layer_name)):
+            return LstmLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("gru", layer_name)):
+            return GruLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("conv1d", layer_name)):
+            return Conv1dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("conv2d", layer_name)):
+            return Conv2dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("conv3d", layer_name)):
+            return Conv3dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("flatten", layer_name)):
+            return FlattenLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("reshape", layer_name)):
+            return ReshapeLayer(layer_name, self._structural_params[layer_name])
         else:
             raise Exception(
                 f"Layer ({layer_name}) is either not supported or spelled incorrectly"
@@ -100,13 +133,28 @@ class nnHyperModel(HyperModel):
 
     def _get_optimizer(self, hp):
         optimizer = copy.deepcopy(self._optimizer)
-        if isinstance(self._optimizer, HyperParameters):
+        if isinstance(self._optimizer, Choice):
             optimizer = optimizer.hp(hp, "optimizer")
-        
+
         assert self._optimizer_params[optimizer]
 
         if optimizer == "adam":
-            assert self._optimizer_params[optimizer]
             return AdamOpt(self._optimizer_params[optimizer])
+        elif optimizer == "SGD":
+            return SgdOpt(self._optimizer_params[optimizer])
+        elif optimizer == "RMSprop":
+            return RmsPropOpt(self._optimizer_params[optimizer])
+        elif optimizer == "AdamW":
+            return AdamwOpt(self._optimizer_params[optimizer])
+        elif optimizer == "Adadelta":
+            return AdaDeltaOpt(self._optimizer_params[optimizer])
+        elif optimizer == "Adagrad":
+            return AdaGradOpt(self._optimizer_params[optimizer])
+        elif optimizer == "Adamax":
+            return AdaMaxOpt(self._optimizer_params[optimizer])
+        elif optimizer == "Nadam":
+            return NadamOpt(self._optimizer_params[optimizer])
+        elif optimizer == "Ftrl":
+            return FtrlOpt(self._optimizer_params[optimizer])
         else:
             return optimizer

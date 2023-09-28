@@ -1,10 +1,22 @@
 import copy
 import re
 
+import keras_tuner as kt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from keras_tuner.tuners import BayesianOptimization, RandomSearch
+from keras_tuner.oracles import BayesianOptimizationOracle
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+)
 
 # New packages
 from sklearn.model_selection import (
@@ -19,6 +31,7 @@ from skopt.space import Categorical, Integer, Real
 
 import pyMAISE.settings as settings
 from pyMAISE.methods import *
+from pyMAISE.utils import CVTuner
 
 
 class Tuning:
@@ -377,35 +390,29 @@ class Tuning:
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning neural networks with bayesian search")
 
-        if isinstance(cv, int):
-            if settings.values.regression:
-                cv = KFold(
-                    n_splits=cv,
-                    shuffle=shuffle,
-                    random_state=settings.values.random_state,
-                )
-            else:
-                cv = StratifiedKFold(
-                    n_splits=cv,
-                    shuffle=shuffle,
-                    random_state=settings.values.random_state,
-                )
+        kt_objective = self._determine_kt_objective(objective)
 
         data = {}
         for model in models:
             # Initialize keras-tuner tuner
-            tuner = BayesianOptimization(
-                hypermodel=self._models[model],
+            tuner = CVTuner(
                 objective=objective,
-                max_trials=max_trials,
-                num_initial_points=num_initial_points,
-                alpha=alpha,
-                beta=beta,
-                seed=settings.values.random_state,
-                hyperparameters=hyperparameters,
-                tune_new_entries=tune_new_entries,
-                allow_new_entries=allow_new_entries,
-                max_retries_per_trial=max_retries_per_trial,
+                cv=cv,
+                shuffle=shuffle,
+                hypermodel=self._models[model],
+                oracle=BayesianOptimizationOracle(
+                    objective=kt_objective[0],
+                    max_trials=max_trials,
+                    num_initial_points=num_initial_points,
+                    alpha=alpha,
+                    beta=beta,
+                    seed=settings.values.random_state,
+                    hyperparameters=hyperparameters,
+                    tune_new_entries=tune_new_entries,
+                    allow_new_entries=allow_new_entries,
+                    max_retries_per_trial=max_retries_per_trial,
+                ),
+                metrics=kt_objective[1],
                 overwrite=overwrite,
                 directory=directory,
                 project_name=project_name,
@@ -423,9 +430,25 @@ class Tuning:
                 print(tuner.results_summary())
 
             best_hps = tuner.get_best_hyperparameters(settings.values.num_configs_saved)
+            self._tuning[model] = pd.DataFrame(tuner.mean_test_score)
 
             top_configs = pd.DataFrame({"params": best_hps})
 
             data[model] = (top_configs, tuner.hypermodel)
 
         return data
+
+    # Determine objective from sklearn and make it compatible with keras_tuner
+    def _determine_kt_objective(self, objective):
+        if objective in ["r2_score", "accuracy"]:
+            return (kt.Objective(objective, direction="max"), eval(objective))
+        elif objective in [
+            "f1_score",
+            "mean_absolute_error",
+            "mean_squared_error",
+            "precision_score",
+            "recall_score",
+        ]:
+            return (kt.Objective(objective, direction="min"), eval(objective))
+        else:
+            return (objective, None)

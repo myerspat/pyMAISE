@@ -111,7 +111,7 @@ class Choice(HyperParameters):
     # Getters
     @property
     def values(self):
-        return self.values
+        return self._values
 
 
 class Fixed(HyperParameters):

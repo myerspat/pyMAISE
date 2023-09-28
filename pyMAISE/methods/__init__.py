@@ -13,4 +13,4 @@ from ._nn_wrapper import NeuralNetsWrapper
 
 # New neural network architecture
 from .nn._nn_hypermodel import nnHyperModel
-from .nn._dense import Dense
+from pyMAISE.methods.nn import *
