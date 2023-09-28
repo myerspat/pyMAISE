@@ -1,6 +1,6 @@
 import copy
 
-from keras.layers import Dense
+from keras.layers import Dropout
 
 from pyMAISE.utils.hyperparameters import HyperParameters
 
@@ -42,7 +42,7 @@ class DropoutLayer:
         self._num_layers = 1
         self._data = {
             "input_dim": None,
-            "rate": 0.2
+            "rate": 0.2,
             "noise_shape": None,
             "seed": None,
         }

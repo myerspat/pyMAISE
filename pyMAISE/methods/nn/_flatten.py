@@ -1,12 +1,12 @@
 import copy
 
-from keras.layers import Dense
+from keras.layers import Flatten
 
 from pyMAISE.utils.hyperparameters import HyperParameters
 
 
 # Dense layer keras neural networks
-class GruLayer:
+class FlattenLayer:
     def __init__(self, layer_name, parameters: dict):
         self._layer_name = layer_name
         self.reset()
@@ -19,7 +19,7 @@ class GruLayer:
             self._data[key] = value
 
         # Assert keras non-default variables are defined
-        assert self._data["units"] != None
+        assert self._data["data_format"] != None
 
     # ==========================================================================
     # Methods
@@ -41,30 +41,7 @@ class GruLayer:
         self._current_layer = 0
         self._num_layers = 1
         self._data = {
-            "input_dim": None,
-            "units": None,
-            "activation": "tanh",
-            "recurrent_activation": "sigmoid",
-            "use_bias": True,
-            "kernel_initializer": "glorot_uniform",
-            "recurrent_initializer": "orthogonal",
-            "bias_initializer": "zeros",
-            "kernel_regularizer": None,
-            "recurrent_regularizer": None,
-            "bias_regularizer": None,
-            "activity_regularizer": None,
-            "kernel_constraint": None,
-            "recurrent_constraint":None,
-            "bias_constraint": None,
-            "dropout": 0.0,
-            "recurrent_dropout": 0.0,
-            "return_sequences": False,
-            "return_state": False,
-            "go_backwards": False,
-            "stateful": False,
-            "time_major": False,
-            "unroll": False,
-            "reset_after": True,
+            "data_format": None,
         }
 
     def increment_layer(self):

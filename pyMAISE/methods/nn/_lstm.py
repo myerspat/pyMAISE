@@ -47,7 +47,7 @@ class LstmLayer:
             "recurrent_activation": "sigmoid",
             "use_bias": True,
             "kernel_initializer": "glorot_uniform",
-            "recurrent_initializer": "orthogonal"
+            "recurrent_initializer": "orthogonal",
             "bias_initializer": "zeros",
             "unit_forget_bias": True,
             "kernel_regularizer": None,

@@ -6,9 +6,14 @@ from keras_tuner import HyperModel
 
 from pyMAISE.methods.nn._adam import AdamOpt
 from pyMAISE.methods.nn._dense import DenseLayer
-from pyMiase.methods.nn._lstm import LstmLayer
-from pyMAISE.methods.nn._gru import GruLayer
 from pyMAISE.methods.nn._dropout import DropoutLayer
+from pyMAISE.methods.nn._lstm import LstmLayer
+from pyMAISE.methods.nn._gru import GruLayer
+from pyMAISE.methods.nn._conv1d import Conv1dLayer
+from pyMAISE.methods.nn._conv2d import Conv2dLayer 
+from pyMAISE.methods.nn._conv3d import Conv3dLayer
+from pyMAISE.methods.nn._flatten import FlattenLayer
+from pyMAISE.methods.nn._reshape import ReshapeLayer
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
 
 
@@ -58,12 +63,13 @@ class nnHyperModel(HyperModel):
         model.compile(**self._compilation_params)
         return model
 
-    # Fit function for keras-tuner to allow hyperparameter tuning of fitting parameters
+     # Fit function for keras-tuner to allow hyperparameter tuning of fitting parameters
     def fit(self, hp, model, x, y, **kwargs):
+        fitting_params = copy.deepcopy(self._fitting_params)
         for key, value in self._fitting_params.items():
             if isinstance(value, HyperParameters):
-                self._fitting_params[key] = value.hp(hp, key)
-        return model.fit(x, y, **self._fitting_params, **kwargs)
+                fitting_params[key] = value.hp(hp, key)
+        return model.fit(x, y, **fitting_params, **kwargs)
 
     # Update parameters after tuning, a common use case is increasing the number of epochs
     def set_params(self, parameters: dict = None):
@@ -90,13 +96,22 @@ class nnHyperModel(HyperModel):
     def _get_layer(self, layer_name):
         if bool(re.search("dense", layer_name)):
             return DenseLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("lstm", layer_name)):
-            return LstmLayer(layer_name, self._structural_params[layer_name])
-        
-        elif bool(re.search("gru", layer_name)):
-            return GruLayer(layer_name, self.structural_params[layer_name])
         elif bool(re.search("dropout", layer_name)):
             return DropoutLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("lstm", layer_name)):
+            return LstmLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("gru", layer_name)):
+            return GruLayer(layer_name, self.structural_params[layer_name])
+        elif bool(re.search("conv1d", layer_name)):
+            return Conv1dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("conv2d", layer_name)):
+            return Conv2dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("conv3d", layer_name)):
+            return Conv3dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("flatten", layer_name)):
+            return FlattenLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("reshape", layer_name)):
+            return ReshapeLayer(layer_name, self._structural_params[layer_name])
         else:
             raise Exception(
                 f"Layer ({layer_name}) is either not supported or spelled incorrectly"
