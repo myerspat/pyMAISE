@@ -6,10 +6,17 @@ import keras_tuner as kt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (ConfusionMatrixDisplay, accuracy_score,
-                             confusion_matrix, f1_score, mean_absolute_error,
-                             mean_squared_error, precision_score, r2_score,
-                             recall_score)
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+)
 
 import pyMAISE.settings as settings
 from pyMAISE.methods import *
@@ -277,8 +284,9 @@ class PostProcessor:
 
         for i in range(models.shape[0]):
             if isinstance(models["Parameter Configurations"][i], kt.HyperParameters):
-                models["Parameter Configurations"][i] = models["Parameter Configurations"][i].values
-
+                models["Parameter Configurations"][i] = models[
+                    "Parameter Configurations"
+                ][i].values
 
         if model_type == None:
             return models.sort_values(sort_by, ascending=[ascending])
@@ -352,12 +360,13 @@ class PostProcessor:
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
 
-        parameters = self._models["Parameter Configurations"][idx]
+        parameters = copy.deepcopy(self._models["Parameter Configurations"][idx])
+        if (
+            re.search("nn", self._models["Model Types"][idx])
+            and settings.values.new_nn_architecture
+        ):
+            parameters = parameters.values
         model_type = self._models["Model Types"][idx]
-
-        if full == True:
-            estimator = self._models["Model Wrappers"][idx].set_params(**parameters)
-            parameters = estimator.get_params()
 
         return pd.DataFrame({"Model Types": [model_type], **parameters})
 
