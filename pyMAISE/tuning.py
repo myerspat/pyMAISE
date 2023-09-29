@@ -66,10 +66,11 @@ class Tuning:
                 self._models[model] = LassoRegression(parameters=parameters)
             elif model == "logistic":
                 self._models[model] = Logistic_Regression(parameters=parameters)
-            elif model == "svr":
-                if self._ytrain.shape[1] > 1:
+            elif model == "svm":
+                if self._ytrain.shape[1] > 1 and settings.values.regression:
                     raise Exception("SVR does not support multi-output data sets")
-                self._models[model] = SVRegression(parameters=parameters)
+                else:
+                    self._models[model] = SVM(parameters=parameters)
             elif model == "dtree":
                 self._models[model] = DecisionTree(parameters=parameters)
             elif model == "rforest":

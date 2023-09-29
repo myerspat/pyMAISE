@@ -5,7 +5,7 @@ from ._logistic_regression import Logistic_Regression
 from ._dtree import DecisionTree
 from ._rforest import RandomForest
 from ._kneighbors import KNeighbors
-from ._svr import SVRegression
+from ._svm import SVM
 
 # Old neural network architecture
 from ._nn import NeuralNetsRegression
