@@ -16,6 +16,7 @@ from sklearn.metrics import (
     precision_score,
     r2_score,
     recall_score,
+    confusion_matrix,
 )
 
 import pyMAISE.settings as settings
@@ -507,3 +508,29 @@ class PostProcessor:
                 ax.set_ylabel("Loss")
 
         return ax
+
+
+
+    def confusion_matrix(
+            self,
+            ax=None,
+            idx: int = None,
+            model_type: str = None,
+            sort_by=None,
+        ):
+        # Determine the index of the model in the DataFrame
+        idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by) 
+    
+        # Get predicted and actual outputs
+        yhat_train = self._models["Train Yhat"][idx] # predicted
+        yhat_test = self._models["Test Yhat"][idx] # predicted
+            
+        ytrain = self._ytrain.to_numpy() # actual 
+        ytest = self._ytest.to_numpy() # actual
+   
+
+        cm = confusion_matrix(ytest, yhat_test)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        disp.plot()
+        plt.title(self._models["Model Types"][idx])
+        plt.show()
