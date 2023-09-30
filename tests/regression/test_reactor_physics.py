@@ -81,7 +81,7 @@ def test_reactor_physics():
     # ===========================================================================
     # Model initialization
     model_settings = {
-        "models": ["linear", "lasso", "svr", "dtree", "knn", "rforest"],
+        "models": ["linear", "lasso", "svm", "dtree", "knn", "rforest"],
     }
     tuning = mai.Tuning(data=data, model_settings=model_settings)
 
