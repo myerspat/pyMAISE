@@ -14,7 +14,7 @@ def test_heat_conduction():
 
     # Expected model test r-squared
     expected_models = {
-        "svr": 0.7906,
+        "svm": 0.7906,
         "linear": 0.8416,
         "rforest": 0.9948,
         "knn": 0.7455,
@@ -82,7 +82,7 @@ def test_heat_conduction():
     # ===========================================================================
     # Model initialization
     model_settings = {
-        "models": ["linear", "lasso", "svr", "dtree", "knn", "rforest"],
+        "models": ["linear", "lasso", "svm", "dtree", "knn", "rforest"],
     }
     tuning = mai.Tuning(data=data, model_settings=model_settings)
 
@@ -97,7 +97,7 @@ def test_heat_conduction():
             "min_samples_leaf": [1, 2, 4, 6, 8, 10],
             "min_samples_split": [2, 4, 6, 8, 10],
         },
-        "svr": {
+        "svm": {
             "kernel": ["linear", "rbf", "poly"],
             "epsilon": [0.01, 0.1, 1],
             "gamma": ["scale", "auto"],
