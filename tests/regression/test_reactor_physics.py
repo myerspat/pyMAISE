@@ -14,7 +14,7 @@ def test_reactor_physics():
 
     # Expected model test r-squared
     expected_models = {
-        "svr": 0.7415,
+        "svm": 0.7415,
         "linear": 0.9999,
         "rforest": 0.9142,
         "knn": 0.8665,
