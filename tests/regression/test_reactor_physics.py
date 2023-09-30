@@ -96,7 +96,7 @@ def test_reactor_physics():
             "min_samples_leaf": [1, 2, 4, 6, 8, 10],
             "min_samples_split": [2, 4, 6, 8, 10],
         },
-        "svr": {
+        "svm": {
             "kernel": ["linear", "rbf", "poly"],
             "epsilon": [0.01, 0.1, 1],
             "gamma": ["scale", "auto"],
