@@ -8,8 +8,21 @@ import pyMAISE as mai
 
 
 def test_benchmark_nn_old_to_new():
-    # ===========================================================================
-    datasets = [mai.load_xs(), mai.heat]
+    
+    # Initializing setting in order for a data set object to be initialized
+    settings = {
+            "verbosity": 0,
+            "random_state": 42,
+            "test_size": 0.3,
+            "num_configs_saved": 5,
+            "regression": True,
+            "cuda_visible_devices": "-1", # Use CPUs only
+    }
+    global_settings = mai.settings.init(settings_changes=settings)
+        
+    
+    # For loop checking data sets R2 test metrics are similiar
+    datasets = [mai.load_xs(), mai.load_heat()]
     for data_set in datasets:
         #----------------------------------------
         #  new model generation with close to the same search space
@@ -115,7 +128,7 @@ def test_benchmark_nn_old_to_new():
         # Setting for new nn model info
         global_settings = mai.settings.init(settings_changes=settings)
         
-
+        # construvting old model nn
         model_settings = {
             "models": ["nn"],
             "nn": {
@@ -149,7 +162,8 @@ def test_benchmark_nn_old_to_new():
             },
         }
         tuning = mai.Tuning(data=data, model_settings=model_settings)
-
+        
+        # Baysian search space for tuning
         bayesian_search_spaces = {
             "nn": {
                 "mid_num_node_strategy": ["constant", "linear"],
@@ -159,7 +173,6 @@ def test_benchmark_nn_old_to_new():
                 "start_num_nodes": [25, 300],
             },
         }
-
 
         bayesian_search_configs = tuning.bayesian_search(
             param_spaces=bayesian_search_spaces,
@@ -181,4 +194,8 @@ def test_benchmark_nn_old_to_new():
 
         # Asserting if the R2 is within a 0.02 tolerence of each other for similiar metrics
         plus_minus=0.02
-        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0], plus_minus /  pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0]))
+        print("old nn = ", old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[0])
+        print("new nn = ", new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0])
+        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0], plus_minus / new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0])
+
+
