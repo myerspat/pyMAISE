@@ -67,7 +67,7 @@ def test_benchmark_nn_old_to_new():
 
 
         model_settings = {
-            "models": ["linear", "fnn"],
+            "models": ["fnn"],
             "fnn": {
                 "structural_params": structural_hyperparameters,
                 "optimizer": mai.Choice(["adam"]),
@@ -189,7 +189,7 @@ def test_benchmark_nn_old_to_new():
 
         # Asserting if the R2 is within a 0.02 tolerence of each other for similiar metrics
         plus_minus=0.02
-        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0], plus_minus / value)
+        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0], plus_minus /  pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0])
    
 
             
