@@ -1,11 +1,7 @@
-
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
-from matplotlib.gridspec import GridSpec
 from scipy.stats import randint, uniform
-from sklearn.model_selection import ShuffleSplit
 
 import pyMAISE as mai
 
@@ -189,7 +185,7 @@ def test_benchmark_nn_old_to_new():
 
         # Asserting if the R2 is within a 0.02 tolerence of each other for similiar metrics
         plus_minus=0.02
-        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0], plus_minus /  pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0])
+        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0], plus_minus /  pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0])
    
 
             
