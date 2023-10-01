@@ -9,11 +9,6 @@ import pyMAISE as mai
 
 def test_benchmark_nn_old_to_new():
     # ===========================================================================
-    # Regression test parameters
-    # Data set parameters
-     # Expected model test r-squared
-    plus_minus = 0.025
-
     datasets = [mai.load_xs(), mai.heat]
     for data_set in datasets:
         #----------------------------------------
@@ -34,6 +29,7 @@ def test_benchmark_nn_old_to_new():
         # Initializing preprocessor and scaling
         preprocessor = data_set
         data = preprocessor.min_max_scale()
+        print(data)
 
         # Constructing hypermodel nn
         structural_hyperparameters = {
@@ -185,7 +181,4 @@ def test_benchmark_nn_old_to_new():
 
         # Asserting if the R2 is within a 0.02 tolerence of each other for similiar metrics
         plus_minus=0.02
-        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0], plus_minus /  pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[[0])
-   
-
-            
+        assert old_nn_postprocessor.metrics(model_type="nn")["Test R2"].to_numpy()[0] == pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0], plus_minus /  pytest.approx(new_nn_postprocessor.metrics(model_type="fnn")["Test R2"].to_numpy()[0]))
