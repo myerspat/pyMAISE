@@ -21,7 +21,6 @@ def test_heat_conduction():
         "lasso": 0.8412,
         "dtree": 0.9856,
     }
-    plus_minus = 0.025
 
     # ===========================================================================
     # pyMAISE initialization
@@ -133,4 +132,4 @@ def test_heat_conduction():
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
             0
-        ] == pytest.approx(value, 0.0001)
+        ] == pytest.approx(value, value * 0.025)

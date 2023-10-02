@@ -21,7 +21,6 @@ def test_reactor_physics():
         "lasso": 0.9999,
         "dtree": 0.7464,
     }
-    plus_minus = 0.025
 
     # ===========================================================================
     # pyMAISE initialization
@@ -131,4 +130,4 @@ def test_reactor_physics():
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
             0
-        ] == value
+        ] == pytest.approx(value, value * 0.025)

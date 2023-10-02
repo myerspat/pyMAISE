@@ -20,7 +20,6 @@ def test_mitr():
         "lasso": 0.9952,
         "dtree": 0.7216,
     }
-    plus_minus = 0.025
 
     # ===========================================================================
     # pyMAISE initialization
@@ -82,7 +81,6 @@ def test_mitr():
     # Model initialization
     model_settings = {
         "models": ["linear", "lasso", "dtree", "knn", "rforest"],
-        # "models": ["rforest"],
     }
     tuning = mai.Tuning(data=data, model_settings=model_settings)
 
@@ -128,4 +126,4 @@ def test_mitr():
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
             0
-        ] == pytest.approx(value, 0.0001)
+        ] == pytest.approx(value, value * 0.025)

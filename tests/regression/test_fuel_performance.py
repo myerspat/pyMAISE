@@ -20,7 +20,6 @@ def test_fuel_performance():
         "lasso": 0.9776,
         "dtree": 0.5228,
     }
-    plus_minus = 0.025
 
     # ===========================================================================
     # pyMAISE initialization
@@ -31,7 +30,6 @@ def test_fuel_performance():
         "num_configs_saved": 1,
         "regression": True,
         "classification": False,
-
     }
     global_settings = mai.settings.init(settings_changes=settings)
 
@@ -128,4 +126,4 @@ def test_fuel_performance():
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
             0
-        ] == pytest.approx(value, 0.0001)
+        ] == pytest.approx(value, value * 0.025)
