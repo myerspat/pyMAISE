@@ -1,16 +1,12 @@
-# Sklean ML models
-from ._linear import LinearRegression
-from ._lasso import LassoRegression
-from ._logistic_regression import Logistic_Regression
-from ._dtree import DecisionTree
-from ._rforest import RandomForest
-from ._kneighbors import KNeighbors
-from ._svm import SVM
+from pyMAISE.methods.nn import *
 
-# Old neural network architecture
+from ._dtree import DecisionTree
+from ._kneighbors import KNeighbors
+from ._lasso import LassoRegression
+from ._linear import LinearRegression
+from ._logistic_regression import Logistic_Regression
 from ._nn import NeuralNetsRegression
 from ._nn_wrapper import NeuralNetsWrapper
-
-# New neural network architecture
+from ._rforest import RandomForest
+from ._svm import SVM
 from .nn._nn_hypermodel import nnHyperModel
-from pyMAISE.methods.nn import *

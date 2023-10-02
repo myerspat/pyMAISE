@@ -1,6 +1,6 @@
-import pyMAISE.settings as settings
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+import pyMAISE.settings as settings
 
 
 class RandomForest:
@@ -14,7 +14,7 @@ class RandomForest:
             self._criterion = "gini"
             self._max_features = "sqrt"
 
-        self._n_estimators = 100        
+        self._n_estimators = 100
         self._max_depth = None
         self._min_samples_split = 2
         self._min_samples_leaf = 1
@@ -37,7 +37,6 @@ class RandomForest:
     # Methods
     def regressor(self):
         if settings.values.regression:
-                
             return RandomForestRegressor(
                 n_estimators=self._n_estimators,
                 criterion=self._criterion,

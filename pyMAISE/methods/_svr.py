@@ -1,6 +1,6 @@
-import pyMAISE.settings as settings
-
 from sklearn.svm import SVR
+
+import pyMAISE.settings as settings
 
 
 class SVRegression:

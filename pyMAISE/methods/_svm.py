@@ -1,6 +1,6 @@
-import pyMAISE.settings as settings
+from sklearn.svm import SVC, SVR
 
-from sklearn.svm import SVR, SVC
+import pyMAISE.settings as settings
 
 
 class SVM:
@@ -8,30 +8,28 @@ class SVM:
         # Model parameters
 
         # Both classes share
-        self._kernel='rbf'
-        self._C=1.0
-        self._degree=3
+        self._kernel = "rbf"
+        self._C = 1.0
+        self._degree = 3
         self._gamma = "scale"
-        self._coef0=0.0
-        self._shrinking=True
-        self._tol=0.001
-        self._cache_size=200
-        self._max_iter=-1
-        self._verbose=settings.values.verbosity
+        self._coef0 = 0.0
+        self._shrinking = True
+        self._tol = 0.001
+        self._cache_size = 200
+        self._max_iter = -1
+        self._verbose = settings.values.verbosity
 
         # Unique class variables
         if settings.values.regression:
-        
             self._epsilon = 0.1
             self._shrinking = True
 
         if settings.values.classification:
-            
-            self._probability=False
-            self._class_weight=None
-            self._decision_function_shape='ovr'
-            self._break_ties=False
-            self._random_state=settings.values.random_state
+            self._probability = False
+            self._class_weight = None
+            self._decision_function_shape = "ovr"
+            self._break_ties = False
+            self._random_state = settings.values.random_state
 
         # Change if user provided changes in dictionary
         if parameters != None:
@@ -41,7 +39,6 @@ class SVM:
     # ===========================================================
     # Methods
     def regressor(self):
-
         if settings.values.regression:
             return SVR(
                 kernel=self._kernel,
@@ -67,13 +64,11 @@ class SVM:
                 cache_size=self._cache_size,
                 verbose=settings.values.verbosity,
                 max_iter=self._max_iter,
-
                 probability=self._probability,
                 class_weight=self._class_weight,
                 decision_function_shape=self._decision_function_shape,
                 break_ties=self._break_ties,
                 random_state=self._random_state,
-
             )
 
     # ===========================================================
@@ -121,17 +116,18 @@ class SVM:
     @property
     def probability(self):
         return self._probability
+
     @property
     def class_weight(self):
         return self._class_weight
+
     @property
     def decision_function_shape(self):
         return self._decision_function_shape
+
     @property
     def break_ties(self):
         return self._break_ties
-
-    
 
     # ===========================================================
     # Setters
@@ -178,7 +174,7 @@ class SVM:
     def max_iter(self, max_iter: int):
         assert max_iter >= -1
         self._max_iter = max_iter
-    
+
     @probability.setter
     def probability(self, probability):
         self._probability = probability
@@ -194,4 +190,3 @@ class SVM:
     @break_ties.setter
     def break_ties(self, break_ties):
         self._break_ties = break_ties
-
