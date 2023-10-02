@@ -18,7 +18,7 @@ class AdamwOpt:
         sampled_data = copy.deepcopy(self._data)
         for key, value in self._data.items():
             if isinstance(value, HyperParameters):
-                sampled_data[key] = value.hp(hp, "_".join([self._layer_name, key]))
+                sampled_data[key] = value.hp(hp, "_".join([AdamW.__name__, key]))
             else:
                 sampled_data[key] = value
 

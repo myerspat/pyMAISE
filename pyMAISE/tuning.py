@@ -68,7 +68,7 @@ class Tuning:
                 self._models[model] = Logistic_Regression(parameters=parameters)
             elif model == "svm":
                 if self._ytrain.shape[1] > 1 and settings.values.regression:
-                    raise Exception("SVR does not support multi-output data sets")
+                    raise Exception("SVM does not support multi-output data sets")
                 else:
                     self._models[model] = SVM(parameters=parameters)
             elif model == "dtree":

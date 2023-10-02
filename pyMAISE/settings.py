@@ -31,6 +31,7 @@ class Settings:
         if self._verbosity <= 1:
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
             tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+        else:
             print(
                 "Num GPUs Available: ",
                 len(tf.config.experimental.list_physical_devices("GPU")),
