@@ -131,4 +131,4 @@ def test_reactor_physics():
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
             0
-        ] == pytest.approx(value, plus_minus / value)
+        ] == value

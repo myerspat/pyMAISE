@@ -31,6 +31,7 @@ def test_classification():
         "classification": True,
 
     }
+
     global_settings = mai.settings.init(settings_changes=settings)
 
     # Assertions for global settings
@@ -40,6 +41,7 @@ def test_classification():
     assert global_settings.num_configs_saved == 1
 
     # Get heat conduction preprocessor
+
     preprocessor = mai.load_iris()
 
     # Assert inputs and outputs are the correct size
@@ -124,4 +126,4 @@ def test_classification():
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test Accuracy"].to_numpy()[
             0
-        ] == pytest.approx(value, plus_minus / value)
+        ] == pytest.approx(value, 0.0001)
