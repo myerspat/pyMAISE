@@ -1,26 +1,25 @@
-import pytest
-import pyMAISE as mai
 import numpy as np
+import pandas as pd
+import pytest
 from sklearn.model_selection import ShuffleSplit
 
+import pyMAISE as mai
 
-def test_heat_conduction():
+
+def test_reactor_physics():
     # ===========================================================================
     # Regression test parameters
     # Data set parameters
     num_observations = 1000
-    num_features = 7
+    num_features = 8
     num_outputs = 1
 
-    # Expected model test r-squared
-    expected_models = {
-        "svm": 0.7906,
-        "linear": 0.8416,
-        "rforest": 0.9948,
-        "knn": 0.7455,
-        "lasso": 0.8412,
-        "dtree": 0.9856,
-    }
+    # Expected performance metrics
+    expected_metrics = pd.read_csv(
+        mai.data._handler.get_full_path(
+            "../tests/regression/classical_models/supporting/reactor_physics_testing_metrics.csv"
+        )
+    )
 
     # ===========================================================================
     # pyMAISE initialization
@@ -30,7 +29,6 @@ def test_heat_conduction():
         "test_size": 0.3,
         "num_configs_saved": 1,
         "regression": True,
-        "classification": False,
     }
     global_settings = mai.settings.init(settings_changes=settings)
 
@@ -41,7 +39,7 @@ def test_heat_conduction():
     assert global_settings.num_configs_saved == 1
 
     # Get heat conduction preprocessor
-    preprocessor = mai.load_heat()
+    preprocessor = mai.load_xs()
 
     # Assert inputs and outputs are the correct size
     assert (
@@ -54,7 +52,7 @@ def test_heat_conduction():
     )
 
     # Train test split
-    data = preprocessor.min_max_scale(scale_y=False)
+    data = preprocessor.min_max_scale()
 
     # Train-test split size assertions
     assert (
@@ -103,8 +101,8 @@ def test_heat_conduction():
         },
         "rforest": {
             "n_estimators": [50, 100, 150],
-            "criterion": ["squared_error", "absolute_error", "poisson"],
-            "min_samples_split": [2, 4, 6],
+            "criterion": ["squared_error", "absolute_error"],
+            "min_samples_split": [2, 4],
             "max_features": [None, "sqrt", "log2", 1],
         },
         "knn": {
@@ -113,7 +111,6 @@ def test_heat_conduction():
             "leaf_size": [1, 5, 10, 15, 20, 25, 30],
         },
     }
-
     grid_search_configs = tuning.grid_search(
         param_spaces=grid_search_spaces,
         models=grid_search_spaces.keys(),
@@ -129,7 +126,40 @@ def test_heat_conduction():
         models_list=[grid_search_configs],
     )
 
-    for key, value in expected_models.items():
-        assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
-            0
-        ] == pytest.approx(value, 0.05)
+    # Assert expected dataframe and results match
+    print(
+        "Expected Values\n",
+        expected_metrics.sort_values(by=["Test R2"], ascending=False),
+    )
+    print(
+        "pyMAISE Values\n",
+        postprocessor.metrics()[
+            [
+                "Model Types",
+                "Train MAE",
+                "Train MSE",
+                "Train RMSE",
+                "Train R2",
+                "Test MAE",
+                "Test MSE",
+                "Test RMSE",
+                "Test R2",
+            ]
+        ],
+    )
+    pd.testing.assert_frame_equal(
+        expected_metrics.sort_values(by=["Test R2"], ascending=False),
+        postprocessor.metrics()[
+            [
+                "Model Types",
+                "Train MAE",
+                "Train MSE",
+                "Train RMSE",
+                "Train R2",
+                "Test MAE",
+                "Test MSE",
+                "Test RMSE",
+                "Test R2",
+            ]
+        ],
+    )

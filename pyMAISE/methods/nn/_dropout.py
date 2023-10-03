@@ -18,9 +18,6 @@ class DropoutLayer:
 
             self._data[key] = value
 
-        # Assert keras non-default variables are defined
-        assert self._data["units"] != None
-
     # ==========================================================================
     # Methods
     def build(self, hp):

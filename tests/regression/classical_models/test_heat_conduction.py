@@ -1,25 +1,25 @@
-import pytest
-import pyMAISE as mai
 import numpy as np
+import pandas as pd
+import pytest
 from sklearn.model_selection import ShuffleSplit
 
+import pyMAISE as mai
 
-def test_fuel_performance():
+
+def test_heat_conduction():
     # ===========================================================================
     # Regression test parameters
     # Data set parameters
-    num_observations = 400
-    num_features = 13
-    num_outputs = 4
+    num_observations = 1000
+    num_features = 7
+    num_outputs = 1
 
-    # Expected model test r-squared
-    expected_models = {
-        "linear": 0.9776,
-        "rforest": 0.8110,
-        "knn": 0.6501,
-        "lasso": 0.9776,
-        "dtree": 0.5228,
-    }
+    # Expected performance metrics
+    expected_metrics = pd.read_csv(
+        mai.data._handler.get_full_path(
+            "../tests/regression/classical_models/supporting/heat_conduction_testing_metrics.csv"
+        )
+    )
 
     # ===========================================================================
     # pyMAISE initialization
@@ -40,7 +40,7 @@ def test_fuel_performance():
     assert global_settings.num_configs_saved == 1
 
     # Get heat conduction preprocessor
-    preprocessor = mai.load_fp()
+    preprocessor = mai.load_heat()
 
     # Assert inputs and outputs are the correct size
     assert (
@@ -80,7 +80,7 @@ def test_fuel_performance():
     # ===========================================================================
     # Model initialization
     model_settings = {
-        "models": ["linear", "lasso", "dtree", "knn", "rforest"],
+        "models": ["linear", "lasso", "svm", "dtree", "knn", "rforest"],
     }
     tuning = mai.Tuning(data=data, model_settings=model_settings)
 
@@ -95,10 +95,15 @@ def test_fuel_performance():
             "min_samples_leaf": [1, 2, 4, 6, 8, 10],
             "min_samples_split": [2, 4, 6, 8, 10],
         },
+        "svm": {
+            "kernel": ["linear", "rbf", "poly"],
+            "epsilon": [0.01, 0.1, 1],
+            "gamma": ["scale", "auto"],
+        },
         "rforest": {
             "n_estimators": [50, 100, 150],
-            "criterion": ["squared_error", "absolute_error", "poisson"],
-            "min_samples_split": [2, 4, 6],
+            "criterion": ["squared_error", "absolute_error"],
+            "min_samples_split": [2, 4],
             "max_features": [None, "sqrt", "log2", 1],
         },
         "knn": {
@@ -123,7 +128,40 @@ def test_fuel_performance():
         models_list=[grid_search_configs],
     )
 
-    for key, value in expected_models.items():
-        assert postprocessor.metrics(model_type=key)["Test R2"].to_numpy()[
-            0
-        ] == pytest.approx(value, 0.05)
+    # Assert expected dataframe and results match
+    print(
+        "Expected Values\n",
+        expected_metrics.sort_values(by=["Test R2"], ascending=False),
+    )
+    print(
+        "pyMAISE Values\n",
+        postprocessor.metrics()[
+            [
+                "Model Types",
+                "Train MAE",
+                "Train MSE",
+                "Train RMSE",
+                "Train R2",
+                "Test MAE",
+                "Test MSE",
+                "Test RMSE",
+                "Test R2",
+            ]
+        ],
+    )
+    pd.testing.assert_frame_equal(
+        expected_metrics.sort_values(by=["Test R2"], ascending=False),
+        postprocessor.metrics()[
+            [
+                "Model Types",
+                "Train MAE",
+                "Train MSE",
+                "Train RMSE",
+                "Train R2",
+                "Test MAE",
+                "Test MSE",
+                "Test RMSE",
+                "Test R2",
+            ]
+        ],
+    )

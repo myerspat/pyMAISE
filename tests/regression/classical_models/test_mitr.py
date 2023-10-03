@@ -1,24 +1,25 @@
-import pytest
-import pyMAISE as mai
 import numpy as np
+import pandas as pd
+import pytest
 from sklearn.model_selection import ShuffleSplit
 
+import pyMAISE as mai
 
-def test_classification():
+
+def test_mitr():
     # ===========================================================================
     # Regression test parameters
     # Data set parameters
-    num_observations = 150
-    num_features = 4
-    num_outputs = 1
+    num_observations = 1000
+    num_features = 6
+    num_outputs = 22
 
-    # Expected model test r-squared
-    expected_models = {
-        "dtree": 1.0,
-        "rforest": 1.0,
-        "knn": 1.0,
-    }
-    plus_minus = 0.025
+    # Expected performance metrics
+    expected_metrics = pd.read_csv(
+        mai.data._handler.get_full_path(
+            "../tests/regression/classical_models/supporting/mitr_testing_metrics.csv"
+        )
+    )
 
     # ===========================================================================
     # pyMAISE initialization
@@ -27,11 +28,9 @@ def test_classification():
         "random_state": 42,
         "test_size": 0.3,
         "num_configs_saved": 1,
-        "regression": False,
-        "classification": True,
-
+        "regression": True,
+        "classification": False,
     }
-
     global_settings = mai.settings.init(settings_changes=settings)
 
     # Assertions for global settings
@@ -41,8 +40,7 @@ def test_classification():
     assert global_settings.num_configs_saved == 1
 
     # Get heat conduction preprocessor
-
-    preprocessor = mai.load_iris()
+    preprocessor = mai.load_MITR()
 
     # Assert inputs and outputs are the correct size
     assert (
@@ -55,7 +53,7 @@ def test_classification():
     )
 
     # Train test split
-    data = preprocessor.data_split()
+    data = preprocessor.min_max_scale()
 
     # Train-test split size assertions
     assert (
@@ -82,24 +80,26 @@ def test_classification():
     # ===========================================================================
     # Model initialization
     model_settings = {
-        "models": ["dtree", "rforest", "knn"],
+        "models": ["linear", "lasso", "dtree", "knn", "rforest"],
     }
     tuning = mai.Tuning(data=data, model_settings=model_settings)
 
     # ===========================================================================
     # Hyper-parameter tuning
     grid_search_spaces = {
+        "linear": {"fit_intercept": [True, False]},
+        "lasso": {"alpha": np.linspace(0.000001, 1, 200)},
         "dtree": {
             "max_depth": [None, 5, 10, 25, 50],
-            "max_features": [None, "sqrt", "log2"],
+            "max_features": [None, "sqrt", "log2", 0.2, 0.4, 0.6, 0.8, 1],
             "min_samples_leaf": [1, 2, 4, 6, 8, 10],
             "min_samples_split": [2, 4, 6, 8, 10],
         },
         "rforest": {
             "n_estimators": [50, 100, 150],
-            "criterion": ["gini", "entropy", "log_loss"],
-            "min_samples_split": [2, 4, 6],
-            "max_features": ["sqrt", "log2"],
+            "criterion": ["squared_error", "absolute_error"],
+            "min_samples_split": [2, 4],
+            "max_features": [None, "sqrt", "log2", 1],
         },
         "knn": {
             "n_neighbors": [1, 2, 4, 6, 8, 10, 14, 17, 20],
@@ -123,7 +123,40 @@ def test_classification():
         models_list=[grid_search_configs],
     )
 
-    for key, value in expected_models.items():
-        assert postprocessor.metrics(model_type=key)["Test Accuracy"].to_numpy()[
-            0
-        ] == pytest.approx(value, 0.0001)
+    # Assert expected dataframe and results match
+    print(
+        "Expected Values\n",
+        expected_metrics.sort_values(by=["Test R2"], ascending=False),
+    )
+    print(
+        "pyMAISE Values\n",
+        postprocessor.metrics()[
+            [
+                "Model Types",
+                "Train MAE",
+                "Train MSE",
+                "Train RMSE",
+                "Train R2",
+                "Test MAE",
+                "Test MSE",
+                "Test RMSE",
+                "Test R2",
+            ]
+        ],
+    )
+    pd.testing.assert_frame_equal(
+        expected_metrics.sort_values(by=["Test R2"], ascending=False),
+        postprocessor.metrics()[
+            [
+                "Model Types",
+                "Train MAE",
+                "Train MSE",
+                "Train RMSE",
+                "Train R2",
+                "Test MAE",
+                "Test MSE",
+                "Test RMSE",
+                "Test R2",
+            ]
+        ],
+    )
