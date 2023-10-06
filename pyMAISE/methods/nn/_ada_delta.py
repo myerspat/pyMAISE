@@ -25,6 +25,7 @@ class AdaDeltaOpt:
         return Adadelta(**sampled_data)
 
     def reset(self):
+        
         self._data = {
             "learning_rate": 0.001,
             "rho": 0.95,

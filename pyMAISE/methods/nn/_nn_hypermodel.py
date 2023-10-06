@@ -24,6 +24,7 @@ from pyMAISE.methods.nn._rms_prop import RmsPropOpt
 from pyMAISE.methods.nn._sgd import SgdOpt
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
 import pyMAISE.settings as settings
+from pyMAISE.methods.nn._max_pooling_2d import MaxPooling2dLayer
 
 
 class nnHyperModel(HyperModel):
@@ -122,6 +123,8 @@ class nnHyperModel(HyperModel):
             return Conv2dLayer(layer_name, self._structural_params[layer_name])
         elif bool(re.search("conv3d", layer_name)):
             return Conv3dLayer(layer_name, self._structural_params[layer_name])
+        elif bool(re.search("MaxPooling2D", layer_name)):
+            return MaxPooling2dLayer(layer_name, self._structural_params[layer_name])
         elif bool(re.search("flatten", layer_name)):
             return FlattenLayer(layer_name, self._structural_params[layer_name])
         elif bool(re.search("reshape", layer_name)):

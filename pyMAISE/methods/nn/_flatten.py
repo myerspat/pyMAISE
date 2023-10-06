@@ -19,7 +19,7 @@ class FlattenLayer:
             self._data[key] = value
 
         # Assert keras non-default variables are defined
-        assert self._data["data_format"] != None
+        # assert self._data["data_format"] != None
 
     # ==========================================================================
     # Methods

@@ -601,7 +601,7 @@ class Tuning:
 
     # Determine objective from sklearn and make it compatible with keras_tuner
     def _determine_kt_objective(self, objective):
-        if objective in ["r2_score", "accuracy"]:
+        if objective in ["r2_score", "accuracy_score"]:
             return (kt.Objective(objective, direction="max"), eval(objective))
         elif objective in [
             "f1_score",

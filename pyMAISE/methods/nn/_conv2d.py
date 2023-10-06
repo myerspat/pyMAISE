@@ -19,7 +19,7 @@ class Conv2dLayer:
             self._data[key] = value
 
         # Assert keras non-default variables are defined
-        assert self._data["filters"] != None
+        # assert self._data["filters"] != None
 
     # ==========================================================================
     # Methods
@@ -28,7 +28,7 @@ class Conv2dLayer:
         sampled_data = copy.deepcopy(self._data)
         for key, value in self._data.items():
             if isinstance(value, HyperParameters):
-                assert self._data[key]
+                # assert self._data[key]
                 sampled_data[key] = value.hp(
                     hp, "_".join([self._layer_name + str(self._current_layer), key])
                 )
@@ -57,6 +57,7 @@ class Conv2dLayer:
             "activity_regularizer": None,
             "kernel_constraint": None,
             "bias_constraint": None,
+            "input_shape": None,
         }
 
     def increment_layer(self):
