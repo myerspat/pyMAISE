@@ -286,7 +286,7 @@ class PostProcessor:
             if isinstance(models["Parameter Configurations"][i], kt.HyperParameters):
                 models["Parameter Configurations"][i] = models[
                     "Parameter Configurations"
-                ][i].values.copy
+                ][i].values
 
         if model_type == None:
             return models.sort_values(sort_by, ascending=[ascending])
