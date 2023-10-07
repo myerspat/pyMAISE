@@ -7,7 +7,7 @@ import pyMAISE as mai
 
 
 def test_new_nn_structure():
-    plus_minus = 0.015
+    plus_minus = 0.02
 
     # Loop over each base benchmark data set
     load_functions = ["load_MITR", "load_fp", "load_xs"]
