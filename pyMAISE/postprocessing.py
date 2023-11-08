@@ -6,6 +6,7 @@ import keras_tuner as kt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import xarray as xr
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     accuracy_score,
@@ -25,16 +26,13 @@ from pyMAISE.methods import *
 class PostProcessor:
     def __init__(
         self,
-        data: pd.DataFrame,
+        data,
         models_list,
-        new_model_settings: dict = None,
+        new_model_settings=None,
         yscaler=None,
     ):
-        # Extract data
-        self._xtrain = data[0]
-        self._xtest = data[1]
-        self._ytrain = data[2]
-        self._ytest = data[3]
+        # Extract xarray data
+        self._xtrain, self._xtest, self._ytrain, self._ytest = copy.deepcopy(data)
 
         # Initialize models of interest
         model_types = []
@@ -85,20 +83,16 @@ class PostProcessor:
 
         if yscaler != None:
             self._yscaler = yscaler
-            self._ytrain = pd.DataFrame(
-                yscaler.inverse_transform(self._ytrain),
-                index=self._ytrain.index,
-                columns=self._ytrain.columns,
-            )
-            self._ytest = pd.DataFrame(
-                yscaler.inverse_transform(self._ytest),
-                index=self._ytest.index,
-                columns=self._ytest.columns,
-            )
+            self._ytrain.values = yscaler.inverse_transform(self._ytrain.values)
+            self._ytest.values = yscaler.inverse_transform(self._ytest.values)
 
             for i in range(len(yhat_train)):
-                yhat_train[i] = yscaler.inverse_transform(yhat_train[i])
-                yhat_test[i] = yscaler.inverse_transform(yhat_test[i])
+                yhat_train[i] = yscaler.inverse_transform(
+                    yhat_train[i].reshape(self._ytrain.shape)
+                )
+                yhat_test[i] = yscaler.inverse_transform(
+                    yhat_test[i].reshape(self._ytest.shape)
+                )
 
         self._models = pd.concat(
             [
@@ -122,10 +116,6 @@ class PostProcessor:
         yhat_test = []
         histories = []
 
-        ytrain = copy.deepcopy(self._ytrain)
-        if ytrain.shape[1] == 1:
-            ytrain = self._ytrain.values.ravel()
-
         # Fit each model and predict outcomes
         for i in range(self._models.shape[0]):
             # Estract regressor for the configuration
@@ -148,12 +138,14 @@ class PostProcessor:
                 not re.search("nn", self._models["Model Types"][i])
                 or self._models["Model Types"][i] == "knn"
             ):
-                regressor.fit(self._xtrain, ytrain)
+                regressor.fit(self._xtrain.values, self._ytrain.values)
                 histories.append(None)
             else:
                 if not settings.values.new_nn_architecture:
                     histories.append(
-                        regressor.fit(self._xtrain, ytrain).model.history.history
+                        regressor.fit(
+                            self._xtrain.values, self._ytrain.values
+                        ).model.history.history
                     )
                 else:
                     histories.append(
@@ -161,17 +153,15 @@ class PostProcessor:
                         .fit(
                             self._models["Parameter Configurations"][i],
                             regressor,
-                            self._xtrain,
-                            ytrain,
+                            self._xtrain.values,
+                            self._ytrain.values,
                         )
                         .model.history.history
                     )
 
             # Append training and testing predictions
-            yhat_train.append(
-                regressor.predict(self._xtrain).reshape(self._ytrain.shape)
-            )
-            yhat_test.append(regressor.predict(self._xtest).reshape(self._ytest.shape))
+            yhat_train.append(regressor.predict(self._xtrain))
+            yhat_test.append(regressor.predict(self._xtest))
 
         return (yhat_train, yhat_test, histories)
 
@@ -188,39 +178,48 @@ class PostProcessor:
                     metrics[f"{split} {metric}"] = []
 
         # Get the list of y if not provided
+        num_outputs = self._ytrain.shape[-1]
         if y == None:
-            y = slice(0, len(self._ytrain.columns) + 1)
+            y = slice(0, num_outputs + 1)
         elif isinstance(y, str):
-            y = self._ytrain.columns.get_loc(y)
+            y = np.where(self._ytrain.coords[self._ytrain.dims[-1]].to_numpy() == y)[0]
 
         for i in range(self._models.shape[0]):
-            # Get predictions
-            yhat_train = self._models["Train Yhat"][i]
-            yhat_test = self._models["Test Yhat"][i]
-
+            # Store and reshape data to be iterated on
             data = {
-                "Train": [self._ytrain, self._models["Train Yhat"][i]],
-                "Test": [self._ytest, self._models["Test Yhat"][i]],
+                "Train": [
+                    copy.deepcopy(self._ytrain.values).reshape(-1, num_outputs),
+                    copy.deepcopy(self._models["Train Yhat"][i]).reshape(
+                        -1, num_outputs
+                    ),
+                ],
+                "Test": [
+                    copy.deepcopy(self._ytest.values).reshape(-1, num_outputs),
+                    copy.deepcopy(self._models["Test Yhat"][i]).reshape(
+                        -1, num_outputs
+                    ),
+                ],
             }
 
+            # Determine matrics for each split
             for split in ["Train", "Test"]:
                 if settings.values.regression:
                     # Regression performance metrics
                     metrics[f"{split} R2"].append(
                         r2_score(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} MAE"].append(
                         mean_absolute_error(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} MSE"].append(
                         mean_squared_error(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                         )
                     )
@@ -231,27 +230,27 @@ class PostProcessor:
                     # Classification performance metrics
                     metrics[f"{split} Accuracy"].append(
                         accuracy_score(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                         )
                     )
                     metrics[f"{split} Recall"].append(
                         recall_score(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                             average="micro",
                         )
                     )
                     metrics[f"{split} Precision"].append(
                         precision_score(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                             average="micro",
                         )
                     )
                     metrics[f"{split} F1"].append(
                         f1_score(
-                            data[split][0][data[split][0].columns[y]],
+                            data[split][0][:, y],
                             data[split][1][:, y],
                             average="micro",
                         )
@@ -273,6 +272,7 @@ class PostProcessor:
         ):
             ascending = False
 
+        # Place metrics into models DataFrame
         for key, value in metrics.items():
             self._models[key] = value
 
@@ -380,14 +380,15 @@ class PostProcessor:
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(idx=idx, model_type=model_type, sort_by=sort_by)
 
+        ytrain = copy.deepcopy(self._ytrain.values)
         if self._yscaler:
-            ytrain = self._yscaler.transform(self._ytrain)
+            ytrain = self._yscaler.transform(ytrain)
 
         # Get regressor and fit the model
         regressor = self._models["Model Wrappers"][idx].set_params(
             **self._models["Parameter Configurations"][idx]
         )
-        regressor.fit(self._xtrain, ytrain)
+        regressor.fit(self._xtrain.values, ytrain)
 
         return regressor
 
@@ -404,20 +405,22 @@ class PostProcessor:
 
         # Get the list of y if not provided
         if y == None:
-            y = list(range(self._ytrain.shape[1]))
+            y = list(range(self._ytrain.shape[-1]))
 
         # Get predicted and actual outputs
         yhat_train = self._models["Train Yhat"][idx]
         yhat_test = self._models["Test Yhat"][idx]
-        ytrain = self._ytrain.to_numpy()
-        ytest = self._ytest.to_numpy()
+        ytrain = self._ytrain.values
+        ytest = self._ytest.values
 
         if ax == None:
             ax = plt.gca()
 
         for y_idx in y:
             if isinstance(y_idx, str):
-                y_idx = self._ytest.columns.get_loc(y_idx)
+                y_idx = np.where(
+                    self._ytrain.coords[self._ytrain.dims[-1]].to_numpy() == y_idx
+                )[0]
 
             ax.scatter(yhat_train[:, y_idx], ytrain[:, y_idx], c="b", marker="o")
             ax.scatter(yhat_test[:, y_idx], ytest[:, y_idx], c="r", marker="o")
@@ -454,7 +457,7 @@ class PostProcessor:
 
         # Get prediected and actual outputs
         yhat_test = self._models["Test Yhat"][idx]
-        ytest = self._ytest.to_numpy()
+        ytest = self._ytest.values
 
         if ax == None:
             ax = plt.gca()
@@ -463,7 +466,9 @@ class PostProcessor:
             # If the column name is given as opposed to the position,
             # find the position
             if isinstance(y_idx, str):
-                y_idx = self._ytest.columns.get_loc(y_idx)
+                y_idx = np.where(
+                    self._ytrain.coords[self._ytrain.dims[-1]].to_numpy() == y_idx
+                )[0]
 
             ax.plot(
                 np.linspace(1, ytest.shape[0], ytest.shape[0]),
