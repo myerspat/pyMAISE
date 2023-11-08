@@ -1,6 +1,6 @@
 from pkg_resources import resource_filename
 
-from pyMAISE.preprocessing import PreProcessor
+from pyMAISE.preprocessor import PreProcessor
 
 
 # Get full pyMAISE data file path
