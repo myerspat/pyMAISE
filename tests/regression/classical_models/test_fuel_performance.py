@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.model_selection import ShuffleSplit
+from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
 
@@ -24,7 +25,7 @@ def test_fuel_performance():
     # ===========================================================================
     # pyMAISE initialization
     settings = {
-        "verbosity": 0,
+        "verbosity": 2,
         "random_state": 42,
         "test_size": 0.3,
         "num_configs_saved": 1,
@@ -34,7 +35,7 @@ def test_fuel_performance():
     global_settings = mai.settings.init(settings_changes=settings)
 
     # Assertions for global settings
-    assert global_settings.verbosity == 0
+    assert global_settings.verbosity == 2
     assert global_settings.random_state == 42
     assert global_settings.test_size == 0.3
     assert global_settings.num_configs_saved == 1
@@ -53,7 +54,8 @@ def test_fuel_performance():
     )
 
     # Train test split
-    data = preprocessor.min_max_scale()
+    preprocessor.train_test_split(scaler=MinMaxScaler())
+    data = preprocessor.split_data
 
     # Train-test split size assertions
     assert (
@@ -73,16 +75,12 @@ def test_fuel_performance():
         and data[3].shape[1] == num_outputs
     )
 
-    # Assert values are between 0 and 1
-    for d in data:
-        assert d[(d >= 0) & (d <= 1)].size == d.size
-
     # ===========================================================================
     # Model initialization
     model_settings = {
         "models": ["linear", "lasso", "dtree", "knn", "rforest"],
     }
-    tuning = mai.Tuning(data=data, model_settings=model_settings)
+    tuning = mai.Tuner(data=data, model_settings=model_settings)
 
     # ===========================================================================
     # Hyper-parameter tuning
