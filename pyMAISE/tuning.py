@@ -39,8 +39,8 @@ from pyMAISE.methods import *
 from pyMAISE.utils import CVTuner
 
 
-class Tuning:
-    def __init__(self, data: pd.DataFrame, model_settings: dict):
+class Tuner:
+    def __init__(self, data: list, model_settings: dict):
         # Extract training data
         self._xtrain = data[0]
         self._ytrain = data[2]
@@ -67,7 +67,7 @@ class Tuning:
             elif model == "logistic":
                 self._models[model] = Logistic_Regression(parameters=parameters)
             elif model == "svm":
-                if self._ytrain.shape[1] > 1 and settings.values.regression:
+                if self._ytrain.shape[-1] > 1 and settings.values.regression:
                     raise Exception("SVM does not support multi-output data sets")
                 else:
                     self._models[model] = SVM(parameters=parameters)
@@ -84,22 +84,11 @@ class Tuning:
                     self._models[model] = NeuralNetsRegression(parameters=parameters)
 
             else:
-                raise Exception(
-                    "The model requested ("
-                    + model
-                    + ") is either misspelled or not supported"
-                )
-
-        # For single input or outputs the data must be converted to a 1D array to
-        # get rid of sklearn warnings
-        if self._xtrain.shape[1] == 1:
-            self._xtrain = self._xtrain.iloc[:, 0]
-        if self._ytrain.shape[1] == 1:
-            self._ytrain = self._ytrain.iloc[:, 0]
+                raise Exception("The model requested (" + model + ") is not supported")
 
     # ===========================================================
     # Methods
-    def manual_search(self, models: list = None, model_settings=None):
+    def manual_search(self, models=None, model_settings=None):
         # Get model types if not provided
         if models == None:
             models = list(self._models.keys())
@@ -116,7 +105,7 @@ class Tuning:
 
             resulting_model = estimator.fit(self._xtrain, self._ytrain)
 
-            # Place model in
+            # Save model hyperparameters and the model itself
             data[model] = (
                 pd.DataFrame({"params": [resulting_model.get_params()]}),
                 resulting_model,
@@ -124,249 +113,140 @@ class Tuning:
 
         return data
 
+    def _run_search(self, spaces, search_method, search_kwargs, models=None):
+        if models == None:
+            models = list(self._models.keys())
+
+        search_data = {}
+        for model in models:
+            if model in spaces:
+                if settings.values.verbosity > 0:
+                    print(f"-- {model}")
+
+                # Run search method
+                search = search_method(
+                    self._models[model].regressor(), spaces[model], **search_kwargs
+                )
+                resulting_models = search.fit(
+                    self._xtrain.to_numpy(), self._xtrain.to_numpy()
+                )
+
+                # Save tuning results
+                cv_results = pd.DataFrame(resulting_models.cv_results_)
+                self._tuning[model] = np.array(
+                    [
+                        cv_results["mean_test_score"],
+                        cv_results["std_test_score"],
+                    ]
+                )
+
+                # Place parameter configurations in DataFrame and sort based on rank,
+                # save the top num_configs_saved to the data dictionary
+                top_configs = pd.DataFrame(
+                    cv_results.sort_values("rank_test_score")["params"]
+                )
+
+                search_data[model] = (
+                    top_configs[: settings.values.num_configs_saved],
+                    resulting_models.best_estimator_,
+                )
+
+            else:
+                print(f"Search space was not provided for {model}, doing manual fit")
+                search_data = {**search_data, **self.manual_search(models=[model])}
+
+        return search_data
+
     def grid_search(
         self,
         param_spaces: dict,
         scoring=None,
-        models: list = None,
-        n_jobs: int = None,
+        models=None,
+        n_jobs=None,
         refit=True,
         cv=None,
         pre_dispatch="2*n_jobs",
     ):
-        if models == None:
-            models = list(self._models.keys())
-
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning with grid search")
 
-        data = {}
-        for model in models:
-            if model in param_spaces:
-                if settings.values.verbosity > 0:
-                    print("-- " + model)
-
-                # Run grid search
-                search = GridSearchCV(
-                    estimator=self._models[model].regressor(),
-                    param_grid=param_spaces[model],
-                    scoring=scoring,
-                    n_jobs=n_jobs,
-                    refit=refit,
-                    cv=cv,
-                    verbose=settings.values.verbosity,
-                    pre_dispatch=pre_dispatch,
-                )
-                resulting_models = search.fit(self._xtrain, self._ytrain)
-
-                # Add tuning results for convergence plot
-                cv_results = pd.DataFrame(resulting_models.cv_results_)
-                self._tuning[model] = cv_results["mean_test_score"]
-
-                # Place parameter configurations in DataFrame and sort based on rank,
-                # save the top num_configs_saved to the data dictionary
-                # Exclude timing data from DataFrame
-                top_configs = cv_results.sort_values("rank_test_score").iloc[
-                    : settings.values.num_configs_saved, :
-                ]
-
-                if settings.values.verbosity > 1:
-                    print(top_configs)
-
-                data[model] = (top_configs, resulting_models.best_estimator_)
-
-            else:
-                print(
-                    "Hyper-parameter tuning search space was not provided for "
-                    + model
-                    + ", doing manual fit"
-                )
-                data = {**data, **self.manual_search(models=[model])}
-
-        return data
+        return self._run_search(
+            spaces=param_spaces,
+            search_method=GridSearchCV,
+            search_kwargs={
+                "scoring": scoring,
+                "n_jobs": n_jobs,
+                "refit": refit,
+                "cv": cv,
+                "verbose": settings.values.verbosity,
+                "pre_dispatch": pre_dispatch,
+            },
+            models=models,
+        )
 
     def random_search(
         self,
         param_spaces: dict,
         scoring=None,
-        models: list = None,
-        n_iter: int = 10,
+        models=None,
+        n_iter=10,
         n_jobs: int = None,
         refit=True,
         cv=None,
         pre_dispatch="2*n_jobs",
     ):
-        if models == None:
-            models = list(self._models.keys())
-
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning with random search")
 
-        data = {}
-
-        for model in models:
-            if model in param_spaces:
-                if settings.values.verbosity > 0:
-                    print("-- " + model)
-
-                # Run random search
-                search = RandomizedSearchCV(
-                    estimator=self._models[model].regressor(),
-                    param_distributions=param_spaces[model],
-                    scoring=scoring,
-                    n_iter=n_iter,
-                    n_jobs=n_jobs,
-                    refit=refit,
-                    cv=cv,
-                    verbose=settings.values.verbosity,
-                    random_state=settings.values.random_state,
-                    pre_dispatch=pre_dispatch,
-                )
-                resulting_models = search.fit(self._xtrain, self._ytrain)
-
-                # Add tuning results for convergence plot
-                cv_results = pd.DataFrame(resulting_models.cv_results_)
-                self._tuning[model] = cv_results["mean_test_score"]
-
-                # Place parameter configurations in DataFrame and sort based on rank,
-                # save the top num_configs_saved to the data dictionary
-                # Exclude timing data from DataFrame
-                top_configs = cv_results.sort_values("rank_test_score").iloc[
-                    : settings.values.num_configs_saved, :
-                ]
-
-                if settings.values.verbosity > 1:
-                    print(top_configs)
-
-                data[model] = (top_configs, resulting_models.best_estimator_)
-
-            else:
-                print(
-                    "Hyper-parameter tuning search space was not provided for "
-                    + model
-                    + ", doing manual fit"
-                )
-                data = {**data, **self.manual_search(models=[model])}
-
-        return data
+        return self._run_search(
+            spaces=param_spaces,
+            search_method=RandomizedSearchCV,
+            search_kwargs={
+                "scoring": scoring,
+                "n_iter": n_iter,
+                "n_jobs": n_jobs,
+                "refit": refit,
+                "cv": cv,
+                "verbose": settings.values.verbosity,
+                "random_state": settings.values.random_state,
+                "pre_dispatch": pre_dispatch,
+            },
+        )
 
     def bayesian_search(
         self,
         param_spaces: dict,
         scoring=None,
-        models: list = None,
-        n_iter: int = 50,
-        optimizer_kwargs: dict = None,
-        fit_params: dict = None,
-        n_jobs: int = None,
-        n_points: int = 1,
+        models=None,
+        n_iter=50,
+        optimizer_kwargs=None,
+        fit_params=None,
+        n_jobs=None,
+        n_points=1,
         refit=True,
         cv=None,
         pre_dispatch="2*n_jobs",
     ):
-        if models == None:
-            models = list(self._models.keys())
-
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning with bayesian search")
 
-        data = {}
-        for model in models:
-            if model in param_spaces:
-                if settings.values.verbosity > 0:
-                    print("-- " + model)
-
-                if bool(re.search("nn", model)) and settings.values.new_nn_architecture:
-                    continue
-
-                # Convert list of values to search space dimensions
-                for key, value in param_spaces[model].items():
-                    if isinstance(value[0], int):
-                        param_spaces[model][key] = Integer(
-                            low=np.min(value), high=np.max(value), name=key
-                        )
-                    elif isinstance(value[0], float):
-                        param_spaces[model][key] = Real(
-                            low=np.min(value), high=np.max(value), name=key
-                        )
-                    elif isinstance(value[0], str):
-                        param_spaces[model][key] = Categorical(
-                            categories=value, name=key
-                        )
-
-                # Run Bayesian search
-                search = BayesSearchCV(
-                    estimator=self._models[model].regressor(),
-                    search_spaces=param_spaces[model],
-                    n_iter=n_iter,
-                    optimizer_kwargs=optimizer_kwargs,
-                    scoring=scoring,
-                    fit_params=fit_params,
-                    n_jobs=n_jobs,
-                    n_points=n_points,
-                    pre_dispatch=pre_dispatch,
-                    cv=cv,
-                    refit=refit,
-                    verbose=settings.values.verbosity,
-                    random_state=settings.values.random_state,
-                )
-                resulting_models = search.fit(self._xtrain, self._ytrain)
-
-                # Add tuning results for convergence plot
-                cv_results = pd.DataFrame(resulting_models.cv_results_)
-                self._tuning[model] = cv_results["mean_test_score"]
-
-                # Place parameter configurations in DataFrame and sort based on rank,
-                # save the top num_configs_saved to the data dictionary
-                # Exclude timing data from DataFrame
-                top_configs = cv_results.sort_values("rank_test_score").iloc[
-                    : settings.values.num_configs_saved, :
-                ]
-
-                if settings.values.verbosity > 1:
-                    print(top_configs)
-
-                data[model] = (top_configs, resulting_models.best_estimator_)
-
-            else:
-                print(
-                    "Hyper-parameter tuning search space was not provided for "
-                    + model
-                    + ", doing manual fit"
-                )
-                data = {**data, **self.manual_search(models=[model])}
-
-        return data
-
-    def convergence_plot(self, ax=None, model_types=None):
-        # If no models are provided fit all
-        if model_types == None:
-            model_types = self._tuning.keys()
-        elif isinstance(model_types, str):
-            model_types = [model_types]
-
-        if ax == None:
-            ax = plt.gca()
-
-        for model in model_types:
-            ax.plot(
-                np.linspace(
-                    1, self._tuning[model].shape[0], self._tuning[model].shape[0]
-                ),
-                self._tuning[model],
-                linestyle="-",
-                marker="o",
-                label=model,
-            )
-
-        # Show legend if length of models is more than one
-        if len(model_types) > 1:
-            ax.legend()
-
-        ax.set_xlabel("Iteration")
-        ax.set_ylabel("Mean Test Score")
-
-        return ax
+        return self._run_search(
+            spaces=param_spaces,
+            search_method=BayesSearchCV,
+            search_kwargs={
+                "n_iter": n_iter,
+                "optimizer_kwargs": optimizer_kwargs,
+                "scoring": scoring,
+                "fit_params": fit_params,
+                "n_jobs": n_jobs,
+                "n_points": n_points,
+                "pre_dispatch": pre_dispatch,
+                "cv": cv,
+                "refit": refit,
+                "verbose": settings.values.verbosity,
+                "random_state": settings.values.random_state,
+            },
+        )
 
     def nn_grid_search(
         self,
@@ -558,6 +438,7 @@ class Tuning:
         directory,
         project_name,
     ):
+        # Find all NN models if none are given by user
         if models == None:
             models = []
             for model in self._models.keys():
@@ -579,21 +460,22 @@ class Tuning:
                 project_name=project_name,
             )
 
-            if settings.values.verbosity > 0:
-                print("-- " + model)
-                print(tuner.search_space_summary())
-
-            tuner.search(x=self._xtrain, y=self._ytrain)
+            # Run search
+            tuner.search(x=self._xtrain.to_numpy(), y=self._ytrain.to_numpy())
 
             if settings.values.verbosity > 0:
                 print("-- " + model)
                 print(tuner.search_space_summary())
                 print(tuner.results_summary())
 
+            # Get best hyperparameters
             best_hps = tuner.get_best_hyperparameters(settings.values.num_configs_saved)
-            self._tuning[model] = pd.DataFrame(tuner.mean_test_score)
-
             top_configs = pd.DataFrame({"params": best_hps})
+
+            # Save test scores
+            self._tuning[model] = np.array(
+                [tuner.mean_test_score, tuner.std_test_score]
+            )
 
             data[model] = (top_configs, tuner.hypermodel)
 
@@ -613,3 +495,49 @@ class Tuning:
             return (kt.Objective(objective, direction="min"), eval(objective))
         else:
             return (objective, None)
+
+    def convergence_plot(self, ax=None, model_types=None):
+        # If no models are provided fit all
+        if model_types == None:
+            model_types = self._tuning.keys()
+        elif isinstance(model_types, str):
+            model_types = [model_types]
+
+        # Make axis if not given one
+        if ax == None:
+            ax = plt.gca()
+
+        # For each model assert the performance metrics are the same size
+        assert_shape = self._tuning[model_types[0]].shape
+
+        for model in model_types:
+            assert assert_shape == self._tuning[model].shape
+            print(self._tuning[model][0,])
+            print(self._tuning[model][1,])
+            x = np.linspace(
+                1, self._tuning[model].shape[0], self._tuning[model].shape[0]
+            )
+            ax.plot(
+                x,
+                self._tuning[model][0, :],
+                linestyle="-",
+                marker="o",
+                label=model,
+            )
+            ax.fill_between(
+                x, -2 * self._tuning[model][1, :], 2 * self._tuning[model][1, :]
+            )
+
+        # Show legend if length of models is more than one
+        if len(model_types) > 1:
+            ax.legend()
+
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Mean Test Score")
+
+        return ax
+
+    # Getters
+    @property
+    def cv_performance_data(self):
+        return self._tuning

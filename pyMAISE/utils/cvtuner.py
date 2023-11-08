@@ -1,6 +1,5 @@
 import keras_tuner as kt
 import numpy as np
-from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold, StratifiedKFold
 
 import pyMAISE.settings as settings
@@ -32,6 +31,7 @@ class CVTuner(kt.Tuner):
         self._metrics = metrics
         self._shuffle = shuffle
         self._mean_test_score = []
+        self._std_test_score = []
 
         # Build base keras tuner
         kt.Tuner.__init__(
@@ -71,13 +71,13 @@ class CVTuner(kt.Tuner):
         # Run
         test_scores = []
         model = None
-        for train_indices, test_indices in self._cv.split(x):
-            x_train, x_test = x.iloc[train_indices, :], x.iloc[test_indices, :]
-            if len(y.shape) > 1:
-                y_train, y_test = y.iloc[train_indices, :], y.iloc[test_indices, :]
-            else:
-                y_train, y_test = y.iloc[train_indices], y.iloc[test_indices]
+        for train_indices, val_indices in self._cv.split(x):
+            # Create training and validation split based on samples dimension
+            # (assumed to be the first dimension)
+            x_train, x_val = x[train_indices,], x[val_indices,]
+            y_train, y_val = y[train_indices,], y[val_indices,]
 
+            # Build and fit model to training data
             model = self.hypermodel.build(trial.hyperparameters)
             self.hypermodel.fit(
                 trial.hyperparameters,
@@ -86,17 +86,27 @@ class CVTuner(kt.Tuner):
                 y_train,
             )
 
+            # Evaluate model performance
             if self._metrics is not None:
-                test_scores.append(self._metrics(model.predict(x_test), y_test))
+                test_scores.append(self._metrics(model.predict(x_val), y_val))
             else:
-                test_scores.append(model.evaluate(x_test, y_test))
+                test_scores.append(model.evaluate(x_val, y_val))
 
+        # Append performance data for CV results
+        print(test_scores)
         self._mean_test_score.append(np.average(test_scores))
+        self._std_test_score.append(np.std(test_scores))
 
+        # Update oracle on objective outcome
         self.oracle.update_trial(
             trial.trial_id, {self._objective: np.average(test_scores)}
         )
 
+    # Getters
     @property
     def mean_test_score(self):
         return self._mean_test_score
+
+    @property
+    def std_test_score(self):
+        return self._std_test_score
