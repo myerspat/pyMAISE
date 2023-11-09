@@ -128,7 +128,7 @@ class Tuner:
                     self._models[model].regressor(), spaces[model], **search_kwargs
                 )
                 resulting_models = search.fit(
-                    self._xtrain.to_numpy(), self._xtrain.to_numpy()
+                    self._xtrain.values, self._ytrain.values
                 )
 
                 # Save tuning results
