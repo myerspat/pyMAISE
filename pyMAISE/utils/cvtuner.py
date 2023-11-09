@@ -93,14 +93,11 @@ class CVTuner(kt.Tuner):
                 test_scores.append(model.evaluate(x_val, y_val))
 
         # Append performance data for CV results
-        print(test_scores)
         self._mean_test_score.append(np.average(test_scores))
         self._std_test_score.append(np.std(test_scores))
 
         # Update oracle on objective outcome
-        self.oracle.update_trial(
-            trial.trial_id, {self._objective: np.average(test_scores)}
-        )
+        return {self._objective: np.average(test_scores)}
 
     # Getters
     @property

@@ -31,7 +31,7 @@ class PostProcessor:
         new_model_settings=None,
         yscaler=None,
     ):
-        # Extract xarray data
+        # Extract data
         self._xtrain, self._xtest, self._ytrain, self._ytest = copy.deepcopy(data)
 
         # Initialize models of interest
@@ -138,7 +138,19 @@ class PostProcessor:
                 not re.search("nn", self._models["Model Types"][i])
                 or self._models["Model Types"][i] == "knn"
             ):
-                regressor.fit(self._xtrain.values, self._ytrain.values)
+                # Change final dimension if there is only one feature
+                # in any of these arrays
+                xtrain = (
+                    self._xtrain
+                    if self._xtrain.shape[-1] > 1
+                    else self._xtrain.isel(**{self._xtrain.dims[-1]: 0})
+                )
+                ytrain = (
+                    self._ytrain
+                    if self._ytrain.shape[-1] > 1
+                    else self._ytrain.isel(**{self._ytrain.dims[-1]: 0})
+                )
+                regressor.fit(xtrain.values, ytrain.values)
                 histories.append(None)
             else:
                 if not settings.values.new_nn_architecture:
@@ -282,11 +294,14 @@ class PostProcessor:
             ]
         )
 
+        hyperparams = []
         for i in range(models.shape[0]):
             if isinstance(models["Parameter Configurations"][i], kt.HyperParameters):
-                models["Parameter Configurations"][i] = models[
-                    "Parameter Configurations"
-                ][i].values
+                hyperparams.append(models["Parameter Configurations"][i].values)
+            else:
+                hyperparams.append(models["Parameter Configurations"][i])
+
+        models["Parameter Configurations"] = hyperparams
 
         if model_type == None:
             return models.sort_values(sort_by, ascending=[ascending])

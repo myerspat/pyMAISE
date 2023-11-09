@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 from scipy.stats import randint, uniform
 from sklearn.model_selection import ShuffleSplit
+from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
 
@@ -16,7 +17,7 @@ def test_new_nn_structure():
         # ======================================================================
         # Old Model Structure
         settings = {
-            "verbosity": 0,
+            "verbosity": 1,
             "random_state": 42,
             "test_size": 0.3,
             "num_configs_saved": 1,
@@ -30,7 +31,8 @@ def test_new_nn_structure():
 
         # Initialize preprocessor and scaling
         preprocessor = eval("mai." + load_function + "()")
-        data = preprocessor.min_max_scale()
+        preprocessor.train_test_split(scaler=MinMaxScaler())
+        data = preprocessor.split_data
 
         # Old NN model settings
         model_settings = {
@@ -63,7 +65,7 @@ def test_new_nn_structure():
                 "learning_rate": 0.0001,
             },
         }
-        tuning = mai.Tuning(data=data, model_settings=model_settings)
+        tuning = mai.Tuner(data=data, model_settings=model_settings)
 
         # Grid search space
         grid_search_space = {
@@ -141,7 +143,7 @@ def test_new_nn_structure():
                 },
             },
         }
-        tuning = mai.Tuning(data=data, model_settings=model_settings)
+        tuning = mai.Tuner(data=data, model_settings=model_settings)
 
         # Grid search
         grid_search_configs = tuning.nn_grid_search(

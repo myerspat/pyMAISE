@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 from sklearn.model_selection import ShuffleSplit
 
@@ -19,30 +18,30 @@ def test_classification():
         "rforest": 1.0,
         "knn": 1.0,
     }
-    plus_minus = 0.025
 
     # ===========================================================================
     # pyMAISE initialization
     settings = {
-        "verbosity": 0,
+        "verbosity": 1,
         "random_state": 42,
         "test_size": 0.3,
         "num_configs_saved": 1,
         "regression": False,
         "classification": True,
+        "cuda_visible_devices": "-1",  # Use CPUs only
     }
-
     global_settings = mai.settings.init(settings_changes=settings)
 
     # Assertions for global settings
-    assert global_settings.verbosity == 0
+    assert global_settings.verbosity == 1
     assert global_settings.random_state == 42
     assert global_settings.test_size == 0.3
     assert global_settings.num_configs_saved == 1
 
     # Get heat conduction preprocessor
 
-    preprocessor = mai.PreProcesser(
+    preprocessor = mai.PreProcessor()
+    preprocessor.read_csv(
         "https://raw.githubusercontent.com/scikit-learn/scikit-learn/04e39db499"
         + "afab852e4e2603807384a402a871a9/sklearn/datasets/data/iris.csv",
         slice(0, 4),
@@ -60,7 +59,8 @@ def test_classification():
     )
 
     # Train test split
-    data = preprocessor.data_split()
+    preprocessor.train_test_split()
+    data = preprocessor.split_data
 
     # Train-test split size assertions
     assert (
@@ -80,16 +80,12 @@ def test_classification():
         and data[3].shape[1] == num_outputs
     )
 
-    # Assert values are between 0 and 1
-    for d in data:
-        assert d[(d >= 0) & (d <= 1)].size == d.size
-
     # ===========================================================================
     # Model initialization
     model_settings = {
         "models": ["dtree", "rforest", "knn"],
     }
-    tuning = mai.Tuning(data=data, model_settings=model_settings)
+    tuning = mai.Tuner(data=data, model_settings=model_settings)
 
     # ===========================================================================
     # Hyper-parameter tuning

@@ -42,8 +42,8 @@ from pyMAISE.utils import CVTuner
 class Tuner:
     def __init__(self, data: list, model_settings: dict):
         # Extract training data
-        self._xtrain = data[0]
-        self._ytrain = data[2]
+        self._xtrain = copy.deepcopy(data[0])
+        self._ytrain = copy.deepcopy(data[2])
 
         # Extract target models from dictionary
         models_str = model_settings["models"]
@@ -67,10 +67,10 @@ class Tuner:
             elif model == "logistic":
                 self._models[model] = Logistic_Regression(parameters=parameters)
             elif model == "svm":
-                if self._ytrain.shape[-1] > 1 and settings.values.regression:
-                    raise Exception("SVM does not support multi-output data sets")
-                else:
+                if self._ytrain.shape[-1] == 1:
                     self._models[model] = SVM(parameters=parameters)
+                else:
+                    raise Exception("SVM does not support multi-output data sets")
             elif model == "dtree":
                 self._models[model] = DecisionTree(parameters=parameters)
             elif model == "rforest":
@@ -117,6 +117,18 @@ class Tuner:
         if models == None:
             models = list(self._models.keys())
 
+        # Change final dimension if there is only one feature in any of these arrays
+        xtrain = (
+            self._xtrain
+            if self._xtrain.shape[-1] > 1
+            else self._xtrain.isel(**{self._xtrain.dims[-1]: 0})
+        )
+        ytrain = (
+            self._ytrain
+            if self._ytrain.shape[-1] > 1
+            else self._ytrain.isel(**{self._ytrain.dims[-1]: 0})
+        )
+
         search_data = {}
         for model in models:
             if model in spaces:
@@ -127,9 +139,7 @@ class Tuner:
                 search = search_method(
                     self._models[model].regressor(), spaces[model], **search_kwargs
                 )
-                resulting_models = search.fit(
-                    self._xtrain.values, self._ytrain.values
-                )
+                resulting_models = search.fit(xtrain.values, ytrain.values)
 
                 # Save tuning results
                 cv_results = pd.DataFrame(resulting_models.cv_results_)
