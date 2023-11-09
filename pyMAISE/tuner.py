@@ -461,7 +461,7 @@ class Tuner:
             )
 
             # Run search
-            tuner.search(x=self._xtrain.to_numpy(), y=self._ytrain.to_numpy())
+            tuner.search(x=self._xtrain.values, y=self._ytrain.values)
 
             if settings.values.verbosity > 0:
                 print("-- " + model)
@@ -512,8 +512,6 @@ class Tuner:
 
         for model in model_types:
             assert assert_shape == self._tuning[model].shape
-            print(self._tuning[model][0,])
-            print(self._tuning[model][1,])
             x = np.linspace(
                 1, self._tuning[model].shape[0], self._tuning[model].shape[0]
             )
