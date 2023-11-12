@@ -228,7 +228,7 @@ def test_split_sequances():
     # and preprocessor.output is already given in a univariate form
     # with "sec1" and "sec2" as inputs and "sec3" as output
     preprocessor = mai.PreProcessor()
-    preprocessor.set_data(univariate_xarray, inputs=["sec0"])
+    preprocessor.set_data(univariate_xarray)
 
     # Check contents prior to splitting
     np.testing.assert_array_equal(
@@ -239,9 +239,10 @@ def test_split_sequances():
     preprocessor.split_sequences(
         input_steps=3,
         output_steps=1,
+        output_position=1,
+        sequence_inputs=["sec0"],
+        sequence_outputs=["sec0"],
     )
-    print(preprocessor.inputs.to_dataset(dim="variable").to_dataframe())
-    print(preprocessor.outputs)
     assert preprocessor.inputs.shape == (6, 3, 1)
     assert preprocessor.outputs.shape == (6, 1, 1)
 
@@ -269,7 +270,6 @@ def test_split_sequances():
     # ============================================================
     preprocessor.set_data(
         multivariate_xarray,
-        inputs=["sec0", "sec1"],
     )
 
     # Check contents prior to splitting
@@ -278,7 +278,10 @@ def test_split_sequances():
     # Split data and confirm shapes and contents of first 2 samples
     preprocessor.split_sequences(
         input_steps=3,
-        output_steps=0,
+        output_steps=1,
+        output_position=0,
+        sequence_inputs=["sec0", "sec1"],
+        sequence_outputs=["sec2"],
     )
     assert preprocessor.inputs.shape == (7, 3, 2)
     assert preprocessor.outputs.shape == (7, 1, 1)
@@ -307,13 +310,15 @@ def test_split_sequances():
     # ============================================================
     preprocessor.set_data(
         multivariate_xarray,
-        inputs=["sec0", "sec1", "sec2"],
     )
 
     # Split data and confirm shapes and contents of first 2 samples
     preprocessor.split_sequences(
         input_steps=3,
         output_steps=1,
+        output_position=1,
+        sequence_inputs=["sec0", "sec1", "sec2"],
+        sequence_outputs=["sec0", "sec1", "sec2"],
     )
     assert preprocessor.inputs.shape == (6, 3, 3)
     assert preprocessor.outputs.shape == (6, 1, 3)
@@ -340,12 +345,15 @@ def test_split_sequances():
     # Input: (samples=5, timesteps=3, features=1)
     # Output: (samples=5, timesteps=2, features=3)
     # ============================================================
-    preprocessor.set_data(univariate_xarray, inputs=["sec0"])
+    preprocessor.set_data(univariate_xarray)
 
     # Split data and confirm shapes and contents of first 2 samples
     preprocessor.split_sequences(
         input_steps=3,
         output_steps=2,
+        output_position=1,
+        sequence_inputs=["sec0"],
+        sequence_outputs=["sec0"],
     )
     assert preprocessor.inputs.shape == (5, 3, 1)
     assert preprocessor.outputs.shape == (5, 2, 1)
@@ -374,13 +382,15 @@ def test_split_sequances():
     # ============================================================
     preprocessor.set_data(
         multivariate_xarray,
-        inputs=["sec0", "sec1"],
     )
 
     # Split data and confirm shapes and contents of first 2 samples
     preprocessor.split_sequences(
         input_steps=3,
-        output_steps=1,
+        output_steps=2,
+        output_position=0,
+        sequence_inputs=["sec0", "sec1"],
+        sequence_outputs=["sec2"],
     )
     assert preprocessor.inputs.shape == (6, 3, 2)
     assert preprocessor.outputs.shape == (6, 2, 1)
@@ -409,13 +419,15 @@ def test_split_sequances():
     # ============================================================
     preprocessor.set_data(
         multivariate_xarray,
-        inputs=["sec0", "sec1", "sec2"],
     )
 
     # Split data and confirm shapes and contents of first 2 samples
     preprocessor.split_sequences(
         input_steps=3,
         output_steps=2,
+        output_position=1,
+        sequence_inputs=["sec0", "sec1", "sec2"],
+        sequence_outputs=["sec0", "sec1", "sec2"],
     )
     assert preprocessor.inputs.shape == (5, 3, 3)
     assert preprocessor.outputs.shape == (5, 2, 3)
@@ -436,6 +448,26 @@ def test_split_sequances():
         preprocessor.outputs.to_numpy()[1, :, :],
         np.array([[50, 55, 105], [60, 65, 125]]),
     )
+
+    # ============================================================
+    # LOCA Data Test (40 features, 1 sequential output)
+    # Input: (samples=4001, timesteps=396, features=3)
+    # Output: (samples=4001, timesteps=396, features=1)
+    # ============================================================
+    preprocessor = mai.load_loca()
+
+    # Split data
+    preprocessor.split_sequences(
+        input_steps=4,
+        output_steps=1,
+        output_position=1,
+        sequence_inputs=["PCT"],
+        sequence_outputs=["PCT"],
+        feature_inputs=preprocessor._data.coords["features"].values[:-1],
+    )
+    assert preprocessor.data.shape == (4001, 400, 41)
+    assert preprocessor.inputs.shape == (4001, 396, 44)
+    assert preprocessor.outputs.shape == (4001, 396, 1)
 
 
 # ================================================================
@@ -493,12 +525,15 @@ def test_train_test_split():
         .to_array()
         .transpose(..., "variable")
     )
-    preprocessor.set_data(multivariate_xarray, inputs=["sec0"])
+    preprocessor.set_data(multivariate_xarray)
 
     # Split data and confirm shapes and contents of first 2 samples
     preprocessor.split_sequences(
         input_steps=3,
-        output_steps=1,
+        output_steps=2,
+        output_position=0,
+        sequence_inputs=["sec0"],
+        sequence_outputs=["sec1", "sec2"],
     )
     preprocessor.train_test_split(scaler=MinMaxScaler())
     xtrain, xtest, ytrain, ytest = preprocessor.split_data
@@ -548,6 +583,7 @@ def test_train_test_split():
         ),
         preprocessor.outputs.to_numpy().reshape(-1, preprocessor.outputs.shape[-1]),
     )
+
 
 # ================================================================
 def test_correlation_matrix():

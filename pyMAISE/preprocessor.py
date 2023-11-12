@@ -82,7 +82,7 @@ class PreProcessor:
                 self._inputs.shape[1] - 1, self._outputs.shape[1]
             )
 
-    def set_data(self, data: xr.DataArray, inputs: list, outputs: list = None):
+    def set_data(self, data: xr.DataArray, inputs: list = None, outputs: list = None):
         """
         Set `PreProcessor.data`, `PreProcessor.inputs`, and `PreProcessor.outputs`.
 
@@ -100,21 +100,30 @@ class PreProcessor:
             `outputs = inputs`.
         """
         if isinstance(data, xr.DataArray):
-            feature_dim = data.dims[-1]
-            self._data = data.to_dataset(dim=feature_dim)
-            # Restrict input to the features given by the user
-            self._inputs = self._data[inputs]
+            self._data = data
+            if inputs:
+                dataset = self._data.to_dataset(dim=self._data.dims[-1])
+                # Restrict input to the features given by the user
+                self._inputs = dataset[inputs]
 
-            # If outputs are given then use them, if no outputs but inputs
-            # has all features in the data set then assume parallel series,
-            # and if none are true then drop the input features from the
-            # data set to create outputs
-            if outputs:
-                self._outputs = self._data[outputs]
-            elif set(self._inputs.keys()) == set(self._data.keys()):
-                self._outputs = self._data[inputs]
-            else:
-                self._outputs = self._data.drop_vars(inputs)
+                # If outputs are given then use them, if no outputs but inputs
+                # has all features in the data set then assume parallel series,
+                # and if none are true then drop the input features from the
+                # data set to create outputs
+                if outputs:
+                    self._outputs = dataset[outputs]
+                elif set(self._inputs.keys()) == set(dataset.keys()):
+                    self._outputs = dataset[inputs]
+                else:
+                    self._outputs = dataset.drop_vars(inputs)
+
+                # Ensure feature dimension is the last dimension
+                self._inputs = self._inputs.to_array().transpose(
+                    ..., self._data.dims[-1]
+                )
+                self._outputs = self._outputs.to_array().transpose(
+                    ..., self._data.dims[-1]
+                )
 
         elif isinstance(data, list):
             self._inputs = data[0]
@@ -126,17 +135,15 @@ class PreProcessor:
         else:
             raise RuntimeError("Data type not supported for data")
 
-        # Ensure the feature dimension is last so numpy arrays are correct
-        self._data = self._data.to_array().transpose(..., feature_dim)
-        self._inputs = self._inputs.to_array().transpose(..., feature_dim)
-        self._outputs = self._outputs.to_array().transpose(..., feature_dim)
-
     def split_sequences(
         self,
-        input_steps: int,
-        output_steps: int,
-        output_lookback: int = 1,
-        dim: str = None,
+        input_steps,
+        output_steps,
+        output_position,
+        sequence_inputs,
+        sequence_outputs,
+        feature_inputs=None,
+        feature_outputs=None,
     ):
         """
         Split time series data. Populates input and output data with `xarrays.DataArray`
@@ -155,57 +162,96 @@ class PreProcessor:
         dim : str
             The name of the dimension to split the time series. Assumes the first dimension.
         """
-        # Assert our data has 2-D, the result of splie_sequences will be 3-D
-        assert len(self._data.shape) == 2
+        # Assert our data is either 2D or 3D
+        assert len(self._data.shape) > 1 and len(self._data.shape) < 4
 
-        # Alter output_lookback if doing parallel series
-        if (
-            set(self._inputs.coords[self._inputs.dims[-1]].to_numpy())
-            == set(self._outputs.coords[self._outputs.dims[-1]].to_numpy())
-            and output_lookback == 1
-        ):
-            output_lookback = 0
+        # Function for checking index type, turns lists of str to array of ints
+        def type_based_index(index_list):
+            if isinstance(index_list[0], str):
+                return self._data.sel(**{self._data.dims[-1]: index_list})
+            else:
+                return self._data.isel(**{self._data.dims[-1]: index_list})
 
-        # Use first dimension if not given
-        if dim == None:
-            dim = self._data.dims[0]
+        inputs = type_based_index(sequence_inputs)
+        outputs = type_based_index(sequence_outputs)
+
+        # Check the number of dimensions in the given data set
+        # If 2D then assume (timesteps, features)
+        # If 3D then assume (samples, timesteps, features)
+        temporal_index = 0
+        if len(self._data.shape) == 3:
+            temporal_index = 1
 
         # Iterate through 2D data to make 3D data for time series
         x, y = list(), list()
-        for i in range(self._data.coords[dim].shape[0]):
+        for i in range(self._data.shape[temporal_index]):
             input_end_idx = i + input_steps
-            output_end_idx = input_end_idx + output_steps
-            if output_end_idx > self._data.coords[dim].shape[0]:
+            output_begin_idx = input_end_idx - 1 + output_position
+
+            # Break if past data bounds
+            if (output_begin_idx + output_steps) > self._data.shape[temporal_index]:
                 break
 
-            x.append(self._inputs.isel(**{dim: slice(i, input_end_idx)}).to_numpy())
-            y.append(
-                self._outputs.isel(
-                    **{dim: slice(input_end_idx - output_lookback, output_end_idx)}
-                ).to_numpy()
+            x.append(
+                inputs.isel(
+                    **{
+                        self._data.dims[temporal_index]: slice(i, input_end_idx),
+                    }
+                ).values
             )
+            y.append(
+                outputs.isel(
+                    **{
+                        self._data.dims[temporal_index]: slice(
+                            output_begin_idx, output_begin_idx + output_steps
+                        ),
+                    }
+                ).values
+            )
+
         x = np.array(x)
         y = np.array(y)
+
+        if len(self._data.shape) == 3:
+            x = np.transpose(x.reshape(x.shape[0], x.shape[1], -1), (1, 0, 2))
+            y = np.transpose(y.reshape(y.shape[0], y.shape[1], -1), (1, 0, 2))
+
+        if feature_inputs is not None:
+            x = np.concatenate(
+                (
+                    type_based_index(feature_inputs)
+                    .isel(**{self._data.dims[temporal_index]: range(x.shape[1])})
+                    .values,
+                    x,
+                ),
+                axis=2,
+            )
+        if feature_outputs is not None:
+            y = np.concatenate(
+                (
+                    type_based_index(feature_outputs)
+                    .isel(**{self._data.dims[temporal_index]: range(y.shape[1])})
+                    .values,
+                    y,
+                ),
+                axis=2,
+            )
 
         # Convert to xarray.DataArray(s)
         self._inputs = xr.DataArray(
             x,
             coords={
                 "samples": range(x.shape[0]),
-                "sequence_idx": range(x.shape[1]),
-                self._inputs.dims[-1]: self._inputs.coords[
-                    self._inputs.dims[-1]
-                ].to_numpy(),
+                "timesteps": range(x.shape[1]),
+                inputs.dims[-1]: range(x.shape[2]),
             },
         )
         self._outputs = xr.DataArray(
             y,
             coords={
                 "samples": range(y.shape[0]),
-                "sequence_idx": range(y.shape[1]),
-                self._outputs.dims[-1]: self._outputs.coords[
-                    self._outputs.dims[-1]
-                ].to_numpy(),
+                "timesteps": range(y.shape[1]),
+                outputs.dims[-1]: range(y.shape[2]),
             },
         )
 
