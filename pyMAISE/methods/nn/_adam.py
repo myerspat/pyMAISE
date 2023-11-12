@@ -31,4 +31,6 @@ class AdamOpt:
             "beta_2": 0.999,
             "epsilon": 1e-07,
             "amsgrad": False,
+            "clipnorm": None,
+            "clipvalue": None,
         }

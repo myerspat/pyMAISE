@@ -88,7 +88,9 @@ class CVTuner(kt.Tuner):
 
             # Evaluate model performance
             if self._metrics is not None:
-                test_scores.append(self._metrics(model.predict(x_val), y_val))
+                test_scores.append(
+                    self._metrics(model.predict(x_val).flatten(), y_val.flatten())
+                )
             else:
                 test_scores.append(model.evaluate(x_val, y_val))
 

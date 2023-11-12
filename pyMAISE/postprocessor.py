@@ -83,16 +83,16 @@ class PostProcessor:
 
         if yscaler != None:
             self._yscaler = yscaler
-            self._ytrain.values = yscaler.inverse_transform(self._ytrain.values)
-            self._ytest.values = yscaler.inverse_transform(self._ytest.values)
+            self._ytrain.values = yscaler.inverse_transform(
+                self._ytrain.values.reshape(-1, self._ytrain.shape[-1])
+            ).reshape(self._ytrain.shape)
+            self._ytest.values = yscaler.inverse_transform(
+                self._ytest.values.reshape(-1, self._ytest.shape[-1])
+            ).reshape(self._ytest.shape)
 
             for i in range(len(yhat_train)):
-                yhat_train[i] = yscaler.inverse_transform(
-                    yhat_train[i].reshape(self._ytrain.shape)
-                )
-                yhat_test[i] = yscaler.inverse_transform(
-                    yhat_test[i].reshape(self._ytest.shape)
-                )
+                yhat_train[i] = yscaler.inverse_transform(yhat_train[i])
+                yhat_test[i] = yscaler.inverse_transform(yhat_test[i])
 
         self._models = pd.concat(
             [
@@ -172,8 +172,12 @@ class PostProcessor:
                     )
 
             # Append training and testing predictions
-            yhat_train.append(regressor.predict(self._xtrain))
-            yhat_test.append(regressor.predict(self._xtest))
+            yhat_train.append(
+                regressor.predict(self._xtrain).reshape(-1, self._ytrain.shape[-1])
+            )
+            yhat_test.append(
+                regressor.predict(self._xtest).reshape(-1, self._ytest.shape[-1])
+            )
 
         return (yhat_train, yhat_test, histories)
 
