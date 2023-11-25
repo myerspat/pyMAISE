@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.model_selection import ShuffleSplit
+from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
 
@@ -17,23 +18,26 @@ def test_reactor_physics():
     # Expected performance metrics
     expected_metrics = pd.read_csv(
         mai.data._handler.get_full_path(
-            "../tests/regression/classical_models/supporting/reactor_physics_testing_metrics.csv"
+            "../tests/regression/classical_models/supporting/"
+            + "reactor_physics_testing_metrics.csv"
         )
     )
 
     # ===========================================================================
     # pyMAISE initialization
     settings = {
-        "verbosity": 0,
+        "verbosity": 1,
         "random_state": 42,
         "test_size": 0.3,
         "num_configs_saved": 1,
         "regression": True,
+        "classification": False,
+        "cuda_visible_devices": "-1",  # Use CPUs only
     }
     global_settings = mai.settings.init(settings_changes=settings)
 
     # Assertions for global settings
-    assert global_settings.verbosity == 0
+    assert global_settings.verbosity == 1
     assert global_settings.random_state == 42
     assert global_settings.test_size == 0.3
     assert global_settings.num_configs_saved == 1
@@ -52,7 +56,8 @@ def test_reactor_physics():
     )
 
     # Train test split
-    data = preprocessor.min_max_scale()
+    preprocessor.train_test_split(scaler=MinMaxScaler())
+    data = preprocessor.split_data
 
     # Train-test split size assertions
     assert (
@@ -72,16 +77,12 @@ def test_reactor_physics():
         and data[3].shape[1] == num_outputs
     )
 
-    # Assert values are between 0 and 1
-    for d in data:
-        assert d[(d >= 0) & (d <= 1)].size == d.size
-
     # ===========================================================================
     # Model initialization
     model_settings = {
         "models": ["linear", "lasso", "svm", "dtree", "knn", "rforest"],
     }
-    tuning = mai.Tuning(data=data, model_settings=model_settings)
+    tuning = mai.Tuner(data=data, model_settings=model_settings)
 
     # ===========================================================================
     # Hyper-parameter tuning
@@ -125,41 +126,26 @@ def test_reactor_physics():
         data=data,
         models_list=[grid_search_configs],
     )
+    metrics = postprocessor.metrics()[
+        [
+            "Model Types",
+            "Train MAE",
+            "Train MSE",
+            "Train RMSE",
+            "Train R2",
+            "Test MAE",
+            "Test MSE",
+            "Test RMSE",
+            "Test R2",
+        ]
+    ]
 
     # Assert expected dataframe and results match
     print(
         "Expected Values\n",
         expected_metrics.sort_values(by=["Test R2"], ascending=False),
     )
-    print(
-        "pyMAISE Values\n",
-        postprocessor.metrics()[
-            [
-                "Model Types",
-                "Train MAE",
-                "Train MSE",
-                "Train RMSE",
-                "Train R2",
-                "Test MAE",
-                "Test MSE",
-                "Test RMSE",
-                "Test R2",
-            ]
-        ],
-    )
+    print("pyMAISE Values\n", metrics)
     pd.testing.assert_frame_equal(
-        expected_metrics.sort_values(by=["Test R2"], ascending=False),
-        postprocessor.metrics()[
-            [
-                "Model Types",
-                "Train MAE",
-                "Train MSE",
-                "Train RMSE",
-                "Train R2",
-                "Test MAE",
-                "Test MSE",
-                "Test RMSE",
-                "Test R2",
-            ]
-        ],
+        expected_metrics.sort_values(by=["Test R2"], ascending=False), metrics
     )
