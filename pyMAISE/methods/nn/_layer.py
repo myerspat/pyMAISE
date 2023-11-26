@@ -16,7 +16,7 @@ class Layer:
                 # are given for pyMAISE.Choice
                 self._base_data["sublayer"] = value
                 sublayer_list = value
-                if isinstance(sublayer, Choice):
+                if isinstance(self._base_data["sublayer"], Choice):
                     sublayer_list = value.values
                 else:
                     sublayer_list = [sublayer_list]
