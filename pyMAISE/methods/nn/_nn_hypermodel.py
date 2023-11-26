@@ -27,6 +27,7 @@ from pyMAISE.methods.nn._gru import GRULayer
 from pyMAISE.methods.nn._lstm import LSTMLayer
 from pyMAISE.methods.nn._max_pooling_1d import MaxPooling1DLayer
 from pyMAISE.methods.nn._max_pooling_2d import MaxPooling2DLayer
+from pyMAISE.methods.nn._max_pooling_3d import MaxPooling3DLayer
 from pyMAISE.methods.nn._reshape import ReshapeLayer
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
 
