@@ -1,22 +1,16 @@
-import copy
-
 from keras.layers import LSTM
 
-from pyMAISE.utils.hyperparameters import HyperParameters
+from pyMAISE.methods.nn._layer import Layer
 
 
-# Dense layer keras neural networks
-class LstmLayer:
+class LSTMLayer(Layer):
     def __init__(self, layer_name, parameters: dict):
-        self._layer_name = layer_name
+        # Initialize layer and base class
         self.reset()
+        super().__init__(layer_name, parameters)
 
-        for key, value in parameters.items():
-            if key == "num_layers":
-                self._num_layers = value
-                continue
-
-            self._data[key] = value
+        # Get layer data from params dictionary
+        self._data = super().build_data(self._data, parameters)
 
         # Assert keras non-default variables are defined
         assert self._data["units"] != None
@@ -25,23 +19,10 @@ class LstmLayer:
     # Methods
     def build(self, hp):
         # Set pyMAISE hyperparameter to keras-tuner hyperparameter
-        sampled_data = copy.deepcopy(self._data)
-        for key, value in self._data.items():
-            if isinstance(value, HyperParameters):
-                assert self._data[key]
-                sampled_data[key] = value.hp(
-                    hp, "_".join([self._layer_name + str(self._current_layer), key])
-                )
-            else:
-                sampled_data[key] = value
-
-        return LSTM(**sampled_data)
+        return LSTM(**super().sample_parameters(self._data, hp))
 
     def reset(self):
-        self._current_layer = 0
-        self._num_layers = 1
         self._data = {
-            "input_dim": None,
             "units": None,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
@@ -55,7 +36,7 @@ class LstmLayer:
             "bias_regularizer": None,
             "activity_regularizer": None,
             "kernel_constraint": None,
-            "recurrent_constraint":None,
+            "recurrent_constraint": None,
             "bias_constraint": None,
             "dropout": 0.0,
             "recurrent_dropout": 0.0,
@@ -66,14 +47,18 @@ class LstmLayer:
             "time_major": False,
             "unroll": False,
         }
+        super().reset()
 
     def increment_layer(self):
-        self._current_layer = self._current_layer + 1
+        return super().increment_layer()
 
     # ==========================================================================
     # Getters
     def num_layers(self, hp):
-        if isinstance(self._num_layers, HyperParameters):
-            return self._num_layers.hp(hp, self._layer_name + "_num_layers")
-        else:
-            return self._num_layers
+        return super().num_layers(hp)
+
+    def sublayer(self, hp):
+        return super().sublayer(hp)
+
+    def wrapper(self):
+        return super().wrapper()

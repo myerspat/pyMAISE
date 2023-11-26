@@ -1,10 +1,10 @@
-from keras.layers import MaxPooling2D
+from keras.layers import MaxPooling1D
 
 from pyMAISE.methods.nn._layer import Layer
 
 
-class MaxPooling2DLayer(Layer):
-    def __init__(self, layer_name, parameters: dict):
+class MaxPooling1DLayer(Layer):
+    def __init__(self, layer_name, parameters):
         # Initialize layer data
         self.reset()
         super().__init__(layer_name, parameters)
@@ -17,14 +17,14 @@ class MaxPooling2DLayer(Layer):
     def build(self, hp):
         # Set pyMAISE hyperparameters to keras-tuner hyperparameters
         sampled_data = super().sample_parameters(self._data, hp)
-        return MaxPooling2D(**sampled_data)
+        return MaxPooling1D(**sampled_data)
 
     def reset(self):
         self._data = {
-            "pool_size": (2, 2),
+            "pool_size": 2,
             "strides": None,
             "padding": "valid",
-            "data_format": None,
+            "data_format": "channels_last",
         }
         super().reset()
 

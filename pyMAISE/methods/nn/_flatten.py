@@ -1,56 +1,39 @@
-import copy
-
 from keras.layers import Flatten
 
-from pyMAISE.utils.hyperparameters import HyperParameters
+from pyMAISE.methods.nn._layer import Layer
 
 
-# Dense layer keras neural networks
-class FlattenLayer:
+class FlattenLayer(Layer):
     def __init__(self, layer_name, parameters: dict):
-        self._layer_name = layer_name
+        # Initialize layer and base class
         self.reset()
+        super().__init__(layer_name, parameters)
 
-        for key, value in parameters.items():
-            if key == "num_layers":
-                self._num_layers = value
-                continue
-
-            self._data[key] = value
-
-        # Assert keras non-default variables are defined
-        # assert self._data["data_format"] != None
+        # Get layer data from params dictionary
+        self._data = super().build_data(self._data, parameters)
 
     # ==========================================================================
     # Methods
     def build(self, hp):
         # Set pyMAISE hyperparameter to keras-tuner hyperparameter
-        sampled_data = copy.deepcopy(self._data)
-        for key, value in self._data.items():
-            if isinstance(value, HyperParameters):
-                assert self._data[key]
-                sampled_data[key] = value.hp(
-                    hp, "_".join([self._layer_name + str(self._current_layer), key])
-                )
-            else:
-                sampled_data[key] = value
-
-        return Flatten(**sampled_data)
+        return Flatten(**super().sample_parameters(self._data, hp))
 
     def reset(self):
-        self._current_layer = 0
-        self._num_layers = 1
         self._data = {
             "data_format": None,
         }
+        super().reset()
 
     def increment_layer(self):
-        self._current_layer = self._current_layer + 1
+        return super().increment_layer()
 
     # ==========================================================================
     # Getters
     def num_layers(self, hp):
-        if isinstance(self._num_layers, HyperParameters):
-            return self._num_layers.hp(hp, self._layer_name + "_num_layers")
-        else:
-            return self._num_layers
+        return super().num_layers(hp)
+
+    def sublayer(self, hp):
+        return super().sublayer(hp)
+
+    def wrapper(self):
+        return super().wrapper()

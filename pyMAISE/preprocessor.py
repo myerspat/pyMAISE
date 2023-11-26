@@ -275,9 +275,9 @@ class PreProcessor:
 
         # Run sklearn.preprocessing.train_test_split on the coordinates
         # for the feature_dim_name dimension
-        samples_idx = self._inputs.coords[self._inputs.dims[0]]
+        samples_idx = np.arange(0, self._inputs.shape[0])
         train_idx, test_idx = train_test_split(
-            samples_idx.to_numpy(),
+            samples_idx,
             test_size=settings.values.test_size,
             random_state=settings.values.random_state,
         )
