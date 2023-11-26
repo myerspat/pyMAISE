@@ -24,6 +24,7 @@ class DropoutLayer(Layer):
             "noise_shape": None,
             "seed": None,
         }
+        super().reset()
 
     def increment_layer(self):
         return super().increment_layer()

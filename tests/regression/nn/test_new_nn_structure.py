@@ -109,16 +109,15 @@ def test_new_nn_structure():
 
         # New NN model settings
         structural = {
-            "dense_input": {
+            "Dense_input": {
                 "units": mai.Choice([100, 400]),
                 "input_dim": preprocessor.inputs.shape[1],
                 "activation": "relu",
                 "kernel_initializer": "normal",
+                "sublayer": "Dropout",
+                "Dropout": {"rate": 0.5},
             },
-            "dropout_input": {
-                "rate": 0.5,
-            },
-            "dense_output": {
+            "Dense_output": {
                 "units": preprocessor.outputs.shape[1],
                 "activation": "linear",
                 "kernel_initializer": "normal",
@@ -128,8 +127,8 @@ def test_new_nn_structure():
             "models": ["nn"],
             "nn": {
                 "structural_params": structural,
-                "optimizer": "adam",
-                "adam": {
+                "optimizer": "Adam",
+                "Adam": {
                     "learning_rate": mai.Choice([0.0001, 0.001]),
                 },
                 "compile_params": {
@@ -172,7 +171,7 @@ def test_new_nn_structure():
                 "start_num_nodes"
             ]
             == new_nn_structure_results.loc[0, "Parameter Configurations"][
-                "dense_input0_units"
+                "Dense_input0_units"
             ]
         )
         assert (

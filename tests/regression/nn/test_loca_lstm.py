@@ -47,32 +47,32 @@ def test_loca_lstm():
 
     # RNN model settings
     structural = {
-        "lstm_input": {
+        "LSTM_input": {
             "units": 100,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
             "return_sequences": True,
             "input_shape": (396, 44),
         },
-        "lstm_hidden0": {
+        "LSTM_hidden0": {
             "units": 80,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
             "return_sequences": True,
         },
-        "lstm_hidden1": {
+        "LSTM_hidden1": {
             "units": 60,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
             "return_sequences": True,
         },
-        "lstm_hidden2": {
+        "LSTM_hidden2": {
             "units": 40,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
             "return_sequences": True,
         },
-        "dense_output": {
+        "Dense_output": {
             "units": preprocessor.outputs.shape[-1],
             "activation": "linear",
         },
@@ -81,8 +81,8 @@ def test_loca_lstm():
         "models": ["rnn"],
         "rnn": {
             "structural_params": structural,
-            "optimizer": "adam",
-            "adam": {
+            "optimizer": "Adam",
+            "Adam": {
                 "learning_rate": mai.Choice([0.0001, 0.001]),
                 "clipnorm": 1.0,
                 "clipvalue": 0.5,

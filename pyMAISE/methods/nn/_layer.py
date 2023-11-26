@@ -44,7 +44,7 @@ class Layer:
     def build_data(self, data, parameters):
         # Get data for keys shared between data and parameters (or input_shape)
         for key, value in parameters.items():
-            if key in data or key == "input_shape":
+            if key in data or key == "input_shape" or key == "input_dim":
                 data[key] = value
         return data
 

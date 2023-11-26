@@ -66,16 +66,15 @@ def setup_xs_nn_grid_search_results():
 
     # FNN structural parameters
     structural = {
-        "dense_input": {
+        "Dense_input": {
             "units": mai.Choice([100, 200, 300]),
             "input_dim": preprocessor.inputs.shape[-1],
             "activation": "relu",
             "kernel_initializer": "normal",
+            "sublayer": "Dropout",
+            "Dropout": {"rate": 0.5},
         },
-        "dropout_input": {
-            "rate": 0.5,
-        },
-        "dense_output": {
+        "Dense_output": {
             "units": preprocessor.outputs.shape[-1],
             "activation": "linear",
             "kernel_initializer": "normal",
@@ -87,8 +86,8 @@ def setup_xs_nn_grid_search_results():
         "models": ["fnn"],
         "fnn": {
             "structural_params": structural,
-            "optimizer": "adam",
-            "adam": {
+            "optimizer": "Adam",
+            "Adam": {
                 "learning_rate": 0.001,
             },
             "compile_params": {
