@@ -2,7 +2,7 @@ from keras.layers import MaxPooling2D
 
 from pyMAISE.methods.nn._layer import Layer
 
-# Dense layer keras neural networks
+
 class MaxPooling2DLayer(Layer):
     def __init__(self, layer_name, parameters: dict):
         # Initialize layer data
