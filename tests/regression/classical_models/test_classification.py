@@ -6,20 +6,6 @@ import pyMAISE as mai
 
 def test_classification():
     # ===========================================================================
-    # Regression test parameters
-    # Data set parameters
-    num_observations = 150
-    num_features = 4
-    num_outputs = 1
-
-    # Expected model test r-squared
-    expected_models = {
-        "dtree": 1.0,
-        "rforest": 1.0,
-        "knn": 1.0,
-    }
-
-    # ===========================================================================
     # pyMAISE initialization
     settings = {
         "verbosity": 1,
@@ -38,8 +24,7 @@ def test_classification():
     assert global_settings.test_size == 0.3
     assert global_settings.num_configs_saved == 1
 
-    # Get heat conduction preprocessor
-
+    # Get iris data
     preprocessor = mai.PreProcessor()
     preprocessor.read_csv(
         "https://raw.githubusercontent.com/scikit-learn/scikit-learn/04e39db499"
@@ -47,45 +32,30 @@ def test_classification():
         slice(0, 4),
         slice(4, 5),
     )
+    # Change output data type and one hot encode
+    preprocessor.outputs = preprocessor.outputs.astype("object")
+    preprocessor.outputs = preprocessor.one_hot_encode(preprocessor.outputs)
 
     # Assert inputs and outputs are the correct size
-    assert (
-        preprocessor.inputs.shape[0] == num_observations
-        and preprocessor.inputs.shape[1] == num_features
-    )
-    assert (
-        preprocessor.outputs.shape[0] == num_observations
-        and preprocessor.outputs.shape[1] == num_outputs
-    )
+    assert preprocessor.data.shape == (150, 5)
+    assert preprocessor.inputs.shape == (150, 4)
+    assert preprocessor.outputs.shape == (150, 3)
 
     # Train test split
     preprocessor.train_test_split()
-    data = preprocessor.split_data
 
     # Train-test split size assertions
-    assert (
-        data[0].shape[0] == num_observations * (1 - global_settings.test_size)
-        and data[0].shape[1] == num_features
-    )
-    assert (
-        data[1].shape[0] == num_observations * global_settings.test_size
-        and data[1].shape[1] == num_features
-    )
-    assert (
-        data[2].shape[0] == num_observations * (1 - global_settings.test_size)
-        and data[2].shape[1] == num_outputs
-    )
-    assert (
-        data[3].shape[0] == num_observations * global_settings.test_size
-        and data[3].shape[1] == num_outputs
-    )
+    assert preprocessor.split_data[0].shape == (105, 4)
+    assert preprocessor.split_data[1].shape == (45, 4)
+    assert preprocessor.split_data[2].shape == (105, 3)
+    assert preprocessor.split_data[3].shape == (45, 3)
 
     # ===========================================================================
     # Model initialization
     model_settings = {
         "models": ["dtree", "rforest", "knn"],
     }
-    tuning = mai.Tuner(data=data, model_settings=model_settings)
+    tuning = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
 
     # ===========================================================================
     # Hyper-parameter tuning
@@ -120,10 +90,16 @@ def test_classification():
     # ===========================================================================
     # Model post-processing
     postprocessor = mai.PostProcessor(
-        data=data,
+        data=preprocessor.split_data,
         models_list=[grid_search_configs],
     )
 
+    # Performance metric assertions
+    expected_models = {
+        "dtree": 1.0,
+        "rforest": 1.0,
+        "knn": 1.0,
+    }
     for key, value in expected_models.items():
         assert postprocessor.metrics(model_type=key)["Test Accuracy"].to_numpy()[
             0
