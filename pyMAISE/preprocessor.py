@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 
 import pyMAISE.settings as settings
 
@@ -134,6 +135,24 @@ class PreProcessor:
 
         else:
             raise RuntimeError("Data type not supported for data")
+
+    def one_hot_encode(self, data, **kwargs):
+        assert isinstance(data, xr.DataArray)
+        kwargs["dtype"] = kwargs.get("dtype", float)
+
+        # Convert xarray.DataArray to pandas.DataFrame
+        df = data.to_dataset(dim=data.dims[-1]).to_dataframe()
+
+        # One hot encoding
+        df = pd.get_dummies(df, **kwargs)
+
+        # Return one hot encoded xarray.DataArray
+        return (
+            df.to_xarray()
+            .to_array()
+            .rename({"variable": data.dims[-1]})
+            .transpose(data.dims[0], ..., data.dims[-1])
+        )
 
     def split_sequences(
         self,
@@ -271,7 +290,8 @@ class PreProcessor:
         """
         # Assuming the last dimension is the dimension for features
         # get the name of that dimension
-        feature_dim_name = self._data.dims[-1]
+        assert self._inputs.dims[-1] == self._outputs.dims[-1]
+        feature_dim_name = self._inputs.dims[-1]
 
         # Run sklearn.preprocessing.train_test_split on the coordinates
         # for the feature_dim_name dimension
