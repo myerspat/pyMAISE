@@ -97,7 +97,12 @@ class CVTuner(kt.Tuner):
                 if settings.values.classification:
                     y_val_pred = determine_class_from_probabilities(y_val_pred, y)
 
-                test_scores.append(self._metrics(y_val_pred, y_val))
+                test_scores.append(
+                    self._metrics(
+                        y_val_pred.reshape(-1, y_val.shape[-1]),
+                        y_val.reshape(-1, y_val.shape[-1]),
+                    )
+                )
 
             else:
                 test_score_idx = model.metrics_names.index(self._objective)
