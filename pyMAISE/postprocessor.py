@@ -21,6 +21,7 @@ from sklearn.metrics import (
 
 import pyMAISE.settings as settings
 from pyMAISE.methods import *
+from pyMAISE.utils.cvtuner import determine_class_from_probabilities
 
 
 class PostProcessor:
@@ -170,6 +171,18 @@ class PostProcessor:
                         )
                         .model.history.history
                     )
+                    if settings.values.classification:
+                        yhat_train.append(
+                            determine_class_from_probabilities(
+                                regressor.predict(self._xtrain), self._ytrain
+                            ).reshape(-1, self._ytrain.shape[-1])
+                        )
+                        yhat_test.append(
+                            determine_class_from_probabilities(
+                                regressor.predict(self._xtest), self._ytest
+                            ).reshape(-1, self._ytest.shape[-1])
+                        )
+                        continue
 
             # Append training and testing predictions
             yhat_train.append(
