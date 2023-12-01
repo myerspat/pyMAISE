@@ -85,31 +85,35 @@ def load_pqpower():
 def load_loca():
     # Paths
     input_path = get_full_path("data/loca_inp.csv")
-    output_path = get_full_path("data/loca_out.csv")
+    output_paths = {
+        "Pellet Cladding Temperature": "data/loca_pct.csv",
+        "Core Pressure": "data/loca_core_pressure.csv",
+        "Water Level": "data/loca_water_level.csv",
+        "Break Flow Rate": "data/loca_break_flow_rate.csv",
+    }
+
+    # Read data and reshape
+    outputs = []
+    for path in output_paths.values():
+        outputs.append(
+            pd.read_csv(get_full_path(path), header=None).values.T[:, :, np.newaxis]
+        )
+
+    outputs = np.concatenate(outputs, axis=-1)
 
     raw_inputs = pd.read_csv(input_path)
-    raw_outputs = pd.read_csv(output_path, header=None)
+    inputs = np.repeat(raw_inputs.values[:, np.newaxis, :], outputs.shape[1], axis=1)
 
-    # Reshape data and add outputs onto inputs
-    outputs = raw_outputs.values.T[:, :, np.newaxis]
-    inputs = np.concatenate(
-        (
-            np.repeat(
-                raw_inputs.values[:, np.newaxis, :], raw_outputs.shape[0], axis=1
-            ),
-            outputs,
-        ),
-        axis=2,
-    )
-
-    #
+    print("inputs", inputs[-1, 0, :])
+    print("outputs", outputs[0:5, 0, :])
+    # Create PreProcessor
     preprocessor = PreProcessor()
     preprocessor.data = xr.DataArray(
-        inputs,
+        np.concatenate((inputs, outputs), axis=-1),
         coords={
             "samples": np.linspace(0, inputs.shape[0], inputs.shape[0]).astype(int),
             "timesteps": np.linspace(0, inputs.shape[1], inputs.shape[1]).astype(int),
-            "features": list(raw_inputs.columns) + ["PCT"],
+            "features": list(raw_inputs.columns) + list(output_paths.keys()),
         },
     )
     preprocessor.inputs = copy.deepcopy(preprocessor.data)
@@ -118,7 +122,7 @@ def load_loca():
         coords={
             "samples": np.linspace(0, outputs.shape[0], outputs.shape[0]).astype(int),
             "timesteps": np.linspace(0, outputs.shape[1], outputs.shape[1]).astype(int),
-            "features": "PCT",
+            "features": list(output_paths.keys()),
         },
     )
 
