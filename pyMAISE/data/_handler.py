@@ -104,8 +104,6 @@ def load_loca():
     raw_inputs = pd.read_csv(input_path)
     inputs = np.repeat(raw_inputs.values[:, np.newaxis, :], outputs.shape[1], axis=1)
 
-    print("inputs", inputs[-1, 0, :])
-    print("outputs", outputs[0:5, 0, :])
     # Create PreProcessor
     preprocessor = PreProcessor()
     preprocessor.data = xr.DataArray(

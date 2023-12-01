@@ -53,7 +53,6 @@ def test_load_xs():
 def test_load_loca():
     # Load settings
     mai.settings.init()
-    np.set_printoptions(threshold=sys.maxsize)
 
     # Load data through PreProcessor
     preprocessor = mai.load_loca()
