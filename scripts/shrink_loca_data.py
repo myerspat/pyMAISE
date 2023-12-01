@@ -43,4 +43,4 @@ for name, path in output_paths.items():
     print(f"Sampled {name} Shape: {sampled_output.shape}")
 
     # Write data
-    sampled_input_data.to_csv(f"loca_{name}.csv", index=False)
+    sampled_output.to_csv(f"loca_{name}.csv", index=False, header=False)
