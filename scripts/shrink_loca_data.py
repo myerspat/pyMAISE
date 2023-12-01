@@ -1,7 +1,7 @@
 # Script that randomly samples input and output data to shrink data
-# size from 7486 to 4000 so it can be pushed to GitHub
+# size from 7486 to 4001 (one for nominal) so it can be pushed to GitHub
+import numpy as np
 import pandas as pd
-from numpy.random import randint
 
 samples = 4000
 
@@ -23,7 +23,8 @@ print("Input Data\n", input_data)
 print(f"Raw Input Shape {input_data.shape}")
 
 # Sample inputs
-idxs = randint(low=0, high=input_data.shape[0], size=samples)
+idxs = np.zeros(samples + 1)
+idxs[1:] = np.random.randint(low=1, high=input_data.shape[0], size=samples)
 sampled_input_data = input_data.iloc[idxs, :]
 print(f"Sampled Input Data Shape: {sampled_input_data.shape}")
 
