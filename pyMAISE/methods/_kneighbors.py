@@ -1,7 +1,6 @@
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+
 import pyMAISE.settings as settings
-
-from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
-
 
 
 class KNeighbors:
@@ -24,8 +23,7 @@ class KNeighbors:
     # ===========================================================
     # Methods
     def regressor(self):
-
-        if settings.values.regression:
+        if settings.values.problem_type == settings.ProblemType.REGRESSION:
             return KNeighborsRegressor(
                 n_neighbors=self._n_neighbors,
                 weights=self._weights,
@@ -36,7 +34,7 @@ class KNeighbors:
                 metric_params=self._metric_params,
                 n_jobs=self._n_jobs,
             )
-        else:
+        elif settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
             return KNeighborsClassifier(
                 n_neighbors=self._n_neighbors,
                 weights=self._weights,

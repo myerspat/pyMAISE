@@ -20,11 +20,11 @@ class SVM:
         self._verbose = settings.values.verbosity
 
         # Unique class variables
-        if settings.values.regression:
+        if settings.values.problem_type == settings.ProblemType.REGRESSION:
             self._epsilon = 0.1
             self._shrinking = True
 
-        if settings.values.classification:
+        if settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
             self._probability = False
             self._class_weight = None
             self._decision_function_shape = "ovr"
@@ -39,7 +39,7 @@ class SVM:
     # ===========================================================
     # Methods
     def regressor(self):
-        if settings.values.regression:
+        if settings.values.problem_type == settings.ProblemType.REGRESSION:
             return SVR(
                 kernel=self._kernel,
                 degree=self._degree,
@@ -53,7 +53,7 @@ class SVM:
                 verbose=settings.values.verbosity,
                 max_iter=self._max_iter,
             )
-        if settings.values.classification:
+        if settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
             return SVC(
                 kernel=self._kernel,
                 degree=self._degree,

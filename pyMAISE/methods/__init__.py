@@ -4,7 +4,7 @@ from ._dtree import DecisionTree
 from ._kneighbors import KNeighbors
 from ._lasso import LassoRegression
 from ._linear import LinearRegression
-from ._logistic_regression import Logistic_Regression
+from ._logistic_regression import LogisticRegression
 from ._nn import NeuralNetsRegression
 from ._nn_wrapper import NeuralNetsWrapper
 from ._rforest import RandomForest
