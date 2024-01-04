@@ -25,5 +25,18 @@ Contents
    user_guide
    dev_guide
    models
+   pyMAISEapi/index
    examples/index
    license
+
+.. _data_refs:
+---------------
+Data References
+---------------
+.. bibliography:: data_refs.bib
+
+-------------------
+Software References
+-------------------
+.. bibliography:: software_refs.bib
+   :all:
