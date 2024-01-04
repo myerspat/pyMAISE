@@ -1,28 +1,27 @@
-import sys
-
 import numpy as np
 import pytest
 import xarray as xr
 
 import pyMAISE as mai
+from pyMAISE.datasets import load_loca, load_xs
 
 
 def test_load_xs():
     # Load settings
-    mai.settings.init()
+    mai.init(problem_type=mai.ProblemType.REGRESSION)
 
-    # Load data through PreProcessor
-    preprocessor = mai.load_xs()
+    # Load reactor physics data
+    data, inputs, outputs = load_xs()
 
     # Type assertion
-    assert isinstance(preprocessor.data, xr.DataArray)
-    assert isinstance(preprocessor.inputs, xr.DataArray)
-    assert isinstance(preprocessor.outputs, xr.DataArray)
+    assert isinstance(data, xr.DataArray)
+    assert isinstance(inputs, xr.DataArray)
+    assert isinstance(outputs, xr.DataArray)
 
     # Shape assertions
-    assert preprocessor.data.shape == (1000, 9)
-    assert preprocessor.inputs.shape == (1000, 8)
-    assert preprocessor.outputs.shape == (1000, 1)
+    assert data.shape == (1000, 9)
+    assert inputs.shape == (1000, 8)
+    assert outputs.shape == (1000, 1)
 
     # Feature names assertions
     input_features = [
@@ -36,31 +35,26 @@ def test_load_xs():
         "Scatter22",
     ]
     output_features = ["k"]
-    assert (
-        list(preprocessor.data.coords["variable"].to_numpy())
-        == input_features + output_features
-    )
-    assert list(preprocessor.inputs.coords["variable"].to_numpy()) == input_features
-    assert list(preprocessor.outputs.coords["variable"].to_numpy()) == output_features
+    assert list(data.coords["variable"].to_numpy()) == input_features + output_features
+    assert list(inputs.coords["variable"].to_numpy()) == input_features
+    assert list(outputs.coords["variable"].to_numpy()) == output_features
 
     # Element assertions
-    assert preprocessor.data[0, 0] == 0.00644620
-    assert preprocessor.data[0, -1] == 1.256376
-    assert preprocessor.data[-1, 0] == 0.00627230
-    assert preprocessor.data[-1, -1] == 1.240064
+    assert data[0, 0] == 0.00644620
+    assert data[0, -1] == 1.256376
+    assert data[-1, 0] == 0.00627230
+    assert data[-1, -1] == 1.240064
 
 
 def test_load_loca():
     # Load settings
-    mai.settings.init()
+    mai.init(problem_type=mai.ProblemType.REGRESSION)
 
-    # Load data through PreProcessor
-    preprocessor = mai.load_loca()
+    # Load LOCA data
+    nominal_data, perturbed_data = load_loca(stack_series=False)
 
-    # Shape assertions
-    assert preprocessor.data.shape == (4001, 400, 44)
-    assert preprocessor.inputs.shape == (4001, 400, 44)
-    assert preprocessor.outputs.shape == (4001, 400, 4)
+    assert nominal_data.shape == (1, 400, 44)
+    assert perturbed_data.shape == (4000, 400, 44)
 
     # Assert begining and ending data
     for i in range(400):
@@ -153,26 +147,17 @@ def test_load_loca():
             ]
         )
         np.testing.assert_array_equal(
-            np.round(preprocessor.data[1, i, :-4], decimals=8),
+            np.round(perturbed_data[0, i, :-4], decimals=8),
             first_sample_feature_values,
         )
         np.testing.assert_array_equal(
-            np.round(preprocessor.data[-1, i, :-4], decimals=8),
-            last_sample_feature_values,
-        )
-        np.testing.assert_array_equal(
-            np.round(preprocessor.inputs[1, i, :-4], decimals=8),
-            first_sample_feature_values,
-        )
-        np.testing.assert_array_equal(
-            np.round(preprocessor.inputs[-1, i, :-4], decimals=8),
+            np.round(perturbed_data[-1, i, :-4], decimals=8),
             last_sample_feature_values,
         )
 
     # Check first couple values in sequence data
     outputs_values = np.array(
         [
-            [6.17969788e02, 1.55000000e07, 3.66000009e00, 0.00000000e00],
             [6.19476440e02, 1.56033000e07, 3.66000009e00, 0.00000000e00],
             [6.19972120e02, 1.57104000e07, 3.66000009e00, 0.00000000e00],
             [6.18127679e02, 1.58100000e07, 3.66000009e00, 0.00000000e00],
@@ -180,11 +165,5 @@ def test_load_loca():
         ]
     )
     np.testing.assert_almost_equal(
-        preprocessor.data[0:5, 0, 40:], outputs_values, decimal=6
-    )
-    np.testing.assert_almost_equal(
-        preprocessor.inputs[0:5, 0, 40:], outputs_values, decimal=6
-    )
-    np.testing.assert_almost_equal(
-        preprocessor.outputs[0:5, 0, :], outputs_values, decimal=6
+        perturbed_data[0:4, 0, 40:], outputs_values, decimal=6
     )

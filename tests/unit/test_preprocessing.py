@@ -4,29 +4,33 @@ import xarray as xr
 from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
+from pyMAISE.datasets import load_fp, load_loca, load_xs
+from pyMAISE.preprocessing import (
+    SplitSequence,
+    correlation_matrix,
+    read_csv,
+    scale_data,
+    train_test_split,
+)
 
 
 # ================================================================
 def test_read_csv():
     # Init settings
-    settings = {
-        "verbosity": 1,
-        "random_state": 42,
-        "test_size": 0.3,
-        "regression": True,
-        "classification": False,
-    }
-    settings = mai.settings.init(settings_changes=settings)
+    settings = mai.init(
+        problem_type=mai.ProblemType.REGRESSION,
+        verbosity=1,
+        random_state=42,
+        cuda_visible_devices="-1",  # Use CPU only
+    )
 
-    # Use load functions to test the functionality of both
-    # ways of reading data
     # Start with XS data as this is given in one file
-    preprocessor = mai.load_xs()
+    data, inputs, outputs = load_xs()
 
     # Shape assertions
-    assert preprocessor.data.shape == (1000, 9)
-    assert preprocessor.inputs.shape == (1000, 8)
-    assert preprocessor.outputs.shape == (1000, 1)
+    assert data.shape == (1000, 9)
+    assert inputs.shape == (1000, 8)
+    assert outputs.shape == (1000, 1)
 
     # Feature names assertions
     input_features = [
@@ -40,16 +44,13 @@ def test_read_csv():
         "Scatter22",
     ]
     output_features = ["k"]
-    assert (
-        list(preprocessor.data.coords["variable"].to_numpy())
-        == input_features + output_features
-    )
-    assert list(preprocessor.inputs.coords["variable"].to_numpy()) == input_features
-    assert list(preprocessor.outputs.coords["variable"].to_numpy()) == output_features
+    assert list(data.coords["variable"].to_numpy()) == input_features + output_features
+    assert list(inputs.coords["variable"].to_numpy()) == input_features
+    assert list(outputs.coords["variable"].to_numpy()) == output_features
 
     # Check first two entries
     np.testing.assert_array_equal(
-        preprocessor.data.to_numpy()[0, :],
+        data.values[0, :],
         np.array(
             [
                 0.00644620,
@@ -65,7 +66,7 @@ def test_read_csv():
         ),
     )
     np.testing.assert_array_equal(
-        preprocessor.data.to_numpy()[1, :],
+        data.values[1, :],
         np.array(
             [
                 0.00635893,
@@ -82,13 +83,12 @@ def test_read_csv():
     )
 
     # Next check the fuel performance since it's multi-input
-    # multi-output and is in two separate files
-    preprocessor = mai.load_fp()
+    data, inputs, outputs = load_fp()
 
     # Shape assertions
-    assert preprocessor.data.shape == (400, 17)
-    assert preprocessor.inputs.shape == (400, 13)
-    assert preprocessor.outputs.shape == (400, 4)
+    assert data.shape == (400, 17)
+    assert inputs.shape == (400, 13)
+    assert outputs.shape == (400, 4)
 
     # Feature names assertions
     input_features = [
@@ -116,15 +116,15 @@ def test_read_csv():
     # Place in alphabetical order because that's what xarray does
     alpha_idx = np.argsort(np.array(input_features + output_features))
     assert (
-        list(preprocessor.data.coords["variable"].to_numpy())
+        list(data.coords["variable"].to_numpy())
         == np.array(input_features + output_features)[alpha_idx].tolist()
     )
-    assert list(preprocessor.inputs.coords["variable"].to_numpy()) == input_features
-    assert list(preprocessor.outputs.coords["variable"].to_numpy()) == output_features
+    assert list(inputs.coords["variable"].to_numpy()) == input_features
+    assert list(outputs.coords["variable"].to_numpy()) == output_features
 
     # Check first two entries
     np.testing.assert_array_equal(
-        preprocessor.data.to_numpy()[0, :],
+        data.values[0, :],
         np.array(
             [
                 10466,
@@ -148,7 +148,7 @@ def test_read_csv():
         )[alpha_idx],
     )
     np.testing.assert_array_equal(
-        preprocessor.data.to_numpy()[1, :],
+        data.values[1, :],
         np.array(
             [
                 10488,
@@ -176,14 +176,12 @@ def test_read_csv():
 # ================================================================
 def test_split_sequances():
     # Initialize pyMAISE
-    settings = {
-        "verbosity": 1,
-        "random_state": 42,
-        "test_size": 0.3,
-        "regression": True,
-        "classification": False,
-    }
-    settings = mai.settings.init(settings_changes=settings)
+    settings = mai.init(
+        problem_type=mai.ProblemType.REGRESSION,
+        verbosity=1,
+        random_state=42,
+        cuda_visible_devices="-1",  # Use CPU only
+    )
 
     # Define raw sequence data
     num_sequences = 9
@@ -227,40 +225,36 @@ def test_split_sequances():
     # What is defined in preprocessor.data, preprocessor.input,
     # and preprocessor.output is already given in a univariate form
     # with "sec1" and "sec2" as inputs and "sec3" as output
-    preprocessor = mai.PreProcessor()
-    preprocessor.set_data(univariate_xarray)
-
-    # Check contents prior to splitting
-    np.testing.assert_array_equal(
-        preprocessor.data.sel(variable="sec0").to_numpy(), raw_data[:, 0]
-    )
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=1,
         output_position=1,
         sequence_inputs=["sec0"],
         sequence_outputs=["sec0"],
     )
-    assert preprocessor.inputs.shape == (6, 3, 1)
-    assert preprocessor.outputs.shape == (6, 1, 1)
+    inputs, outputs = split_sequences.split(univariate_xarray)
+    print(inputs.values)
+    print(outputs.values)
+    assert inputs.shape == (6, 3, 1)
+    assert outputs.shape == (6, 1)
 
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[0, :, :],
+        inputs.to_numpy()[0, :, :],
         np.array([[10], [20], [30]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[0, :, :],
-        np.array([[40]]),
+        outputs.to_numpy()[0, :],
+        np.array([40]),
     )
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[1, :, :],
+        inputs.to_numpy()[1, :, :],
         np.array([[20], [30], [40]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[1, :, :],
-        np.array([[50]]),
+        outputs.to_numpy()[1, :],
+        np.array([50]),
     )
 
     # ============================================================
@@ -268,39 +262,34 @@ def test_split_sequances():
     # Input: (samples=7, timesteps=3, features=2)
     # Output: (samples=7, timesteps=1, features=1)
     # ============================================================
-    preprocessor.set_data(
-        multivariate_xarray,
-    )
-
-    # Check contents prior to splitting
-    np.testing.assert_array_equal(preprocessor.data.values, raw_data)
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=1,
         output_position=0,
         sequence_inputs=["sec0", "sec1"],
         sequence_outputs=["sec2"],
     )
-    assert preprocessor.inputs.shape == (7, 3, 2)
-    assert preprocessor.outputs.shape == (7, 1, 1)
+    inputs, outputs = split_sequences.split(multivariate_xarray)
+    assert inputs.shape == (7, 3, 2)
+    assert outputs.shape == (7, 1)
 
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[0, :, :],
+        inputs.to_numpy()[0, :, :],
         np.array([[10, 15], [20, 25], [30, 35]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[0, :, :],
-        np.array([[65]]),
+        outputs.to_numpy()[0, :],
+        np.array([65]),
     )
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[1, :, :],
+        inputs.to_numpy()[1, :, :],
         np.array([[20, 25], [30, 35], [40, 45]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[1, :, :],
-        np.array([[85]]),
+        outputs.to_numpy()[1, :],
+        np.array([85]),
     )
 
     # ============================================================
@@ -308,36 +297,34 @@ def test_split_sequances():
     # Input: (samples=6, timesteps=3, features=3)
     # Output: (samples=6, timesteps=1, features=3)
     # ============================================================
-    preprocessor.set_data(
-        multivariate_xarray,
-    )
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=1,
         output_position=1,
         sequence_inputs=["sec0", "sec1", "sec2"],
         sequence_outputs=["sec0", "sec1", "sec2"],
     )
-    assert preprocessor.inputs.shape == (6, 3, 3)
-    assert preprocessor.outputs.shape == (6, 1, 3)
+    inputs, outputs = split_sequences.split(multivariate_xarray)
+    assert inputs.shape == (6, 3, 3)
+    assert outputs.shape == (6, 3)
 
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[0, :, :],
+        inputs.to_numpy()[0, :, :],
         np.array([[10, 15, 25], [20, 25, 45], [30, 35, 65]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[0, :, :],
-        np.array([[40, 45, 85]]),
+        outputs.to_numpy()[0, :],
+        np.array([40, 45, 85]),
     )
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[1, :, :],
+        inputs.to_numpy()[1, :, :],
         np.array([[20, 25, 45], [30, 35, 65], [40, 45, 85]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[1, :, :],
-        np.array([[50, 55, 105]]),
+        outputs.to_numpy()[1, :],
+        np.array([50, 55, 105]),
     )
 
     # ============================================================
@@ -345,33 +332,33 @@ def test_split_sequances():
     # Input: (samples=5, timesteps=3, features=1)
     # Output: (samples=5, timesteps=2, features=3)
     # ============================================================
-    preprocessor.set_data(univariate_xarray)
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=2,
         output_position=1,
         sequence_inputs=["sec0"],
         sequence_outputs=["sec0"],
     )
-    assert preprocessor.inputs.shape == (5, 3, 1)
-    assert preprocessor.outputs.shape == (5, 2, 1)
+    inputs, outputs = split_sequences.split(univariate_xarray)
+    assert inputs.shape == (5, 3, 1)
+    assert outputs.shape == (5, 2, 1)
 
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[0, :, :],
+        inputs.to_numpy()[0, :, :],
         np.array([[10], [20], [30]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[0, :, :],
+        outputs.to_numpy()[0, :, :],
         np.array([[40], [50]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[1, :, :],
+        inputs.to_numpy()[1, :, :],
         np.array([[20], [30], [40]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[1, :, :],
+        outputs.to_numpy()[1, :, :],
         np.array([[50], [60]]),
     )
 
@@ -380,35 +367,33 @@ def test_split_sequances():
     # Input: (samples=6, timesteps=3, features=2)
     # Output: (samples=6, timesteps=2, features=1)
     # ============================================================
-    preprocessor.set_data(
-        multivariate_xarray,
-    )
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=2,
         output_position=0,
         sequence_inputs=["sec0", "sec1"],
         sequence_outputs=["sec2"],
     )
-    assert preprocessor.inputs.shape == (6, 3, 2)
-    assert preprocessor.outputs.shape == (6, 2, 1)
+    inputs, outputs = split_sequences.split(multivariate_xarray)
+    assert inputs.shape == (6, 3, 2)
+    assert outputs.shape == (6, 2, 1)
 
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[0, :, :],
+        inputs.to_numpy()[0, :, :],
         np.array([[10, 15], [20, 25], [30, 35]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[0, :, :],
+        outputs.to_numpy()[0, :, :],
         np.array([[65], [85]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[1, :, :],
+        inputs.to_numpy()[1, :, :],
         np.array([[20, 25], [30, 35], [40, 45]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[1, :, :],
+        outputs.to_numpy()[1, :, :],
         np.array([[85], [105]]),
     )
 
@@ -417,35 +402,33 @@ def test_split_sequances():
     # Input: (samples=5, timesteps=3, features=3)
     # Output: (samples=5, timesteps=2, features=3)
     # ============================================================
-    preprocessor.set_data(
-        multivariate_xarray,
-    )
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=2,
         output_position=1,
         sequence_inputs=["sec0", "sec1", "sec2"],
         sequence_outputs=["sec0", "sec1", "sec2"],
     )
-    assert preprocessor.inputs.shape == (5, 3, 3)
-    assert preprocessor.outputs.shape == (5, 2, 3)
+    inputs, outputs = split_sequences.split(multivariate_xarray)
+    assert inputs.shape == (5, 3, 3)
+    assert outputs.shape == (5, 2, 3)
 
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[0, :, :],
+        inputs.to_numpy()[0, :, :],
         np.array([[10, 15, 25], [20, 25, 45], [30, 35, 65]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[0, :, :],
+        outputs.to_numpy()[0, :, :],
         np.array([[40, 45, 85], [50, 55, 105]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.inputs.to_numpy()[1, :, :],
+        inputs.to_numpy()[1, :, :],
         np.array([[20, 25, 45], [30, 35, 65], [40, 45, 85]]),
     )
     np.testing.assert_array_equal(
-        preprocessor.outputs.to_numpy()[1, :, :],
+        outputs.to_numpy()[1, :, :],
         np.array([[50, 55, 105], [60, 65, 125]]),
     )
 
@@ -454,39 +437,54 @@ def test_split_sequances():
     # Input: (samples=4001, timesteps=396, features=3)
     # Output: (samples=4001, timesteps=396, features=1)
     # ============================================================
-    preprocessor = mai.load_loca()
+    nominal_data, perturbed_data = load_loca(stack_series=False)
 
     # Split data
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=4,
         output_steps=1,
         output_position=1,
-        sequence_inputs=["PCT"],
-        sequence_outputs=["PCT"],
-        feature_inputs=preprocessor._data.coords["features"].values[:-1],
+        sequence_inputs=[
+            "Pellet Cladding Temperature",
+            "Core Pressure",
+            "Water Level",
+            "Break Flow Rate",
+        ],
+        sequence_outputs=[
+            "Pellet Cladding Temperature",
+            "Core Pressure",
+            "Water Level",
+            "Break Flow Rate",
+        ],
+        const_inputs=nominal_data.coords["features"].values[:-4],
     )
-    assert preprocessor.data.shape == (4001, 400, 41)
-    assert preprocessor.inputs.shape == (4001, 396, 44)
-    assert preprocessor.outputs.shape == (4001, 396, 1)
+    nominal_inputs, nominal_outputs = split_sequences.split(nominal_data)
+    assert nominal_data.shape == (1, 400, 44)
+    assert nominal_inputs.shape == (1, 396, 56)
+    assert nominal_outputs.shape == (1, 396, 4)
+
+    perturbed_inputs, perturbed_outputs = split_sequences.split(perturbed_data)
+    assert perturbed_data.shape == (4000, 400, 44)
+    assert perturbed_inputs.shape == (4000, 396, 56)
+    assert perturbed_outputs.shape == (4000, 396, 4)
 
 
 # ================================================================
 def test_train_test_split():
     # Init settings
-    settings = {
-        "verbosity": 1,
-        "random_state": 42,
-        "test_size": 0.3,
-        "regression": True,
-        "classification": False,
-    }
-    settings = mai.settings.init(settings_changes=settings)
+    settings = mai.init(
+        problem_type=mai.ProblemType.REGRESSION,
+        verbosity=1,
+        random_state=42,
+        cuda_visible_devices="-1",  # Use CPU only
+    )
 
     # Test train_test_split for 2D data without scaling
     # (multi-input, single output)
-    preprocessor = mai.load_xs()
-    preprocessor.train_test_split()
-    xtrain, xtest, ytrain, ytest = preprocessor.split_data
+    _, inputs, outputs = load_xs()
+    xtrain, xtest, ytrain, ytest = train_test_split(
+        data=[inputs, outputs], test_size=0.3
+    )
 
     # Assert dimensions and size after split
     assert xtrain.shape == (700, 8)
@@ -495,15 +493,15 @@ def test_train_test_split():
     assert ytest.shape == (300, 1)
 
     # Assert values did not change
-    inputs = xtrain.combine_first(xtest)
-    outputs = ytrain.combine_first(ytest)
+    recomb_inputs = xtrain.combine_first(xtest)
+    recomb_outputs = ytrain.combine_first(ytest)
     np.testing.assert_array_equal(
-        inputs.sortby(variables=inputs.dims[0]).to_numpy(),
-        preprocessor.inputs.to_numpy(),
+        recomb_inputs.sortby(variables=recomb_inputs.dims[0]).to_numpy(),
+        inputs.to_numpy(),
     )
     np.testing.assert_array_equal(
-        outputs.sortby(variables=inputs.dims[0]).to_numpy(),
-        preprocessor.outputs.to_numpy(),
+        recomb_outputs.sortby(variables=recomb_inputs.dims[0]).to_numpy(),
+        outputs.to_numpy(),
     )
 
     # Test train_test_split for 3D data with sklearn.preprocessor.MinMaxScaler()
@@ -525,18 +523,25 @@ def test_train_test_split():
         .to_array()
         .transpose(..., "variable")
     )
-    preprocessor.set_data(multivariate_xarray)
 
     # Split data and confirm shapes and contents of first 2 samples
-    preprocessor.split_sequences(
+    split_sequences = SplitSequence(
         input_steps=3,
         output_steps=2,
         output_position=0,
         sequence_inputs=["sec0"],
         sequence_outputs=["sec1", "sec2"],
     )
-    preprocessor.train_test_split(scaler=MinMaxScaler())
-    xtrain, xtest, ytrain, ytest = preprocessor.split_data
+    inputs, outputs = split_sequences.split(multivariate_xarray)
+
+    # Train/test split
+    xtrain, xtest, ytrain, ytest = train_test_split(
+        data=[inputs, outputs], test_size=0.3
+    )
+
+    # Scale data
+    xtrain, xtest, xscaler = scale_data(xtrain, xtest, MinMaxScaler())
+    ytrain, ytest, yscaler = scale_data(ytrain, ytest, MinMaxScaler())
 
     # Assert dimensions and size after split
     assert xtrain.shape == (4, 3, 1)
@@ -565,38 +570,36 @@ def test_train_test_split():
         )
 
     # Assert values are the same once transformed back
-    inputs = xtrain.combine_first(xtest)
-    outputs = ytrain.combine_first(ytest)
+    recomb_inputs = xtrain.combine_first(xtest)
+    recomb_outputs = ytrain.combine_first(ytest)
     np.testing.assert_array_equal(
-        preprocessor.xscaler.inverse_transform(
-            inputs.sortby(variables=inputs.dims[0])
+        xscaler.inverse_transform(
+            recomb_inputs.sortby(variables=recomb_inputs.dims[0])
             .to_numpy()
-            .reshape(-1, inputs.shape[-1])
+            .reshape(-1, recomb_inputs.shape[-1])
         ),
-        preprocessor.inputs.to_numpy().reshape(-1, preprocessor.inputs.shape[-1]),
+        inputs.to_numpy().reshape(-1, inputs.shape[-1]),
     )
     np.testing.assert_array_equal(
-        preprocessor.yscaler.inverse_transform(
-            outputs.sortby(variables=inputs.dims[0])
+        yscaler.inverse_transform(
+            recomb_outputs.sortby(variables=recomb_inputs.dims[0])
             .to_numpy()
-            .reshape(-1, outputs.shape[-1])
+            .reshape(-1, recomb_outputs.shape[-1])
         ),
-        preprocessor.outputs.to_numpy().reshape(-1, preprocessor.outputs.shape[-1]),
+        outputs.to_numpy().reshape(-1, outputs.shape[-1]),
     )
 
 
 # ================================================================
 def test_correlation_matrix():
     # Init settings
-    settings = {
-        "verbosity": 1,
-        "random_state": 42,
-        "test_size": 0.3,
-        "regression": True,
-        "classification": False,
-    }
-    settings = mai.settings.init(settings_changes=settings)
-    preprocessor = mai.load_xs()
+    settings = mai.init(
+        problem_type=mai.ProblemType.REGRESSION,
+        verbosity=1,
+        random_state=42,
+        cuda_visible_devices="-1",  # Use CPU only
+    )
+    data, _, _ = load_xs()
 
     # Make sure correlation matrix runs
-    preprocessor.correlation_matrix()
+    correlation_matrix(data)

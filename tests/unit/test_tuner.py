@@ -8,68 +8,82 @@ from sklearn.preprocessing import MinMaxScaler
 from skopt.space import Categorical, Real
 
 import pyMAISE as mai
+from pyMAISE.datasets import load_fp, load_xs
+from pyMAISE.methods import nnHyperModel
+from pyMAISE.preprocessing import scale_data, train_test_split
 
 
 # ================================================================
 @pytest.fixture
 def setup_xr():
     # Initialize pyMAISE
-    settings = {
-        "verbosity": 2,
-        "random_state": 42,
-        "num_configs_saved": 2,
-        "new_nn_architecture": True,
-        "test_size": 0.3,
-        "regression": True,
-        "classification": False,
-    }
-    settings = mai.settings.init(settings_changes=settings)
+    settings = mai.init(
+        problem_type=mai.ProblemType.REGRESSION,
+        verbosity=2,
+        random_state=42,
+        num_configs_saved=2,
+        new_nn_architecture=True,
+    )
 
-    # Load reactor physics PreProcessor and split data
-    preprocessor = mai.load_xs()
-    preprocessor.train_test_split()
-    return settings, preprocessor
+    # Load data
+    _, inputs, outputs = load_xs()
+
+    # Train/test split data
+    xtrain, xtest, ytrain, ytest = train_test_split(
+        data=[inputs, outputs], test_size=0.3
+    )
+
+    # Scale data
+    xtrain, xtest, _ = scale_data(xtrain, xtest, scaler=MinMaxScaler())
+    ytrain, ytest, _ = scale_data(ytrain, ytest, scaler=MinMaxScaler())
+
+    # Load reactor physics PreProcessor data and scale
+    return xtrain, xtest, ytrain, ytest
 
 
 @pytest.fixture
 def setup_fp():
     # Initialize pyMAISE
-    settings = {
-        "verbosity": 2,
-        "random_state": 42,
-        "num_configs_saved": 2,
-        "new_nn_architecture": True,
-        "test_size": 0.3,
-        "regression": True,
-        "classification": False,
-    }
-    settings = mai.settings.init(settings_changes=settings)
+    settings = mai.init(
+        problem_type=mai.ProblemType.REGRESSION,
+        verbosity=2,
+        random_state=42,
+        num_configs_saved=2,
+        new_nn_architecture=True,
+    )
 
-    # Load fuel performance PreProcessor and split data
-    preprocessor = mai.load_fp()
-    preprocessor.train_test_split()
-    return settings, preprocessor
+    # Load data
+    _, inputs, outputs = load_fp()
+
+    # Train/test split data
+    xtrain, xtest, ytrain, ytest = train_test_split(
+        data=[inputs, outputs], test_size=0.3
+    )
+
+    # Scale data
+    xtrain, xtest, _ = scale_data(xtrain, xtest, scaler=MinMaxScaler())
+    ytrain, ytest, _ = scale_data(ytrain, ytest, scaler=MinMaxScaler())
+
+    # Load reactor physics PreProcessor data and scale
+    return xtrain, xtest, ytrain, ytest
 
 
 @pytest.fixture()
 def setup_nn_model_settings(setup_xr, setup_fp):
     data = []
-    for settings, preprocessor in [setup_xr, setup_fp]:
-        # Min-max scale for some okay NN performance
-        preprocessor.train_test_split(scaler=MinMaxScaler())
-
+    for xtrain, xtest, ytrain, ytest in [setup_xr, setup_fp]:
         # FNN structural parameters
         structural = {
             "Dense_input": {
                 "units": mai.Choice([100, 200, 300]),
-                "input_dim": preprocessor.inputs.shape[-1],
+                "input_dim": xtrain.shape[-1],
                 "activation": "relu",
                 "kernel_initializer": "normal",
                 "sublayer": "Dropout",
                 "Dropout": {"rate": 0.5},
             },
             "Dense_output": {
-                "units": preprocessor.outputs.shape[-1],
+                "units": ytrain.shape[-1],
                 "activation": "linear",
                 "kernel_initializer": "normal",
             },
@@ -95,137 +109,129 @@ def setup_nn_model_settings(setup_xr, setup_fp):
                 },
             },
         }
-        data.append((settings, preprocessor, model_settings))
+        data.append(([xtrain, xtest, ytrain, ytest], model_settings))
     return data
 
 
 # ================================================================
 def test_grid_search(setup_xr, setup_fp):
-    for settings, preprocessor in [setup_xr, setup_fp]:
+    for xtrain, _, ytrain, _ in [setup_xr, setup_fp]:
         # Build Tuner object
         model_settings = {
-            "models": ["linear", "lasso"],
+            "models": ["Linear", "Lasso"],
         }
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
         # Run grid search over search spaces
         spaces = {
-            "linear": {"fit_intercept": [True, False]},
-            "lasso": {"alpha": np.linspace(0.000001, 1, 5)},
+            "Linear": {"fit_intercept": [True, False]},
+            "Lasso": {"alpha": np.linspace(0.000001, 1, 5)},
         }
         search_data = tuner.grid_search(
             param_spaces=spaces,
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the model wrappers
-        assert isinstance(search_data["linear"][0], pd.DataFrame)
-        assert isinstance(search_data["lasso"][0], pd.DataFrame)
-        assert isinstance(search_data["linear"][1], LinearRegression)
-        assert isinstance(search_data["lasso"][1], Lasso)
+        assert isinstance(search_data["Linear"][0], pd.DataFrame)
+        assert isinstance(search_data["Lasso"][0], pd.DataFrame)
+        assert isinstance(search_data["Linear"][1], LinearRegression)
+        assert isinstance(search_data["Lasso"][1], Lasso)
 
         # Assert search data dimensions
         assert search_data.keys() == spaces.keys()
-        assert search_data["linear"][0].shape == (2, 1)
-        assert search_data["lasso"][0].shape == (2, 1)
-        assert tuner.cv_performance_data["linear"].shape == (2, 2)
-        assert tuner.cv_performance_data["lasso"].shape == (2, 5)
+        assert search_data["Linear"][0].shape == (2, 1)
+        assert search_data["Lasso"][0].shape == (2, 1)
+        assert tuner.cv_performance_data["Linear"].shape == (2, 2)
+        assert tuner.cv_performance_data["Lasso"].shape == (2, 5)
 
 
 # ================================================================
 def test_random_search(setup_xr, setup_fp):
-    for settings, preprocessor in [setup_xr, setup_fp]:
+    for xtrain, _, ytrain, _ in [setup_xr, setup_fp]:
         # Build Tuner object
         model_settings = {
-            "models": ["linear", "lasso"],
+            "models": ["Linear", "Lasso"],
         }
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
         # Run random search over search spaces
         spaces = {
-            "linear": {"fit_intercept": [True, False]},
-            "lasso": {"alpha": np.linspace(0.000001, 1, 5)},
+            "Linear": {"fit_intercept": [True, False]},
+            "Lasso": {"alpha": np.linspace(0.000001, 1, 5)},
         }
         search_data = tuner.random_search(
             param_spaces=spaces,
             n_iter=5,
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the model wrappers
-        assert isinstance(search_data["linear"][0], pd.DataFrame)
-        assert isinstance(search_data["lasso"][0], pd.DataFrame)
-        assert isinstance(search_data["linear"][1], LinearRegression)
-        assert isinstance(search_data["lasso"][1], Lasso)
+        assert isinstance(search_data["Linear"][0], pd.DataFrame)
+        assert isinstance(search_data["Lasso"][0], pd.DataFrame)
+        assert isinstance(search_data["Linear"][1], LinearRegression)
+        assert isinstance(search_data["Lasso"][1], Lasso)
 
         # Assert search data dimensions
         assert search_data.keys() == spaces.keys()
-        assert search_data["linear"][0].shape == (2, 1)
-        assert search_data["lasso"][0].shape == (2, 1)
-        assert tuner.cv_performance_data["linear"].shape == (
+        assert search_data["Linear"][0].shape == (2, 1)
+        assert search_data["Lasso"][0].shape == (2, 1)
+        assert tuner.cv_performance_data["Linear"].shape == (
             2,
             2,
         )  # n_iter > space size so restrict to space size
-        assert tuner.cv_performance_data["lasso"].shape == (2, 5)
+        assert tuner.cv_performance_data["Lasso"].shape == (2, 5)
 
 
 # ================================================================
 def test_bayesian_search(setup_xr, setup_fp):
-    for settings, preprocessor in [setup_xr, setup_fp]:
+    for xtrain, _, ytrain, _ in [setup_xr, setup_fp]:
         # Build Tuner object
         model_settings = {
-            "models": ["linear", "lasso"],
+            "models": ["Linear", "Lasso"],
         }
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
         # Run bayesian search over search spaces
         spaces = {
-            "linear": {"fit_intercept": Categorical([True, False])},
-            "lasso": {"alpha": Real(0.000001, 1)},
+            "Linear": {"fit_intercept": Categorical([True, False])},
+            "Lasso": {"alpha": Real(0.000001, 1)},
         }
         search_data = tuner.bayesian_search(
             param_spaces=spaces,
             n_iter=5,
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the model wrappers
-        assert isinstance(search_data["linear"][0], pd.DataFrame)
-        assert isinstance(search_data["lasso"][0], pd.DataFrame)
-        assert isinstance(search_data["linear"][1], LinearRegression)
-        assert isinstance(search_data["lasso"][1], Lasso)
+        assert isinstance(search_data["Linear"][0], pd.DataFrame)
+        assert isinstance(search_data["Lasso"][0], pd.DataFrame)
+        assert isinstance(search_data["Linear"][1], LinearRegression)
+        assert isinstance(search_data["Lasso"][1], Lasso)
 
         # Assert search data dimensions
         assert search_data.keys() == spaces.keys()
-        assert search_data["linear"][0].shape == (2, 1)
-        assert search_data["lasso"][0].shape == (2, 1)
-        assert tuner.cv_performance_data["linear"].shape == (2, 5)
-        assert tuner.cv_performance_data["lasso"].shape == (2, 5)
+        assert search_data["Linear"][0].shape == (2, 1)
+        assert search_data["Lasso"][0].shape == (2, 1)
+        assert tuner.cv_performance_data["Linear"].shape == (2, 5)
+        assert tuner.cv_performance_data["Lasso"].shape == (2, 5)
 
 
 # ================================================================
 def test_nn_grid_search(setup_nn_model_settings):
-    for settings, preprocessor, model_settings in setup_nn_model_settings:
+    for data, model_settings in setup_nn_model_settings:
         # Build Tuner
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(data[0], data[2], model_settings=model_settings)
 
         # Run grid search
         search_data = tuner.nn_grid_search(
             objective="r2_score",
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the correct types
         assert isinstance(search_data["fnn"][0], pd.DataFrame)
-        assert isinstance(search_data["fnn"][1], mai.nnHyperModel)
+        assert isinstance(search_data["fnn"][1], nnHyperModel)
 
         # Assert search data dimensions
         assert list(search_data.keys()) == model_settings["models"]
@@ -235,22 +241,20 @@ def test_nn_grid_search(setup_nn_model_settings):
 
 # ================================================================
 def test_nn_random_search(setup_nn_model_settings):
-    for settings, preprocessor, model_settings in setup_nn_model_settings:
+    for data, model_settings in setup_nn_model_settings:
         # Build Tuner
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(data[0], data[2], model_settings=model_settings)
 
         # Run random search
         search_data = tuner.nn_random_search(
             objective="r2_score",
             max_trials=3,
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the correct types
         assert isinstance(search_data["fnn"][0], pd.DataFrame)
-        assert isinstance(search_data["fnn"][1], mai.nnHyperModel)
+        assert isinstance(search_data["fnn"][1], nnHyperModel)
 
         # Assert search data dimensions
         assert list(search_data.keys()) == model_settings["models"]
@@ -260,22 +264,20 @@ def test_nn_random_search(setup_nn_model_settings):
 
 # ================================================================
 def test_nn_bayesian_search(setup_nn_model_settings):
-    for settings, preprocessor, model_settings in setup_nn_model_settings:
+    for data, model_settings in setup_nn_model_settings:
         # Build Tuner
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(data[0], data[2], model_settings=model_settings)
 
         # Run bayesian search
         search_data = tuner.nn_bayesian_search(
             objective="r2_score",
             max_trials=3,
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the correct types
         assert isinstance(search_data["fnn"][0], pd.DataFrame)
-        assert isinstance(search_data["fnn"][1], mai.nnHyperModel)
+        assert isinstance(search_data["fnn"][1], nnHyperModel)
 
         # Assert search data dimensions
         assert list(search_data.keys()) == model_settings["models"]
@@ -285,21 +287,19 @@ def test_nn_bayesian_search(setup_nn_model_settings):
 
 # ================================================================
 def test_nn_hyperband_search(setup_nn_model_settings):
-    for settings, preprocessor, model_settings in setup_nn_model_settings:
+    for data, model_settings in setup_nn_model_settings:
         # Build Tuner
-        tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+        tuner = mai.Tuner(data[0], data[2], model_settings=model_settings)
 
         # Run hyperband search
         search_data = tuner.nn_hyperband_search(
             objective="r2_score",
-            cv=ShuffleSplit(
-                n_splits=1, test_size=0.15, random_state=settings.random_state
-            ),
+            cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
         )
 
         # Assert that we have the correct types
         assert isinstance(search_data["fnn"][0], pd.DataFrame)
-        assert isinstance(search_data["fnn"][1], mai.nnHyperModel)
+        assert isinstance(search_data["fnn"][1], nnHyperModel)
 
         # Assert search data dimensions
         assert list(search_data.keys()) == model_settings["models"]
@@ -309,23 +309,23 @@ def test_nn_hyperband_search(setup_nn_model_settings):
 
 # ================================================================
 def test_convergence_plot(setup_xr):
-    settings, preprocessor = setup_xr
+    xtrain, _, ytrain, _ = setup_xr
 
     # Build Tuner object
     model_settings = {
-        "models": ["linear", "lasso"],
+        "models": ["Linear", "Lasso"],
     }
-    tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+    tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
     # Run grid search over search spaces
     spaces = {
-        "linear": {"fit_intercept": [True, False]},
-        "lasso": {"alpha": np.linspace(0.000001, 1, 5)},
+        "Linear": {"fit_intercept": [True, False]},
+        "Lasso": {"alpha": np.linspace(0.000001, 1, 5)},
     }
     search_data = tuner.grid_search(
         param_spaces=spaces,
-        cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=settings.random_state),
+        cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
     )
 
     # Plot convergence of linear
-    ax = tuner.convergence_plot(model_types="linear")
+    ax = tuner.convergence_plot(model_types="Linear")
