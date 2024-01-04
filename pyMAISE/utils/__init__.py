@@ -1,2 +1,2 @@
-from .hyperparameters import HyperParameters, Boolean, Int, Float, Choice
 from .cvtuner import CVTuner
+from .hyperparameters import Boolean, Choice, Float, HyperParameters, Int, Fixed

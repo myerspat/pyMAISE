@@ -2,6 +2,7 @@ import keras_tuner as kt
 import numpy as np
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.utils.multiclass import type_of_target
+from tensorflow.keras.backend import clear_session
 
 import pyMAISE.settings as settings
 
@@ -56,19 +57,24 @@ class CVTuner(kt.Tuner):
     def run_trial(self, trial, x, y):
         # Reassign CV depending on what's given
         if isinstance(self._cv, int):
-            if settings.values.classification and (
-                type_of_target(y) in ("binary", "multiclass")
+            if (
+                settings.values.problem_type == settings.ProblemType.CLASSIFICATION
+                and (type_of_target(y) in ("binary", "multiclass"))
             ):
                 self._cv = StratifiedKFold(
                     n_splits=self._cv,
                     shuffle=self._shuffle,
-                    random_state=settings.values.random_state,
+                    random_state=settings.values.random_state
+                    if self._shuffle == True
+                    else None,
                 )
             else:
                 self._cv = KFold(
                     n_splits=self._cv,
                     shuffle=self._shuffle,
-                    random_state=settings.values.random_state,
+                    random_state=settings.values.random_state
+                    if self._shuffle == True
+                    else None,
                 )
 
         # Run
@@ -94,7 +100,7 @@ class CVTuner(kt.Tuner):
                 y_val_pred = model.predict(x_val)
 
                 # Round probabilities to correct class based on data format
-                if settings.values.classification:
+                if settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
                     y_val_pred = determine_class_from_probabilities(y_val_pred, y)
 
                 test_scores.append(
@@ -107,6 +113,9 @@ class CVTuner(kt.Tuner):
             else:
                 test_score_idx = model.metrics_names.index(self._objective)
                 test_scores.append(model.evaluate(x_val, y_val)[test_score_idx])
+
+        # Reset tensorflow session to reduce RAM usage
+        clear_session()
 
         # Append performance data for CV results
         self._mean_test_score.append(np.average(test_scores))
