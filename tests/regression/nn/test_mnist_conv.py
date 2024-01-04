@@ -10,6 +10,8 @@ from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
 
 import pyMAISE as mai
+from pyMAISE.methods import nnHyperModel
+from pyMAISE.preprocessing import one_hot_encode, train_test_split
 
 
 @pytest.fixture
@@ -38,27 +40,24 @@ def mnist_data():
 
 def test_mnist_conv(mnist_data):
     # Initialize pyMAISE
-    settings = {
-        "verbosity": 1,
-        "random_state": 42,
-        "test_size": 0.3,
-        "num_configs_saved": 1,
-        "regression": False,
-        "classification": True,
-        "new_nn_architecture": True,
-        "cuda_visible_devices": "-1",  # Use CPUs only
-    }
-    global_settings = mai.settings.init(settings_changes=settings)
+    global_settings = mai.init(
+        problem_type=mai.ProblemType.CLASSIFICATION,
+        verbosity=1,
+        num_configs_saved=1,
+        random_state=42,
+        cuda_visible_devices="-1",  # Use CPUs only
+    )
 
     # Give data to preprocessor and do train/test split
-    preprocessor = mai.PreProcessor()
-    preprocessor.inputs, preprocessor.outputs = mnist_data
+    inputs, outputs = mnist_data
 
     # One hot encode multiclass outputs
-    preprocessor.outputs = preprocessor.one_hot_encode(preprocessor.outputs)
+    outputs = one_hot_encode(outputs)
 
     # Split data
-    preprocessor.train_test_split()
+    xtrain, xtest, ytrain, ytest = train_test_split(
+        data=[inputs, outputs], test_size=0.3
+    )
 
     # Using Sve Final Model archetecture
     structural = {
@@ -122,18 +121,16 @@ def test_mnist_conv(mnist_data):
         },
     }
 
-    tuner = mai.Tuner(data=preprocessor.split_data, model_settings=model_settings)
+    tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
     # Grid search
     grid_search_configs = tuner.nn_grid_search(
-        objective="accuracy_score",
-        cv=2,
-        max_consecutive_failed_trials=1
+        objective="accuracy_score", cv=2, max_consecutive_failed_trials=1
     )
 
     # Check contents of grid search results
     assert isinstance(grid_search_configs["cnn"][0], pd.DataFrame)
-    assert isinstance(grid_search_configs["cnn"][1], mai.nnHyperModel)
+    assert isinstance(grid_search_configs["cnn"][1], nnHyperModel)
     assert grid_search_configs["cnn"][0].shape == (1, 1)
     assert tuner.cv_performance_data["cnn"].shape == (2, 2)
 
@@ -146,8 +143,8 @@ def test_mnist_conv(mnist_data):
         },
     }
     postprocessor = mai.PostProcessor(
-        data=preprocessor.split_data,
-        models_list=[grid_search_configs],
+        data=(xtrain, xtest, ytrain, ytest),
+        model_configs=[grid_search_configs],
         new_model_settings=new_model_settings,
     )
 

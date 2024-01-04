@@ -1,38 +1,40 @@
-import pandas as pd
 import pytest
-from scipy.stats import randint, uniform
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
+from pyMAISE.datasets import load_fp, load_MITR, load_xs
+from pyMAISE.preprocessing import scale_data, train_test_split
 
 
 def test_new_nn_structure():
     plus_minus = 0.02
 
     # Loop over each base benchmark data set
-    load_functions = ["load_MITR", "load_fp", "load_xs"]
+    load_functions = [load_MITR, load_fp, load_xs]
 
     for load_function in load_functions:
         # ======================================================================
         # Old Model Structure
-        settings = {
-            "verbosity": 1,
-            "random_state": 42,
-            "test_size": 0.3,
-            "num_configs_saved": 1,
-            "regression": True,
-            "cuda_visible_devices": "-1",  # Use CPUs only
-            "new_nn_architecture": False,
-        }
+        global_settings = mai.init(
+            problem_type=mai.ProblemType.REGRESSION,
+            verbosity=1,
+            random_state=42,
+            num_configs_saved=1,
+            cuda_visible_devices="-1",
+            new_nn_architecture=False,
+        )
 
-        # Initialize pyMAISE settings
-        global_settings = mai.settings.init(settings_changes=settings)
+        # Get data
+        data, inputs, outputs = load_function()
 
-        # Initialize preprocessor and scaling
-        preprocessor = eval("mai." + load_function + "()")
-        preprocessor.train_test_split(scaler=MinMaxScaler())
-        data = preprocessor.split_data
+        # Train test split
+        xtrain, xtest, ytrain, ytest = train_test_split(
+            data=[inputs, outputs], test_size=0.3
+        )
+        xtrain, xtest, _ = scale_data(xtrain, xtest, MinMaxScaler())
+        ytrain, ytest, yscaler = scale_data(ytrain, ytest, MinMaxScaler())
+        data = (xtrain, xtest, ytrain, ytest)
 
         # Old NN model settings
         model_settings = {
@@ -51,13 +53,13 @@ def test_new_nn_structure():
                 "start_num_nodes": 100,
                 "start_kernel_initializer": "normal",
                 "start_activation": "relu",
-                "input_dim": preprocessor.inputs.shape[1],  # Number of inputs
+                "input_dim": xtrain.shape[1],  # Number of inputs
                 # Middle Layers
                 "mid_num_node_strategy": "constant",  # Middle layer nodes vary linearly from 'start_num_nodes' to 'end_num_nodes'
                 "mid_kernel_initializer": "normal",
                 "mid_activation": "relu",
                 # Ending Layer
-                "end_num_nodes": preprocessor.outputs.shape[1],  # Number of outputs
+                "end_num_nodes": ytrain.shape[1],  # Number of outputs
                 "end_activation": "linear",
                 "end_kernel_initializer": "normal",
                 # Optimizer
@@ -65,7 +67,7 @@ def test_new_nn_structure():
                 "learning_rate": 0.0001,
             },
         }
-        tuning = mai.Tuner(data=data, model_settings=model_settings)
+        tuning = mai.Tuner(data[0], data[2], model_settings=model_settings)
 
         # Grid search space
         grid_search_space = {
@@ -93,32 +95,29 @@ def test_new_nn_structure():
         # Model post-processing
         postprocessor = mai.PostProcessor(
             data=data,
-            models_list=[grid_search_configs],
+            model_configs=[grid_search_configs],
             new_model_settings=new_model_settings,
-            yscaler=preprocessor.yscaler,
+            yscaler=yscaler,
         )
 
         old_nn_structure_results = postprocessor.metrics()
 
         # ======================================================================
         # New Model Structure
-        settings["new_nn_architecture"] = True
-
-        # Initialize pyMAISE settings
-        global_settings = mai.settings.init(settings_changes=settings)
+        global_settings.new_nn_architecture = True
 
         # New NN model settings
         structural = {
             "Dense_input": {
                 "units": mai.Choice([100, 400]),
-                "input_dim": preprocessor.inputs.shape[1],
+                "input_dim": xtrain.shape[1],
                 "activation": "relu",
                 "kernel_initializer": "normal",
                 "sublayer": "Dropout",
                 "Dropout": {"rate": 0.5},
             },
             "Dense_output": {
-                "units": preprocessor.outputs.shape[1],
+                "units": ytrain.shape[1],
                 "activation": "linear",
                 "kernel_initializer": "normal",
             },
@@ -142,7 +141,7 @@ def test_new_nn_structure():
                 },
             },
         }
-        tuning = mai.Tuner(data=data, model_settings=model_settings)
+        tuning = mai.Tuner(data[0], data[2], model_settings=model_settings)
 
         # Grid search
         grid_search_configs = tuning.nn_grid_search(
@@ -155,9 +154,9 @@ def test_new_nn_structure():
         # Model post-processing
         postprocessor = mai.PostProcessor(
             data=data,
-            models_list=[grid_search_configs],
+            model_configs=[grid_search_configs],
             new_model_settings=new_model_settings,
-            yscaler=preprocessor.yscaler,
+            yscaler=yscaler,
         )
 
         new_nn_structure_results = postprocessor.metrics()
