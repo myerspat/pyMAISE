@@ -109,7 +109,7 @@ def score_model(scores, models, x, y, split):
 
 
 scores = {
-    "Model Types": ["linear", "lasso", "dtree", "svm", "rforest", "knn"],
+    "Model Types": ["Linear", "Lasso", "DT", "SVM", "RF", "KN"],
     "Train MAE": [],
     "Train MSE": [],
     "Train RMSE": [],

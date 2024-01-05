@@ -5,8 +5,8 @@ from sklearn.linear_model import Lasso, LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import GridSearchCV, ShuffleSplit, train_test_split
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.svm import SVR
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 
 # =======================================================================================
@@ -43,8 +43,10 @@ np.random.seed(random_state)
 
 # =======================================================================================
 # Read data
-data = pd.read_csv("https://raw.githubusercontent.com/myerspat/pyMAISE/develop/pyMAISE/data/xs.csv")
-X = data.iloc[:, :-1] 
+data = pd.read_csv(
+    "https://raw.githubusercontent.com/myerspat/pyMAISE/develop/pyMAISE/data/xs.csv"
+)
+X = data.iloc[:, :-1]
 print(X)
 Y = data.iloc[:, [-1]]
 print(Y)
@@ -107,7 +109,7 @@ def score_model(scores, models, x, y, split):
 
 
 scores = {
-    "Model Types": ["linear", "lasso", "dtree", "svm", "rforest", "knn"],
+    "Model Types": ["Linear", "Lasso", "DT", "SVM", "RF", "KN"],
     "Train MAE": [],
     "Train MSE": [],
     "Train RMSE": [],
