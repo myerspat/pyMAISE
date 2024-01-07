@@ -34,6 +34,7 @@ Contents
 Data References
 ---------------
 .. bibliography:: data_refs.bib
+   :all:
 
 -------------------
 Software References
