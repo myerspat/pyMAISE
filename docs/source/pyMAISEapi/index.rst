@@ -63,6 +63,8 @@ references <data_refs>`.
    pyMAISE.datasets.load_fp
    pyMAISE.datasets.load_heat
    pyMAISE.datasets.load_rea
+   pyMAISE.datasets.load_BWR
+   pyMAISE.datasets.load_HTGR
    pyMAISE.datasets.load_loca
 
 .. _preprocessing_api:

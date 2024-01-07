@@ -200,31 +200,98 @@ def load_rea():
 
 
 # # Load BWR micro-reactor data
-# def load_BWR():
-#     preprocessor = PreProcessor()
-#     preprocessor.read_csv(
-#         [get_full_path("data/bwr_input.csv"), get_full_path("data/bwr_output.csv")],
-#     )
-#     return preprocessor
-#
-#
-# # Load HTGR micro reactor quadrant power data before preprocessing
-# def load_qpower():
-#     preprocessor = PreProcessor()
-#     preprocessor.read_csv(
-#         get_full_path("data/microreactor.csv"), slice(29, 37), slice(4, 8)
-#     )
-#     return preprocessor
-#
-#
-# # Load HTGR micro-reactor quadrant power data after preprocessing using symmetry conditions
-# def load_pqpower():
-#     preprocessor = PreProcessor()
-#     preprocessor.read_csv(
-#         get_full_path("data/microreactor_preprocessed.csv"), slice(1, 9), slice(9, 14)
-#     )
-#     return preprocessor
+def load_BWR():
+    """
+    Load BWR Micro Core data. This data consists of 2000 samples of 9 inputs:
+    
+    - ``PSZ``: Fuel bundle region Power Shaping Zone (PSZ),
+    - ``DOM``:  Fuel bundle region Dominant zone (DOM),
+    - ``vanA``: Fuel bundle region vanishing zone A (VANA),
+    - ``vanB``: Fuel bundle region vanishing zone B (VANB),
+    - ``subcool``: Represents moderator inlet conditions. Core inlet subcooling interpreted to be at the
+      steam dome pressure (i.e., not core-averaged pressure). The input value for subcooling
+      will automatically be increased to account for this fact. (Btu/lb),
+    - ``CRD``: Defines the position of all control rod groups (banks),
+    - ``flow_rate``: Defines essential global design data for rated coolant mass flux for the active core,
+      :math:`\\frac{kg}{(cm^{2}-hr)}`. Coolant   mass flux equals active core flow divided by
+      core cross-section area. Core cross-section area is DXA 2 times the number of assemblies,
+    - ``power_density``: Defines essential global design data for rated power density using cold dimensions,
+      :math:`(\\frac{kw}{liter})`,
+    - ``VFNGAP``: Defines the ratio of narrow water gap width to the sum of the narrow and wide water
+      gap widths,
 
+    with 5 outputs:
+
+    - ``K-eff``:  Reactivity coefficient k-effective, the effective neutron multiplication factor,
+    - ``Max3Pin``: Maximum planar-averaged pin power peaking factor,
+    - ``Max4Pin``: maximum pin-power peaking factor, :math:`F_{q}`, (which includes axial intranodal peaking),
+    - ``F-delta-H``: Ratio of max-to-average enthalpy rise in a channel,
+    - ``Max-Fxy``: Maximum radial pin-power peaking factor,
+
+    This data set was constructed through uniform and normal sampling of the 9 input parameters for a boiling water
+    reactor (BWR) micro-core. These samples were then used to solve for reactor characteristic changes in heat
+    distribution and neutron flux. This BWR micro-core consists of 4 radially and axially heterogenous assemblies of
+    the same type constructed in a 2x2 grid with a control blade placed in the center. A single assembly was brocken
+    into seven zones where each zones 2D radial cross
+    sectional information was constructed using CASMO-4. These cross sectional libraries were then processed through
+    CMSLINK for SIMULATE-3 to interpret. The core geometry and physics was implemented and modeled using SIMULATE-3.
+    
+    Returns
+    -------
+    data: xarray.DataArray
+        Raw BWR Micro Reactor data.
+    inputs: xarray.DataArray
+        9 inputs.
+    outputs: xarray.DataArray
+        5 outputs.
+    """
+    return read_csv(
+        [_get_full_path("datasets/bwr_input.csv"), _get_full_path("datasets/bwr_output.csv")],
+    )
+
+# Load HTGR data
+def load_HTGR():
+    """
+    Load HTGR Micro Reactor data. This data consists of 3000 samples of 8 inputs:
+   
+    - ``theta_{1}``: Angle of control drum in quadrant 1 (degrees), 
+    - ``theta_{2}``: Angle of control drum in quadrant 1 (degrees), 
+    - ``theta_{3}``: Angle of control drum in quadrant 2 (degrees),  
+    - ``theta_{4}``: Angle of control drum in quadrant 2 (degrees),
+    - ``theta_{5}``: Angle of control drum in quadrant 3 (degrees),
+    - ``theta_{6}``: Angle of control drum in quadrant 3 (degrees),
+    - ``theta_{7}``: Angle of control drum in quadrant 4 (degrees), 
+    - ``theta_{8}``: Angle of control drum in quadrant 4 (degrees),  
+    
+    with 4 outputs:
+
+    - ``FluxQ1``: Neutron flux in quadrant 1 :math:`(\\frac{neutrons}{cm^{2} s})`,
+    - ``FluxQ2``: Neutron flux in quadrant 2 :math:`(\\frac{neutrons}{cm^{2} s})`,
+    - ``FluxQ3``: Neutron flux in quadrant 3 :math:`(\\frac{neutrons}{cm^{2} s})`,
+    - ``FluxQ4``: Neutron flux in quadrant 4 :math:`(\\frac{neutrons}{cm^{2} s})`,
+
+    The data set featured in this work was based around the
+    HOLOS-Quad reactor design. This reactor implements modular construction where seperate units can be transported
+    independently and assembled at the specified location.  The HOLOS-Quad core is specifically a 22 MWt high-temperature
+    gas-cooled microreactor (HTGR) which is controlled by 8 cylindrical control drums. It utilizes TRISO fuel particles
+    contained in hexagonal graphite blocks used as a moderator. These graphite blocks have channels where helium gas can
+    pass through for cooling.  The main importance of this data set is the influence on the control drums on the neutron
+    flux. The drums control reactivity by rotating to vary the proximity of :math:`B_{4} C` on a portion of their outer edges to
+    the fueled region of the core. Perturbations of the control drums in tern causes the core power shape to shift leading
+    to complexe power distributions. Therefore, predictions of control drum reactivity worths for arbitrary configurations
+    makes this problem nontrivial.
+    
+    Returns
+    -------
+    data: xarray.DataArray
+        Raw HTGR Micro Reactor data with no symmetry conditions applied.
+    inputs: xarray.DataArray
+        8 inputs.
+    outputs: xarray.DataArray
+        4 outputs.
+    """
+
+    return  read_csv(_get_full_path("datasets/HTGR_microreactor.csv"), slice(29, 37), slice(4, 8))
 
 # Load and prep LOCA data
 def load_loca(stack_series=False):
