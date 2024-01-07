@@ -602,7 +602,7 @@ class Tuner:
                     **search_data,
                     **{
                         model: (
-                            pd.DataFrame({"params": [estimator.get_params]}),
+                            pd.DataFrame({"params": [estimator.get_params()]}),
                             estimator,
                         )
                     },
