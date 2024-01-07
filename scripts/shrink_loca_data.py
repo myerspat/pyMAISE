@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 
-samples = 4000
+samples = 2000
 
 # ==================================================================
 # Paths
