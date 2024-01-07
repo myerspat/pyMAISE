@@ -55,8 +55,11 @@ class Layer:
             if isinstance(value, HyperParameters):
                 sampled_data[key] = value.hp(
                     hp,
-                    "_".join([self._layer_name + str(self._current_layer), key]),
+                    "_".join([f"{self._layer_name}_{self._current_layer}", key]),
                 )
+
+        # Add layer name
+        sampled_data["name"] = f"{self._layer_name}_{self._current_layer}"
         return sampled_data
 
     def reset(self):
@@ -84,14 +87,21 @@ class Layer:
         # Get sublayer data, if a Choice then sample
         if isinstance(self._base_data["sublayer"], Choice):
             sublayer_name = self._base_data["sublayer"].hp(
-                hp, self._layer_name + "_sublayer"
+                hp, f"{self._layer_name}_{self._current_layer}_sublayer"
             )
-            return (sublayer_name, self._base_data[sublayer_name])
+            if sublayer_name is not "None":
+                return (
+                    f"{self._layer_name}_{self._current_layer}_sublayer_{sublayer_name}",
+                    self._base_data[sublayer_name],
+                )
         elif isinstance(self._base_data["sublayer"], str):
             sublayer_name = self._base_data["sublayer"]
-            return (sublayer_name, self._base_data[sublayer_name])
-        else:
-            return None
+            return (
+                f"{self._layer_name}_{self._current_layer}_sublayer_{sublayer_name}",
+                self._base_data[sublayer_name],
+            )
+
+        return None
 
     def wrapper(self):
         # Return wrapper

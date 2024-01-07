@@ -121,7 +121,7 @@ class nnHyperModel(HyperModel):
 
             # Check for a sublayer
             sublayer_data = layer.sublayer(hp)
-            if sublayer_data is not None:
+            if sublayer_data is not None and sublayer_data[1]:
                 model = self._build_tree(model, sublayer_data[0], sublayer_data[1], hp)
 
             # Increment current layer
@@ -140,7 +140,11 @@ class nnHyperModel(HyperModel):
                 fitting_params[key] = value.hp(hp, key)
 
         return model.fit(
-            x, y, **fitting_params, **kwargs, verbose=settings.values.verbosity
+            x,
+            y,
+            **fitting_params,
+            verbose=settings.values.verbosity,
+            **kwargs,
         )
 
     # Update parameters after tuning, a common use case is increasing the number of epochs
@@ -166,13 +170,23 @@ class nnHyperModel(HyperModel):
                 self._fitting_params[key] = value
 
     def _get_layer(self, layer_name, structural_params):
-        # Search through supported layers dictionary to find layer
+        # Search through supported layers dictionary to find layer,
+        # if multiple then take the first as the layer
+        layer = None
+        position = None
         for key, value in self._layer_dict.items():
-            if bool(re.search(key, layer_name)):
-                return value(layer_name, structural_params)
+            match_idx = re.search(key, layer_name)
+            if match_idx is not None and (
+                position == None or match_idx.span()[0] > position
+            ):
+                layer = value
+                position = match_idx.span()[0]
 
-        # If not found we throw an error
-        raise RuntimeError(f"Layer ({layer_name}) is not supported")
+        if layer is not None:
+            return layer(layer_name, structural_params)
+        else:
+            # If not found we throw an error
+            raise RuntimeError(f"Layer ({layer_name}) is not supported")
 
     def _get_optimizer(self, hp):
         # Get optimizer name
