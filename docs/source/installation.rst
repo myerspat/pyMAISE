@@ -23,7 +23,7 @@ Prerequisites
 
    - `Keras <https://keras.io>`_
 
-   - `KerasTuner <https://keras.io/keras_tuner/>_`
+   - `KerasTuner <https://keras.io/keras_tuner/>`_
 
    - `TensorFlow <https://tensorflow.org>`_
 
@@ -45,6 +45,7 @@ Pip
 Install through Pip by running
 
 .. code-block:: sh
+
    pip3 install pyMAISE
 
 This approach only supports released versions of pyMAISE. Install from source for latest updates.
