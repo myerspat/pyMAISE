@@ -52,6 +52,15 @@ applications and originate from literature. For information on the data sets pas
 what is given here and in the function's documentation, refer to the :ref:`data \
 references <data_refs>`.
 
+Each of these load functions exits under the :mod:`pyMAISE.datasets` module. 
+To import the MIT reactor data, for example, we can do the following:
+
+.. code-block:: python
+
+   from pyMAISE.datasets import load_MITR
+
+From pyMAISE, we cannot directly access the data set load functions.
+
 .. rubric:: Functions
 
 .. autosummary::
@@ -77,6 +86,14 @@ and scale the data. This module also offers other methods specific to
 classification problems such as one hot encoding. You can use
 :class:`pyMAISE.preprocessing.SplitSequence` to create rolling windows of 
 your time series data and create a correlation matrix.
+
+Similar to the data sets, the :mod:`pyMAISE.preprocessing` module functions cannot
+be accessed from pyMAISE. So we import functions using:
+
+.. code-block:: python
+   
+   from pyMAISE.preprocessing import train_test_split, scale_data
+
 
 .. warning::
    For multiclass classification problems, the output must be one hot encoded

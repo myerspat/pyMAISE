@@ -15,11 +15,15 @@ Prerequisites
    
    - `pandas <https://pandas.pydata.org/>`_
 
+   - `Xarray <https://docs.xarray.dev/en/stable/index.html>`_
+
    - `scikit-learn <https://scikit-learn.org/stable/index.html>`_
 
    - `scikit-optimize <https://scikit-optimize.github.io/stable/>`_
 
    - `Keras <https://keras.io>`_
+
+   - `KerasTuner <https://keras.io/keras_tuner/>_`
 
    - `TensorFlow <https://tensorflow.org>`_
 
@@ -43,6 +47,8 @@ Install through Pip by running
 .. code-block:: sh
    pip3 install pyMAISE
 
+This approach only supports released versions of pyMAISE. Install from source for latest updates.
+
 -----------
 From Source
 -----------
@@ -57,6 +63,10 @@ In the ``pyMAISE`` directory you can run
 
 .. code-block:: sh
 
-   pip3 install -e .
+   pip3 install .
 
-to install the library.
+to install the library. For developers, we recommend you add the ``-e`` option:
+
+.. code-block:: sh
+
+   pip3 install -e .
