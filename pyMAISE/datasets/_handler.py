@@ -199,7 +199,6 @@ def load_rea():
     )
 
 
-# # Load BWR micro-reactor data
 def load_BWR():
     """
     Load BWR Micro Core data. This data consists of 2000 samples of 9 inputs:
@@ -249,7 +248,6 @@ def load_BWR():
         [_get_full_path("datasets/bwr_input.csv"), _get_full_path("datasets/bwr_output.csv")],
     )
 
-# Load HTGR data
 def load_HTGR():
     """
     Load HTGR Micro Reactor data. This data consists of 3000 samples of 8 inputs:
@@ -293,7 +291,6 @@ def load_HTGR():
 
     return  read_csv(_get_full_path("datasets/HTGR_microreactor.csv"), slice(29, 37), slice(4, 8))
 
-# Load and prep LOCA data
 def load_loca(stack_series=False):
     """
     Load loss of coolant accident (LOCA) time series data. This data comes from
@@ -306,7 +303,8 @@ def load_loca(stack_series=False):
     - ``Water Level``: water level [m],
     - ``Break Flow Rate``: break flow rate [kg/s],
 
-    with 400 time steps.
+    with 400 time steps. The original data was randomly sampled for 2000 perturbed data
+    points and the nominal sample, 2001 samples total.
 
     Parameters
     ----------
@@ -322,8 +320,8 @@ def load_loca(stack_series=False):
         The 2D or 3D nominal LOCA data. If 2D it will be shape (400, 44)
         and if 3D then the shape is (1, 400, 44).
     perturbed_data: xarray.DataArray
-        The 2D or 3D perturbed LOCA data. If 2D it is shape (1600000, 44)
-        and if 3D then the shape is (4000, 400, 44).
+        The 2D or 3D perturbed LOCA data. If 2D it is shape (800000, 44)
+        and if 3D then the shape is (2000, 400, 44).
 
     """
     # Paths
