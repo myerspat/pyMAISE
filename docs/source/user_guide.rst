@@ -129,6 +129,8 @@ Model Initialization
 
 pyMAISE supports both classical ML methods and sequential neural networks. For a full list of supported models, neural network layers, and neural network optimizers refer to the :class:`pyMAISE.Tuner`. These models originate from `scikit-learn <https://scikit-learn.org/stable/index.html>`_ and `Keras <https://keras.io>`_. Please refer to the model documentation for each of the supported models on specifics of its algorithm. Each of these models are defined by their hyperparameters which define algorithmic parameters for training. For dictionaries for the model hyperparameters refer to :doc:`models`.
 
+.. note:: If a classical model, neural network layer, or neural network optimizer is not currently supported, submit an issue at the `pyMAISE github repository <https://github.com/myerspat/pyMAISE>`_ detailing the object you would like implemented.
+
 To initialize :class:`pyMAISE.Tuner` we define each model using a list of their keys. These keys are given in the :class:`pyMAISE.Tuner` documentation. For classical models, we define the parameters which remain constant throughout tuning. These hyperparameters are given in subdictionaries under each model key. If a subdictionary is not provided for a defined model then the default configuration is used. Here is an example for linear, lasso, and random forest:
 
 .. code-block:: python
