@@ -116,6 +116,13 @@ Splitting Time Series Data
 
 For time series data, the :class:`pyMAISE.preprocessing.SplitSequence` class offers to create rolling windows for 2D and 3D time seried data. For more information refer to the :doc:`pymaise_api`.
 
+One-Hot Encoding
+^^^^^^^^^^^^^^^^
+
+Some models perform better when the classification data is one-hot encoded. For this use :meth:`pyMAISE.preprocessing.one_hot_encode`.
+
+.. caution:: Outputs must be one-hot encoded for neural network models.
+
 Generating a Correlation Matrix
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

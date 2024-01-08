@@ -2,6 +2,8 @@ from keras.layers import Dropout
 
 from pyMAISE.methods.nn._layer import Layer
 
+import pyMAISE.settings as settings
+
 
 class DropoutLayer(Layer):
     def __init__(self, layer_name, parameters: dict):
@@ -22,7 +24,7 @@ class DropoutLayer(Layer):
         self._data = {
             "rate": 0.2,
             "noise_shape": None,
-            "seed": None,
+            "seed": settings.values.random_state,
         }
         super().reset()
 

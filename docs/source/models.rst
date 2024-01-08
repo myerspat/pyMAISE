@@ -1,88 +1,34 @@
 .. _models:
 
-=======================
-Machine Learning Models
-=======================
-
-The machine learning (ML) models supported in pyMAISE include:
-
-- linear regression,
-- lasso regression, 
-- support vector regression,
-- decision tree regression,
-- random forest regression,
-- k-nearest neighbors regression,
-- and sequential dense neural networks.
-
-Each model is discussed in more detail below and dictionary templates are provided in the :ref:`Model Dictionary Templates <model_temp>` section.
-
------------------
-Linear Regression
------------------
-
-This model is based on ``sklearn.linear_model.LinearRegression`` which minimizes the residual sum of squares between data points assuming a linear function. For more information refer to https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html.
-
-----------------
-Lasso Regression
-----------------
-
-Lasso regression uses the ``sklearn.linear_model.Lasso`` which is a linear regression with L1 prior as regularizer. For more information on the method in Python reger to https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html.
-
--------------------------
-Support Vector Regression
--------------------------
-
-Support vector regression uses ``sklearn.svm.SVR`` to do epsilon-support vector regression. For more information refer to https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html.
-
-.. caution:: Support vector regression is **only** supported for 1-dimensional outputs.
-
-------------------------
-Decision Tree Regression
-------------------------
-
-This method uses the ``sklearn.tree.DecisionTreeRegressor`` to build a decision tree. Refer to https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeRegressor.html for more information.
-
-------------------------
-Random Forest Regression
-------------------------
-
-Random forest regression uses the ``sklearn.ensemble.RandomForestRegressor`` to build a specified number of decision trees and uses averaging to improve accuracy and over-fitting. Refer to https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html for more information.
-
-
-------------------------------
-K-Nearest Neighbors Regression
-------------------------------
-
-K-nearest neighbors in pyMAISE uses ``sklearn.neighbors.KNeighborsRegressor``. For more information refer to https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html.
-
---------------------------------
-Sequential Dense Neural networks
---------------------------------
-
-This model is the most complicated model implemented in pyMAISE and uses Keras sequential models with dense layers. Dropout layers are also used. For hyper-parameter tuning the ``mid_num_node_strategy`` parameter is used to define the hidden layer nodes based on callable functions. Currently ``"linear"`` and ``"constant"`` are supported. ``"linear"`` calculates the number of nodes in each hidden layer assuming a line between ``start_num_nodes`` and ``end_num_nodes``. ``"constant"`` assumes each hidden layer has the same number of nodes as the input layer. User defined callables can also be pased to ``mid_num_node_strategy``. For more information refer to https://keras.io/api/.
-
-.. _model_temp:
-
---------------------------
+==========================
 Model Dictionary Templates
+==========================
+
+This page includes templates for defining models supported by the :class:`pyMAISE.Tuner` and :class:`pyMAISE.PostProcessor`. The parameters of the dictionaries are set to their defaults.
+
+--------------------------
+Classical Model Templates
 --------------------------
 
-**Linear Regression**
+Regression
+^^^^^^^^^^
+
+**Linear Regressor**
 
 .. code-block:: python
 
-   "linear": {
+   "Linear": {
         "fit_intercept" = True,
         "copy_X" = True,
         "n_jobs" = None,
         "positive" = False,
    }
 
-**Lasso Regression**
+**Lasso Regressor**
 
 .. code-block:: python
 
-   "lasso": {
+   "Lasso": {
         "alpha" = 1.0,
         "fit_intercept" = True,
         "precompute" = False,
@@ -94,11 +40,11 @@ Model Dictionary Templates
         "selection" = "cyclic",
    }
 
-**Support Vector Regression**
+**Support Vector Machine Regressor**
 
 .. code-block:: python
 
-   "svr": {
+   "SVM": {
         "kernel" = "rbf",
         "degree" = 3,
         "gamma" = "scale",
@@ -111,11 +57,11 @@ Model Dictionary Templates
         "max_iter" = -1,
    }
 
-**Decision Tree Regression**
+**Decision Tree Regressor**
 
 .. code-block:: python
 
-   "dtree": {
+   "DT": {
         "criterion" = "squared_error",
         "splitter" = "best",
         "max_depth" = None,
@@ -128,11 +74,11 @@ Model Dictionary Templates
         "ccp_alpha" = 0.0,
    }
 
-**Random Forest Regression**
+**Random Forest Regressor**
 
 .. code-block:: python
 
-   "rforest": {
+   "RF": {
         "n_estimators" = 100,
         "criterion" = "squared_error",
         "max_depth" = None,
@@ -150,11 +96,11 @@ Model Dictionary Templates
         "max_samples" = None,
    }
 
-**K-Nearest Neighbors Regression**
+**K-Nearest Neighbors Regressor**
 
 .. code-block:: python
 
-   "knn": {
+   "KN": {
         "n_neighbors" = 5,
         "weights" = "uniform",
         "algorithm" = "auto",
@@ -165,78 +111,486 @@ Model Dictionary Templates
         "n_jobs" = None,
    }
 
-**Sequential Dense Neural Networks**
+Classification
+^^^^^^^^^^^^^^
+
+**Logistic Regression**
 
 .. code-block:: python
 
-   "nn": {
-        # Sequential
-        "num_layers" = None,
-        "name" = None,
-        "dropout" = False,
-        "rate" = 0.5,
-        "loss" = None,
-        "metrics" = None,
-        "loss_weights" = None,
-        "weighted_metrics" = None,
-        "run_eagerly" = False,
-        "steps_per_execution" = None,
-        "jit_compile" = True,  # Used for both compile and adam
-        "batch_size" = None,
-        "validation_batch_size" = None,
-        "shuffle" = True,
-        "callbacks" = None,
-        "validation_split" = 0.0,
-        "epochs" = 1,
-        "warm_start" = False,
+   "Logistic": {
+        "penalty": "l2",
+        "dual": False,
+        "tol": 1e-4,
+        "C": 1.0,
+        "fit_intercept": True,
+        "intercept_scaling": 1,
+        "class_weight": None,
+        "solver": "lbfgs",
+        "max_iter": 100,
+        "multi_class": "auto",
+        "verbose": 0,
+        "warm_start": False,
+        "n_jobs": None,
+        "l1_ratio": None,
+   }
 
-        # Starting Layer
-        "start_num_nodes" = None,
-        "start_activation" = None,
-        "start_use_bias" = True,
-        "start_kernel_initializer" = "glorot_uniform",
-        "start_bias_initializer" = "zeros",
-        "start_kernel_regularizer" = None,
-        "start_bias_regularizer" = None,
-        "start_activity_regularizer" = None,
-        "start_kernel_constraint" = None,
-        "start_bias_constraint" = None,
-        "input_dim" = None,
+**Support Vector Machine Classifier**
 
-        # Middle Layers
-        "mid_num_node_strategy" = None,
-        "mid_activation" = None,
-        "mid_use_bias" = True,
-        "mid_kernel_initializer" = "glorot_uniform",
-        "mid_bias_initializer" = "zeros",
-        "mid_kernel_regularizer" = None,
-        "mid_bias_regularizer" = None,
-        "mid_activity_regularizer" = None,
-        "mid_kernel_constraint" = None,
-        "mid_bias_constraint" = None,
+.. code-block:: python
 
-        # Ending Layer
-        "end_num_nodes" = None,
-        "end_activation" = None,
-        "end_use_bias" = True,
-        "end_kernel_initializer" = "glorot_uniform",
-        "end_bias_initializer" = "zeros",
-        "end_kernel_regularizer" = None,
-        "end_bias_regularizer" = None,
-        "end_activity_regularizer" = None,
-        "end_kernel_constraint" = None,
-        "end_bias_constraint" = None,
+   "SVM": {
+        "C": 1.0,
+        "kernel": "rbf",
+        "degree": 3,
+        "gamma": "scale",
+        "coef0": 0.0,
+        "shrinking": True,
+        "probability": False,
+        "tol": 1e-3,
+        "cache_size": 200,
+        "class_weight": None,
+        "verbose": False,
+        "max_iter": -1,
+        "decision_function_shape": "ovr",
+        "break_ties": False,
+   }
 
-        # Optimizer
-        "optimizer" = "adam",
+**Decision Tree Classifier**
 
-        # Adam
-        "learning_rate" = 0.001,
-        "beta_1" = 0.9,
-        "beta_2" = 0.999,
-        "epsilon" = 1e-7,
-        "amsgrad" = False,
-        "clipnorm" = None,
-        "clipvalue" = None,
-        "global_clipnorm" = None,
+.. code-block:: python
+
+   "DT": {
+        "criterion": "gini",
+        "spitter": "best",
+        "max_depth": None,
+        "min_samples_split": 2,
+        "min_samples_leaf": 1,
+        "min_weight_fraction_leaf": 0.0,
+        "max_features": None,
+        "max_leaf_nodes": None,
+        "min_impurity_decrease": 0.0,
+        "class_weight": None,
+        "ccp_alpha": 0.0,
+   }
+
+**Random Forest Classifier**
+
+.. code-block:: python
+
+   "RF": {
+        "n_estimators": 100,
+        "criterion": "gini",
+        "max_depth": None,
+        "min_samples_split": 2,
+        "min_samples_leaf": 1,
+        "min_weight_fraction_leaf": 0.0,
+        "max_features": "sqrt",
+        "max_leaf_nodes": None,
+        "min_impurity_decrease": 0.0,
+        "bootstrap": True,
+        "oob_score": False,
+        "n_jobs": False,
+        "warm_start": False,
+        "class_weight": None,
+        "ccp_alpha": 0.0,
+        "max_samples": None,
+   }
+
+**K-Nearest Neighbors Classifier**
+
+.. code-block:: python
+
+   "KN": {
+        "n_neighbors": 5,
+        "weights": "uniform",
+        "algorithm": "auto",
+        "leaf_size": 30,
+        "p": 2,
+        "metric": "minkowski",
+        "metric_params": None,
+        "n_jobs": None,
+   }
+
+.. _nn_templates:
+------------------------
+Neural Network Templates
+------------------------
+   
+Layers
+^^^^^^
+
+**Dense**
+
+.. code-block:: python
+
+   "Dense": {
+       "units": ,
+       "activation": None,
+       "use_bias": True,
+       "kernel_initializer": "glorot_uniform",
+       "bias_initializer": "zeros",
+       "kernel_regularizer": None,
+       "bias_regularizer": None,
+       "activity_regularizer": None,
+       "kernel_constraint": None,
+       "bias_constraint": None,
+   }
+
+**Dropout**
+
+.. code-block:: python
+
+   "Dropout": {
+       "rate": ,
+       "noise_shape": None,
+   }
+
+**LSTM**
+
+.. code-block:: python
+
+   "LSTM": {
+       "units": ,
+       "activation": "tanh",
+       "recurrent_activation": "sigmoid",
+       "use_bias": True,
+       "kernel_initializer": "glorot_uniform",
+       "recurrent_initializer": "orthogonal",
+       "bias_initializer": "zeros",
+       "unit_forget_bias": True,
+       "kernel_regularizer": None,
+       "recurrent_regularizer": None,
+       "bias_regularizer": None,
+       "activity_regularizer": None,
+       "kernel_constraint": None,
+       "recurrent_constraint": None,
+       "bias_constraint": None,
+       "dropout": 0.0,
+       "recurrent_dropout": 0.0,
+       "return_sequences": False,
+       "return_state": False,
+       "go_backwards": False,
+       "stateful": False,
+       "time_major": False,
+       "unroll": False,
+   }
+
+**GRU**
+
+.. code-block:: python
+   
+   "GRU": {
+       "units": ,
+       "activation": "tanh",
+       "recurrent_activation": "sigmoid",
+       "use_bias": True,
+       "kernel_initializer": "glorot_uniform",
+       "recurrent_initializer": "orthogonal",
+       "bias_initializer": "zeros",
+       "kernel_regularizer": None,
+       "recurrent_regularizer": None,
+       "bias_regularizer": None,
+       "activity_regularizer": None,
+       "kernel_constraint": None,
+       "recurrent_constraint": None,
+       "bias_constraint": None,
+       "dropout": 0.0,
+       "recurrent_dropout": 0.0,
+       "return_sequences": False,
+       "return_state": False,
+       "go_backwards": False,
+       "stateful": False,
+       "time_major": False,
+       "unroll": False,
+       "reset_after": True,
+   }
+
+**Conv1D**
+
+.. code-block:: python
+   
+   "Conv1D": {
+       "filters": ,
+       "kernel_size": ,
+       "strides": 1,
+       "padding": "valid",
+       "data_format": "channels_last",
+       "dilation_rate": 1,
+       "groups": 1,
+       "activation": "None",
+       "use_bias": True,
+       "kernel_initializer": "glorot_uniform",
+       "bias_initializer": "zeros",
+       "kernel_regularizer": None,
+       "bias_regularizer": None,
+       "activity_regularizer": None,
+       "kernel_constraint": None,
+       "bias_constraint": None,
+   }
+
+**Conv2D**
+
+.. code-block:: python
+   
+   "Conv2D": {
+       "filters": ,
+       "kernel_size": ,
+       "strides": (1, 1),
+       "padding": "valid",
+       "data_format": None,
+       "dilation_rate": (1, 1),
+       "groups": 1,
+       "activation": "None",
+       "use_bias": True,
+       "kernel_initializer": "glorot_uniform",
+       "bias_initializer": "zeros",
+       "kernel_regularizer": None,
+       "bias_regularizer": None,
+       "activity_regularizer": None,
+       "kernel_constraint": None,
+       "bias_constraint": None,
+       "input_shape": None,
+   }
+
+**Conv3D**
+
+.. code-block:: python
+   
+   "Conv3D": {
+       "filters": ,
+       "kernel_size": ,
+       "strides": (1, 1, 1),
+       "padding": "valid",
+       "data_format": None,
+       "dilation_rate": (1, 1, 1),
+       "groups": 1,
+       "activation": "None",
+       "use_bias": True,
+       "kernel_initializer": "glorot_uniform",
+       "bias_initializer": "zeros",
+       "kernel_regularizer": None,
+       "bias_regularizer": None,
+       "activity_regularizer": None,
+       "kernel_constraint": None,
+       "bias_constraint": None,
+   }
+
+**MaxPooling1D**
+
+.. code-block:: python
+
+   "MaxPooling1D": {
+       "pool_size": 2,
+       "strides": None,
+       "padding": "valid",
+       "data_format": "channels_last",
+   }
+
+**MaxPooling2D**
+
+.. code-block:: python
+
+   "MaxPooling2D": {
+       "pool_size": (2, 2),
+       "strides": None,
+       "padding": "valid",
+       "data_format": None,
+   }
+
+**MaxPooling3D**
+
+.. code-block:: python
+
+   "MaxPooling3D": {
+       "pool_size": (2, 2, 2),
+       "strides": None,
+       "padding": "valid",
+       "data_format": None,
+   }
+
+**Flatten**
+
+.. code-block:: python
+
+   "Flatten": {
+       "data_format": None,
+   }
+
+**Reshape**
+
+.. code-block:: python
+
+   "Reshape": {
+       "target_shape": None,
+   }
+   
+Optimizers
+^^^^^^^^^^
+
+**SGD**
+
+.. code-block:: python
+
+   "SGD": {
+       "learning_rate": 0.01,
+       "momentum": 0.0,
+       "nesterov": False,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**RMSprop**
+
+.. code-block:: python
+
+   "RMSprop": {
+       "learning_rate": 0.001,
+       "rho": 0.9,
+       "momentum": 0.0,
+       "epsilon": 1e-07,
+       "centered": False,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": 100,
+   }
+
+**Adam**
+
+.. code-block:: python
+
+   "Adam": {
+       "learning_rate": 0.001,
+       "beta_1": 0.9,
+       "beta_2": 0.999,
+       "epsilon": 1e-07,
+       "amsgrad": False,
+       "weight_decay": None,
+       "clipnorm": None, 
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**AdamW**
+
+.. code-block:: python
+
+   "AdamW": {
+       "learning_rate": 0.001,
+       "weight_decay": 0.004,
+       "beta_1": 0.9,
+       "beta_2": 0.999,
+       "epsilon": 1e-07,
+       "amsgrad": False,
+       "clipnorm": None, 
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**Adadelta**
+
+.. code-block:: python
+
+   "Adadelta": {
+       "learning_rate": 0.001,
+       "rho": 0.95,
+       "epsilon": 1e-7,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**Adagrad**
+
+.. code-block:: python
+
+   "Adagrad": {
+       "learning_rate": 0.001,
+       "initial_accumulator_value": 0.1,
+       "epsilon": 1e-07,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**Adamax**
+
+.. code-block:: python
+
+   "Adamax": {
+       "learning_rate": 0.001,
+       "beta_1": 0.9,
+       "beta_2": 0.999,
+       "epsilon": 1e-07,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**Adafactor**
+
+.. code-block:: python
+
+   "Adafactor": {
+       "learning_rate": 0.001,
+       "beta_2_decay": -0.8,
+       "epsilon_1": 1e-30,
+       "epsilon_2": 0.001,
+       "clip_threshold": 1.0,
+       "relative_step": True,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
+   }
+
+**FTRL**
+
+.. code-block:: python
+
+   "Ftrl": {
+       "learning_rate": 0.001,
+       "learning_rate_power": -0.5,
+       "initial_accumulator_value": 0.1,
+       "l1_regularization_strength": 0.0,
+       "l2_regularization_strength": 0.0,
+       "l2_shrinkage_regularization_strength": 0.0,
+       "beta": 0.0,
+       "weight_decay": None,
+       "clipnorm": None,
+       "clipvalue": None,
+       "global_clipnorm": None,
+       "use_ema": False,
+       "ema_momentum": 0.99,
+       "ema_overwrite_frequency": None,
    }
