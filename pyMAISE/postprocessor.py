@@ -171,7 +171,8 @@ class PostProcessor:
                 if not settings.values.new_nn_architecture:
                     histories.append(
                         regressor.fit(
-                            self._xtrain.values, self._ytrain.values
+                            self._xtrain.values,
+                            self._ytrain.values,
                         ).model.history.history
                     )
                 else:
@@ -387,6 +388,11 @@ class PostProcessor:
         Get index of model in ``pandas.DataFrame`` based on model type and
         sort_by condition.
         """
+        if model_type is not None:
+            if not self._models["Model Types"].str.contains(model_type).any():
+                raise RuntimeError(
+                    f"Model {model_type} was not given to {PostProcessor.__name__}"
+                )
         # Determine sort_by depending on problem
         if sort_by is None:
             if settings.values.problem_type == settings.ProblemType.REGRESSION:
@@ -595,6 +601,13 @@ class PostProcessor:
         if ax == None:
             ax = plt.gca()
 
+        ytrain = self._yscaler.inverse_transform(
+            self._ytrain.values.reshape(-1, self._ytrain.shape[-1])
+        )
+        ytest = self._yscaler.inverse_transform(
+            self._ytest.values.reshape(-1, self._ytest.shape[-1])
+        )
+
         for y_idx in y:
             if isinstance(y_idx, str):
                 y_idx = np.where(
@@ -603,13 +616,13 @@ class PostProcessor:
 
             ax.scatter(
                 self._models["Train Yhat"][idx][..., y_idx],
-                self._ytrain.values.reshape(-1, self._ytrain.shape[-1])[..., y_idx],
+                ytrain[..., y_idx],
                 c="b",
                 marker="o",
             )
             ax.scatter(
                 self._models["Test Yhat"][idx][..., y_idx],
-                self._ytest.values.reshape(-1, self._ytest.shape[-1])[..., y_idx],
+                ytest[..., y_idx],
                 c="r",
                 marker="o",
             )
@@ -675,7 +688,9 @@ class PostProcessor:
             y = [y] if y != None else list(range(self._ytrain.shape[-1]))
 
         # Get prediected and actual outputs
-        ytest = self._ytest.values.reshape(-1, self._ytest.shape[-1])
+        ytest = self._yscaler.inverse_transform(
+            self._ytest.values.reshape(-1, self._ytest.shape[-1])
+        )
         yhat_test = self._models["Test Yhat"][idx]
 
         if ax == None:
@@ -686,13 +701,14 @@ class PostProcessor:
             # find the position
             if isinstance(y_idx, str):
                 y_idx = np.where(
-                    self._ytrain.coords[self._ytrain.dims[-1]].to_numpy() == y_idx
+                    self._ytest.coords[self._ytest.dims[-1]].values == y_idx
                 )[0]
 
             ax.plot(
                 np.linspace(1, ytest.shape[0], ytest.shape[0]),
                 np.abs((ytest[:, y_idx] - yhat_test[:, y_idx]) / ytest[:, y_idx]) * 100,
                 "-o",
+                label=self._ytest.coords[self._ytest.dims[-1]][y_idx].values[0],
             )
 
         if len(y) > 1:
@@ -789,8 +805,8 @@ class PostProcessor:
         yhat_train = self._models["Train Yhat"][idx]
         yhat_test = self._models["Test Yhat"][idx]
 
-        ytrain = self._ytrain.values
-        ytest = self._ytest.values
+        ytrain = self._yscaler.inverse_transform(self._ytrain.values)
+        ytest = self._yscaler.inverse_transform(self._ytest.values)
 
         train_cm = confusion_matrix(ytrain, yhat_train)
         train_disp = ConfusionMatrixDisplay(confusion_matrix=train_cm)
