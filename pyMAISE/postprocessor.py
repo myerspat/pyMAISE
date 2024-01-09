@@ -708,7 +708,7 @@ class PostProcessor:
                 np.linspace(1, ytest.shape[0], ytest.shape[0]),
                 np.abs((ytest[:, y_idx] - yhat_test[:, y_idx]) / ytest[:, y_idx]) * 100,
                 "-o",
-                label=self._ytest.coords[self._ytest.dims[-1]][y_idx].values[0],
+                label=self._ytest.coords[self._ytest.dims[-1]].values[y_idx],
             )
 
         if len(y) > 1:
