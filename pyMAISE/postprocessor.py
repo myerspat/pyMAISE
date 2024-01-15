@@ -383,16 +383,22 @@ class PostProcessor:
                 sort_by, ascending=[ascending]
             )
 
-    def _get_idx(self, idx=None, model_type=None, sort_by=None, direction=None):
+    def _get_idx(
+        self, idx=None, model_type=None, sort_by=None, direction=None, nns_only=False
+    ):
         """
         Get index of model in ``pandas.DataFrame`` based on model type and
         sort_by condition.
         """
+        filter = self._models["Model Types"].unique()
         if model_type is not None:
             if not self._models["Model Types"].str.contains(model_type).any():
                 raise RuntimeError(
                     f"Model {model_type} was not given to {PostProcessor.__name__}"
                 )
+        if nns_only:
+            filter = set(filter) - set(Tuner.supported_classical_models.keys())
+
         # Determine sort_by depending on problem
         if sort_by is None:
             if settings.values.problem_type == settings.ProblemType.REGRESSION:
@@ -434,9 +440,13 @@ class PostProcessor:
                     )
                     or not direction == "min"
                 ):
-                    idx = self._models[sort_by].idxmax()
+                    idx = self._models[self._models["Model Types"].isin(filter)][
+                        sort_by
+                    ].idxmax()
                 else:
-                    idx = self._models[sort_by].idxmin()
+                    idx = self._models[self._models["Model Types"].isin(filter)][
+                        sort_by
+                    ].idxmin()
 
         return idx
 
@@ -749,9 +759,12 @@ class PostProcessor:
         """
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(
-            idx=idx, model_type=model_type, sort_by=sort_by, direction=direction
+            idx=idx,
+            model_type=model_type,
+            sort_by=sort_by,
+            direction=direction,
+            nns_only=True,
         )
-        assert self._models["Model Types"][idx] not in Tuner.supported_classical_models
 
         ax = ax or plt.gca()
 
