@@ -289,7 +289,7 @@ def load_HTGR():
         4 outputs.
     """
 
-    return  read_csv(_get_full_path("datasets/HTGR_microreactor.csv"), slice(29, 37), slice(4, 8))
+    return  read_csv(_get_full_path("datasets/microreactor.csv"), slice(29, 37), slice(4, 8))
 
 def load_loca(stack_series=False):
     """
