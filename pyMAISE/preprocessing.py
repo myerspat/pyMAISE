@@ -72,6 +72,8 @@ def read_csv(
             inputs = data.isel(variable=input_slice)
             outputs = data.isel(variable=output_slice)
 
+            data = inputs.combine_first(outputs)
+
             return data, inputs, outputs
 
     elif isinstance(path, list):
