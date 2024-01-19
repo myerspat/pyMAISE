@@ -250,7 +250,7 @@ def load_BWR():
 
 def load_HTGR():
     """
-    Load HTGR Micro Reactor data. This data consists of 3000 samples of 8 inputs:
+    Load HTGR Micro Reactor data. This data consists of 751 samples of 8 inputs:
    
     - ``theta_{1}``: Angle of control drum in quadrant 1 (degrees), 
     - ``theta_{2}``: Angle of control drum in quadrant 1 (degrees), 
@@ -268,16 +268,17 @@ def load_HTGR():
     - ``FluxQ3``: Neutron flux in quadrant 3 :math:`(\\frac{neutrons}{cm^{2} s})`,
     - ``FluxQ4``: Neutron flux in quadrant 4 :math:`(\\frac{neutrons}{cm^{2} s})`,
 
-    The data set featured in this work was based around the
-    HOLOS-Quad reactor design. This reactor implements modular construction where seperate units can be transported
-    independently and assembled at the specified location.  The HOLOS-Quad core is specifically a 22 MWt high-temperature
-    gas-cooled microreactor (HTGR) which is controlled by 8 cylindrical control drums. It utilizes TRISO fuel particles
-    contained in hexagonal graphite blocks used as a moderator. These graphite blocks have channels where helium gas can
-    pass through for cooling.  The main importance of this data set is the influence on the control drums on the neutron
-    flux. The drums control reactivity by rotating to vary the proximity of :math:`B_{4} C` on a portion of their outer edges to
-    the fueled region of the core. Perturbations of the control drums in tern causes the core power shape to shift leading
-    to complexe power distributions. Therefore, predictions of control drum reactivity worths for arbitrary configurations
-    makes this problem nontrivial.
+    This data set is based on the HOLOS-Quad reactor design. This reactor implements modular construction
+    where seperate units can be transported independently and assembled at the plant. The HOLOS-Quad core
+    is a 22 MWt high-temperature gas-cooled microreactor (HTGR) which is controlled by 8 cylindrical
+    control drums. It utilizes TRISO fuel particles contained in hexagonal graphite blocks used as a
+    moderator. These graphite blocks have channels where helium gas can pass through for cooling.
+    The main importance of this data set is the influence of control drum position on the neutron flux
+    distribution. The drums control reactivity by rotating to vary the proximity of :math:`B_{4}C`, located
+    on a portion of the cylindrical surface, to the fuel. Perturbations of the control drums cases the core
+    power shape to shift leading to complex power distributions. Therefore, predictions of control drum
+    reactivity worth for arbitrary configurations makes this problem nontrivial. The data was taken from
+    :cite:`PRICE2022111776` and does not utilizes symmetry preprocessing to expand the data set.
     
     Returns
     -------

@@ -450,9 +450,7 @@ class PostProcessor:
 
         return idx
 
-    def get_predictions(
-        self, idx=None, model_type: str = None, sort_by=None, direction=None
-    ):
+    def get_predictions(self, idx=None, model_type=None, sort_by=None, direction=None):
         """
         Get a models training and testing predictions.
 
@@ -559,12 +557,33 @@ class PostProcessor:
             self._models["Model Types"][idx] in Tuner.supported_classical_models
             or not settings.values.new_nn_architecture
         ):
-            regressor = self._models["Model Wrappers"][idx].set_params(
-                **self._models["Parameter Configurations"][idx]
+            xtrain = (
+                self._xtrain
+                if self._xtrain.shape[-1] > 1
+                else self._xtrain.isel(**{self._xtrain.dims[-1]: 0})
             )
+            ytrain = (
+                self._ytrain
+                if self._ytrain.shape[-1] > 1
+                else self._ytrain.isel(**{self._ytrain.dims[-1]: 0})
+            )
+            regressor = (
+                self._models["Model Wrappers"][idx]
+                .set_params(**self._models["Parameter Configurations"][idx])
+                .fit(xtrain, ytrain)
+            )
+
         else:
             regressor = self._models["Model Wrappers"][idx].build(
                 self._models["Parameter Configurations"][idx]
+            )
+            regressor._name = self._models["Model Types"][idx]
+
+            self._models["Model Wrappers"][idx].fit(
+                self._models["Parameter Configurations"][idx],
+                regressor,
+                self._xtrain.values,
+                self._ytrain.values,
             )
 
         return regressor
@@ -611,12 +630,14 @@ class PostProcessor:
         if ax == None:
             ax = plt.gca()
 
-        ytrain = self._yscaler.inverse_transform(
-            self._ytrain.values.reshape(-1, self._ytrain.shape[-1])
-        )
-        ytest = self._yscaler.inverse_transform(
-            self._ytest.values.reshape(-1, self._ytest.shape[-1])
-        )
+        ytrain = self._ytrain.values
+        ytest = self._ytest.values
+
+        if self._yscaler != None:
+            ytrain = self._yscaler.inverse_transform(
+                ytrain.reshape(-1, ytrain.shape[-1])
+            )
+            ytest = self._yscaler.inverse_transform(ytest.reshape(-1, ytest.shape[-1]))
 
         for y_idx in y:
             if isinstance(y_idx, str):
@@ -698,10 +719,11 @@ class PostProcessor:
             y = [y] if y != None else list(range(self._ytrain.shape[-1]))
 
         # Get prediected and actual outputs
-        ytest = self._yscaler.inverse_transform(
-            self._ytest.values.reshape(-1, self._ytest.shape[-1])
-        )
+        ytest = self._ytest.values
         yhat_test = self._models["Test Yhat"][idx]
+
+        if self._yscaler != None:
+            ytest = self._yscaler.inverse_transform(ytest.reshape(-1, ytest.shape[-1]))
 
         if ax == None:
             ax = plt.gca()
@@ -818,8 +840,14 @@ class PostProcessor:
         yhat_train = self._models["Train Yhat"][idx]
         yhat_test = self._models["Test Yhat"][idx]
 
-        ytrain = self._yscaler.inverse_transform(self._ytrain.values)
-        ytest = self._yscaler.inverse_transform(self._ytest.values)
+        ytrain = self._ytrain.values
+        ytest = self._ytest.values
+
+        if self._yscaler != None:
+            ytrain = self._yscaler.inverse_transform(
+                ytrain.reshape(-1, ytrain.shape[-1])
+            )
+            ytest = self._yscaler.inverse_transform(ytest.reshape(-1, ytest.shape[-1]))
 
         train_cm = confusion_matrix(ytrain, yhat_train)
         train_disp = ConfusionMatrixDisplay(confusion_matrix=train_cm)
