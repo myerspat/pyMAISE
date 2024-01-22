@@ -72,7 +72,7 @@ def read_csv(
             inputs = data.isel(variable=input_slice)
             outputs = data.isel(variable=output_slice)
 
-            data = inputs.combine_first(outputs)
+            data = xr.concat([inputs, outputs], dim=data.dims[-1])
 
             return data, inputs, outputs
 

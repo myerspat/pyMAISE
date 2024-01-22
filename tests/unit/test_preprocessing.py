@@ -434,8 +434,8 @@ def test_split_sequances():
 
     # ============================================================
     # LOCA Data Test (40 features, 1 sequential output)
-    # Input: (samples=4001, timesteps=396, features=3)
-    # Output: (samples=4001, timesteps=396, features=1)
+    # Input: (samples=2001, timesteps=396, features=3)
+    # Output: (samples=2001, timesteps=396, features=1)
     # ============================================================
     nominal_data, perturbed_data = load_loca(stack_series=False)
 
@@ -464,9 +464,9 @@ def test_split_sequances():
     assert nominal_outputs.shape == (1, 396, 4)
 
     perturbed_inputs, perturbed_outputs = split_sequences.split(perturbed_data)
-    assert perturbed_data.shape == (4000, 400, 44)
-    assert perturbed_inputs.shape == (4000, 396, 56)
-    assert perturbed_outputs.shape == (4000, 396, 4)
+    assert perturbed_data.shape == (2000, 400, 44)
+    assert perturbed_inputs.shape == (2000, 396, 56)
+    assert perturbed_outputs.shape == (2000, 396, 4)
 
 
 # ================================================================
