@@ -2,9 +2,4 @@ ipykernel
 chardet
 nbsphinx
 sphinx_rtd_theme
-sphinx.ext.todo
-sphinx.ext.viewcode
-sphinx.ext.autodoc
-sphinx.ext.autosummary
-sphinx.ext.napoleon
 sphinxcontrib.bibtex
