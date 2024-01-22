@@ -107,6 +107,10 @@ class Tuner:
     - ``Nadam``: `Nadam <https://keras.io/api/optimizers/Nadam/>`_,
     - ``Ftrl``: `FTRL <https://keras.io/api/optimizers/ftrl/>`_.
 
+    .. note:: For additional layer or optimizer support, submit a detailed issue at the
+        `pyMAISE github repository <https://github.com/myerspat/pyMAISE>`_ outlining the
+        layer or optimizer required.
+
     Parameters
     ----------
     xtrain: xarray.DataArray
