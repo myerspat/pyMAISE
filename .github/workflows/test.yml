@@ -17,10 +17,10 @@ jobs:
         packages: build-essential python3
     - name: Install libraries
       run: |
-        python3 -m pip3 install --upgrade pip3
-        pip3 install setuptools
-        pip3 install pytest
-        pip3 install -e .
+        python3 -m pip install --upgrade pip
+        pip install setuptools
+        pip install pytest
+        pip install -e .
     - name: Run tests
       run: |
         cd tests
