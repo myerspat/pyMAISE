@@ -23,7 +23,7 @@ setup(
         "matplotlib",
     ],
     extras_require={"test": ["pytest"], "stats": ["scipy"]},
-    package_data={"pyMAISE.data": ["*.csv"]},
+    package_data={"pyMAISE.datasets": ["*.csv"]},
     author="Patrick Myers",
     author_email="myerspat@umich.edu",
 )

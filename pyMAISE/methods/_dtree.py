@@ -1,14 +1,14 @@
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+
 import pyMAISE.settings as settings
 
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 
 class DecisionTree:
     def __init__(self, parameters: dict = None):
         # Model parameters
-
-        if settings.values.regression:
+        if settings.values.problem_type == settings.ProblemType.REGRESSION:
             self._criterion = "squared_error"
-        else:
+        elif settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
             self._criterion = "gini"
             self._class_weight = None
 
@@ -30,8 +30,7 @@ class DecisionTree:
     # ===========================================================
     # Methods
     def regressor(self):
-
-        if settings.values.regression:
+        if settings.values.problem_type == settings.ProblemType.REGRESSION:
             return DecisionTreeRegressor(
                 criterion=self._criterion,
                 splitter=self._splitter,
@@ -45,22 +44,21 @@ class DecisionTree:
                 min_impurity_decrease=self._min_impurity_decrease,
                 ccp_alpha=self._ccp_alpha,
             )
-        else:
+        elif settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
             return DecisionTreeClassifier(
-                    criterion=self._criterion,
-                    splitter=self._splitter,
-                    max_depth=self._max_depth,
-                    min_samples_split = self._min_samples_split,
-                    min_samples_leaf = self._min_samples_leaf,
-                    min_weight_fraction_leaf=self._min_weight_fraction_leaf,
-                    max_features=self._max_features,
-                    random_state=settings.values.random_state,
-                    max_leaf_nodes=self._max_leaf_nodes,
-                    min_impurity_decrease=self._min_impurity_decrease,
-                    class_weight=self._class_weight,
-                    ccp_alpha=self._ccp_alpha,
-
-                    )
+                criterion=self._criterion,
+                splitter=self._splitter,
+                max_depth=self._max_depth,
+                min_samples_split=self._min_samples_split,
+                min_samples_leaf=self._min_samples_leaf,
+                min_weight_fraction_leaf=self._min_weight_fraction_leaf,
+                max_features=self._max_features,
+                random_state=settings.values.random_state,
+                max_leaf_nodes=self._max_leaf_nodes,
+                min_impurity_decrease=self._min_impurity_decrease,
+                class_weight=self._class_weight,
+                ccp_alpha=self._ccp_alpha,
+            )
 
     # ===========================================================
     # Getters

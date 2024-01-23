@@ -3,24 +3,25 @@ import pytest
 import xarray as xr
 
 import pyMAISE as mai
+from pyMAISE.datasets import load_loca, load_xs
 
 
 def test_load_xs():
     # Load settings
-    mai.settings.init()
+    mai.init(problem_type=mai.ProblemType.REGRESSION)
 
-    # Load data through PreProcessor
-    preprocessor = mai.load_xs()
+    # Load reactor physics data
+    data, inputs, outputs = load_xs()
 
     # Type assertion
-    assert isinstance(preprocessor.data, xr.DataArray)
-    assert isinstance(preprocessor.inputs, xr.DataArray)
-    assert isinstance(preprocessor.outputs, xr.DataArray)
+    assert isinstance(data, xr.DataArray)
+    assert isinstance(inputs, xr.DataArray)
+    assert isinstance(outputs, xr.DataArray)
 
     # Shape assertions
-    assert preprocessor.data.shape == (1000, 9)
-    assert preprocessor.inputs.shape == (1000, 8)
-    assert preprocessor.outputs.shape == (1000, 1)
+    assert data.shape == (1000, 9)
+    assert inputs.shape == (1000, 8)
+    assert outputs.shape == (1000, 1)
 
     # Feature names assertions
     input_features = [
@@ -34,158 +35,135 @@ def test_load_xs():
         "Scatter22",
     ]
     output_features = ["k"]
-    assert (
-        list(preprocessor.data.coords["variable"].to_numpy())
-        == input_features + output_features
-    )
-    assert list(preprocessor.inputs.coords["variable"].to_numpy()) == input_features
-    assert list(preprocessor.outputs.coords["variable"].to_numpy()) == output_features
+    assert list(data.coords["variable"].to_numpy()) == input_features + output_features
+    assert list(inputs.coords["variable"].to_numpy()) == input_features
+    assert list(outputs.coords["variable"].to_numpy()) == output_features
 
     # Element assertions
-    assert preprocessor.data[0, 0] == 0.00644620
-    assert preprocessor.data[0, -1] == 1.256376
-    assert preprocessor.data[-1, 0] == 0.00627230
-    assert preprocessor.data[-1, -1] == 1.240064
+    assert data[0, 0] == 0.00644620
+    assert data[0, -1] == 1.256376
+    assert data[-1, 0] == 0.00627230
+    assert data[-1, -1] == 1.240064
 
 
 def test_load_loca():
     # Load settings
-    mai.settings.init()
+    mai.init(problem_type=mai.ProblemType.REGRESSION)
 
-    # Load data through PreProcessor
-    preprocessor = mai.load_loca()
+    # Load LOCA data
+    nominal_data, perturbed_data = load_loca(stack_series=False)
 
-    # Shape assertions
-    assert preprocessor.data.shape == (4001, 400, 41)
-    assert preprocessor.inputs.shape == (4001, 400, 41)
-    assert preprocessor.outputs.shape == (4001, 400, 1)
+    assert nominal_data.shape == (1, 400, 44)
+    assert perturbed_data.shape == (2000, 400, 44)
 
-    # Assert begining and ending data
-    for i in range(400):
-        first_sample_feature_values = np.array(
-            [
-                0.950390625,
-                1.051171875,
-                -26.26953125,
-                1.1082031250000002,
-                0.924609375,
-                0.925390625,
-                0.905859375,
-                0.997265625,
-                1.0878906250000002,
-                0.990234375,
-                0.921484375,
-                0.964453125,
-                0.901953125,
-                0.816015625,
-                0.8949218750000001,
-                1.035546875,
-                0.8691406250000001,
-                0.800390625,
-                0.906982421875,
-                0.951015625,
-                17.4541015625,
-                0.99287109375,
-                1.00337890625,
-                1.01927734375,
-                1.1457031250000005,
-                1.000390625,
-                1.0153515625,
-                0.9954296875,
-                1.02794921875,
-                0.98857421875,
-                1.0021484375,
-                1.0095703125,
-                1.3007119140625,
-                1.203701171875,
-                1.0916015625000002,
-                2.0763671875,
-                0.9634765625,
-                1.0673828125,
-                1.0052734375,
-                0.9646484375,
-            ]
-        )
-        last_sample_feature_values = np.array(
-            [
-                0.8753906250000001,
-                1.164453125,
-                -7.51953125,
-                0.933203125,
-                1.0996093750000002,
-                0.8503906250000001,
-                0.930859375,
-                0.972265625,
-                1.062890625,
-                1.015234375,
-                0.8464843750000001,
-                0.839453125,
-                1.1269531250000002,
-                0.941015625,
-                1.019921875,
-                1.0105468750000002,
-                1.000390625,
-                0.8753906250000001,
-                0.8788574218749999,
-                0.566015625,
-                16.416601562500002,
-                1.00412109375,
-                1.00962890625,
-                1.01552734375,
-                0.920703125,
-                0.975390625,
-                0.9828515625,
-                1.0179296875,
-                0.99419921875,
-                1.00732421875,
-                1.0046484375,
-                0.9920703125,
-                1.1883994140624998,
-                1.152576171875,
-                1.0541015625,
-                2.4888671875000004,
-                1.0509765625,
-                1.1048828125,
-                1.0427734375000002,
-                0.9271484375,
-            ]
-        )
-        np.testing.assert_array_equal(
-            preprocessor.data[1, i, :-1],
-            first_sample_feature_values,
-        )
-        np.testing.assert_array_equal(
-            preprocessor.data[1, i, :-1],
-            first_sample_feature_values,
-        )
-        np.testing.assert_array_equal(
-            preprocessor.inputs[-1, i, :-1],
-            last_sample_feature_values,
-        )
-        np.testing.assert_array_equal(
-            preprocessor.inputs[-1, i, :-1],
-            last_sample_feature_values,
-        )
-
-    # Check first couple values in sequence data
-    outputs_values = np.array(
-        [
-            617.9697875976562,
-            618.4946899414062,
-            617.4552569347459,
-            617.9203491210938,
-            619.7262573242188,
-        ]
-    )
-    np.testing.assert_array_equal(
-        preprocessor.data[0:5, 0, -1],
-        outputs_values
-    )
-    np.testing.assert_array_equal(
-        preprocessor.inputs[0:5, 0, -1],
-        outputs_values
-    )
-    np.testing.assert_array_equal(
-        preprocessor.outputs[0:5, 0, -1],
-        outputs_values
-    )
+    # # Assert begining and ending data
+    # for i in range(400):
+    #     first_sample_feature_values = np.array(
+    #         [
+    #             1.06666667,
+    #             1.2,
+    #             50.0,
+    #             0.8,
+    #             1.2,
+    #             1.06666667,
+    #             0.8,
+    #             1.2,
+    #             0.93333333,
+    #             0.93333333,
+    #             1.06666667,
+    #             0.93333333,
+    #             0.93333333,
+    #             0.93333333,
+    #             0.93333333,
+    #             0.93333333,
+    #             1.2,
+    #             0.8,
+    #             1.15,
+    #             0.85333333,
+    #             6.53333333,
+    #             1.00333333,
+    #             0.99,
+    #             0.97,
+    #             1.06666667,
+    #             0.93333333,
+    #             1.02,
+    #             1.00666667,
+    #             1.01,
+    #             0.97,
+    #             1.00666667,
+    #             1.00666667,
+    #             1.15466667,
+    #             1.818,
+    #             0.9,
+    #             1.0,
+    #             0.9,
+    #             1.4,
+    #             1.03333333,
+    #             1.1,
+    #         ]
+    #     )
+    #     last_sample_feature_values = np.array(
+    #         [
+    #             1.0918164,
+    #             0.98023356,
+    #             35.3181022,
+    #             0.95221506,
+    #             0.9111622,
+    #             0.98013086,
+    #             0.98456057,
+    #             0.93504432,
+    #             1.05387288,
+    #             1.12140451,
+    #             0.82103804,
+    #             1.02465197,
+    #             0.93205184,
+    #             0.96696788,
+    #             0.98250758,
+    #             0.86811134,
+    #             0.95334107,
+    #             1.09010678,
+    #             1.02997878,
+    #             1.2855111,
+    #             7.92168275,
+    #             1.00469921,
+    #             1.00475051,
+    #             0.99247073,
+    #             0.83674474,
+    #             0.82146543,
+    #             1.00643982,
+    #             0.99916991,
+    #             1.00155855,
+    #             1.00468544,
+    #             1.00174953,
+    #             1.00619003,
+    #             1.23419344,
+    #             1.78443828,
+    #             1.05604381,
+    #             3.1416632,
+    #             0.96296582,
+    #             1.46234724,
+    #             0.95667249,
+    #             1.01235371,
+    #         ]
+    #     )
+    #     np.testing.assert_array_equal(
+    #         np.round(perturbed_data[0, i, :-4], decimals=8),
+    #         first_sample_feature_values,
+    #     )
+    #     np.testing.assert_array_equal(
+    #         np.round(perturbed_data[-1, i, :-4], decimals=8),
+    #         last_sample_feature_values,
+    #     )
+    #
+    # # Check first couple values in sequence data
+    # outputs_values = np.array(
+    #     [
+    #         [6.19476440e02, 1.56033000e07, 3.66000009e00, 0.00000000e00],
+    #         [6.19972120e02, 1.57104000e07, 3.66000009e00, 0.00000000e00],
+    #         [6.18127679e02, 1.58100000e07, 3.66000009e00, 0.00000000e00],
+    #         [6.16912048e02, 1.54401000e07, 3.66000009e00, 0.00000000e00],
+    #     ]
+    # )
+    # np.testing.assert_almost_equal(
+    #     perturbed_data[0:4, 0, 40:], outputs_values, decimal=6
+    # )

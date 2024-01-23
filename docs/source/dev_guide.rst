@@ -6,7 +6,7 @@ Dev Guide
 Installation and Setup
 ----------------------
 
-Prior to cloning the repository, git and Python must be installed on your Linux distribution. You can do this through your Linux package. On Ubuntu/Debian run ``sudo apt-get install git``. Once git is installed, `generate an SSH key and add it to GitHub <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent?platform=linux>`_ by following. With git setup, the repository can be cloned into the directory of your choice with the following commands
+Prior to cloning the repository, git and Python must be installed on your Linux distribution. You can do this through your Linux package. On Ubuntu/Debian run ``sudo apt-get install git``. Once git is installed, `generate an SSH key and add it to GitHub <https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent?platform=linux>`_. With git setup, the repository can be cloned into the directory of your choice with the following commands
 
 .. code-block:: sh
 
@@ -33,7 +33,7 @@ In the previous section we checked out the develop branch. This branch is the ma
    # Create your new working branch off of develop called `branch-name`
    git checkout -b branch-name
 
-Pior to each branch, update your latest develop version with ``git pull``. Additionally, the ``branch-name`` can be anything you'd like and is preferably a name related to the changes/issue the branch is for. Now you can make edits to the repository code on your new branch. To keep your branch up to date with develop run ``git pull origin develop``. As a best practice. a new branch should be made for each issue.
+Pior to each branch, update your latest develop version with ``git pull``. Additionally, the ``branch-name`` can be anything you'd like and is preferably a name related to the changes/issue the branch is for. Now you can make edits to the repository code on your new branch. To keep your branch up to date with develop, run ``git pull origin develop``. As a best practice, a new branch should be made for each issue.
 
 ----------
 Committing

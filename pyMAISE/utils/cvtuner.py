@@ -1,6 +1,8 @@
 import keras_tuner as kt
 import numpy as np
 from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.utils.multiclass import type_of_target
+from tensorflow.keras.backend import clear_session
 
 import pyMAISE.settings as settings
 
@@ -55,23 +57,30 @@ class CVTuner(kt.Tuner):
     def run_trial(self, trial, x, y):
         # Reassign CV depending on what's given
         if isinstance(self._cv, int):
-            if settings.values.regression:
-                self._cv = KFold(
-                    n_splits=self._cv,
-                    shuffle=self._shuffle,
-                    random_state=settings.values.random_state,
-                )
-            else:
+            if (
+                settings.values.problem_type == settings.ProblemType.CLASSIFICATION
+                and (type_of_target(y) in ("binary", "multiclass"))
+            ):
                 self._cv = StratifiedKFold(
                     n_splits=self._cv,
                     shuffle=self._shuffle,
-                    random_state=settings.values.random_state,
+                    random_state=settings.values.random_state
+                    if self._shuffle == True
+                    else None,
+                )
+            else:
+                self._cv = KFold(
+                    n_splits=self._cv,
+                    shuffle=self._shuffle,
+                    random_state=settings.values.random_state
+                    if self._shuffle == True
+                    else None,
                 )
 
         # Run
         test_scores = []
         model = None
-        for train_indices, val_indices in self._cv.split(x):
+        for train_indices, val_indices in self._cv.split(x, y):
             # Create training and validation split based on samples dimension
             # (assumed to be the first dimension)
             x_train, x_val = x[train_indices,], x[val_indices,]
@@ -88,11 +97,25 @@ class CVTuner(kt.Tuner):
 
             # Evaluate model performance
             if self._metrics is not None:
+                y_val_pred = model.predict(x_val)
+
+                # Round probabilities to correct class based on data format
+                if settings.values.problem_type == settings.ProblemType.CLASSIFICATION:
+                    y_val_pred = determine_class_from_probabilities(y_val_pred, y)
+
                 test_scores.append(
-                    self._metrics(model.predict(x_val).flatten(), y_val.flatten())
+                    self._metrics(
+                        y_val_pred.reshape(-1, y_val.shape[-1]),
+                        y_val.reshape(-1, y_val.shape[-1]),
+                    )
                 )
+
             else:
-                test_scores.append(model.evaluate(x_val, y_val))
+                test_score_idx = model.metrics_names.index(self._objective)
+                test_scores.append(model.evaluate(x_val, y_val)[test_score_idx])
+
+        # Reset tensorflow session to reduce RAM usage
+        clear_session()
 
         # Append performance data for CV results
         self._mean_test_score.append(np.average(test_scores))
@@ -109,3 +132,14 @@ class CVTuner(kt.Tuner):
     @property
     def std_test_score(self):
         return self._std_test_score
+
+
+def determine_class_from_probabilities(y_pred, y):
+    if type_of_target(y) == "binary" or type_of_target(y) == "multiclass":
+        # Round to nearest number
+        return np.round(y_pred)
+
+    elif type_of_target(y) == "multilabel-indicator":
+        assert np.all((y_pred <= 1) & (y_pred >= 0))
+        # Assert 0 or 1 for one hot encoding
+        return np.where(y_pred == y_pred.max(axis=-1, keepdims=True), 1, 0)

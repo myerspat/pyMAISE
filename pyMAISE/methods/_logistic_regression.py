@@ -1,9 +1,9 @@
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression as LR
 
 import pyMAISE.settings as settings
 
 
-class Logistic_Regression:
+class LogisticRegression:
     def __init__(self, parameters: dict = None):
         # Model Parameters
         self._penalty = "l2"
@@ -29,7 +29,7 @@ class Logistic_Regression:
     # =======================================================
     #  Methods
     def regressor(self):
-        return LogisticRegression(
+        return LR(
             penalty=self._penalty,
             dual=self._dual,
             tol=self._tol,

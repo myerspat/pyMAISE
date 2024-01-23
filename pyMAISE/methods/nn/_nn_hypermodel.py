@@ -3,28 +3,33 @@ import re
 
 from keras.models import Sequential
 from keras_tuner import HyperModel
+from tensorflow.keras.optimizers import (
+    SGD,
+    Adadelta,
+    Adafactor,
+    Adagrad,
+    Adam,
+    Adamax,
+    AdamW,
+    Ftrl,
+    Nadam,
+    RMSprop,
+)
 
-from pyMAISE.methods.nn._adam import AdamOpt
-from pyMAISE.methods.nn._conv1d import Conv1dLayer
-from pyMAISE.methods.nn._conv2d import Conv2dLayer
-from pyMAISE.methods.nn._conv3d import Conv3dLayer
+import pyMAISE.settings as settings
+from pyMAISE.methods.nn._conv1d import Conv1DLayer
+from pyMAISE.methods.nn._conv2d import Conv2DLayer
+from pyMAISE.methods.nn._conv3d import Conv3DLayer
 from pyMAISE.methods.nn._dense import DenseLayer
 from pyMAISE.methods.nn._dropout import DropoutLayer
 from pyMAISE.methods.nn._flatten import FlattenLayer
-from pyMAISE.methods.nn._gru import GruLayer
-from pyMAISE.methods.nn._lstm import LstmLayer
+from pyMAISE.methods.nn._gru import GRULayer
+from pyMAISE.methods.nn._lstm import LSTMLayer
+from pyMAISE.methods.nn._max_pooling_1d import MaxPooling1DLayer
+from pyMAISE.methods.nn._max_pooling_2d import MaxPooling2DLayer
+from pyMAISE.methods.nn._max_pooling_3d import MaxPooling3DLayer
 from pyMAISE.methods.nn._reshape import ReshapeLayer
-from pyMAISE.methods.nn._ada_delta import AdaDeltaOpt
-from pyMAISE.methods.nn._ada_grad import AdaGradOpt
-from pyMAISE.methods.nn._ada_max import AdaMaxOpt
-from pyMAISE.methods.nn._adamw import AdamwOpt
-from pyMAISE.methods.nn._ftrl import FtrlOpt
-from pyMAISE.methods.nn._nadam import NadamOpt
-from pyMAISE.methods.nn._rms_prop import RmsPropOpt
-from pyMAISE.methods.nn._sgd import SgdOpt
 from pyMAISE.utils.hyperparameters import Choice, HyperParameters
-import pyMAISE.settings as settings
-from pyMAISE.methods.nn._max_pooling_2d import MaxPooling2dLayer
 
 
 class nnHyperModel(HyperModel):
@@ -46,13 +51,43 @@ class nnHyperModel(HyperModel):
                 assert parameters[self._optimizer]
                 self._optimizer_params[self._optimizer] = parameters[self._optimizer]
         else:
-            self._optimizer = "rmsprop"
+            raise RuntimeError(f"Optimizer was not given in `optimizer` key")
 
         # Model compilation hyperparameters
         self._compilation_params = parameters["compile_params"]
 
         # Model fitting hyperparameters
         self._fitting_params = parameters["fitting_params"]
+
+        # Dictionary of supported Layers
+        self._layer_dict = {
+            "Dense": DenseLayer,
+            "Dropout": DropoutLayer,
+            "LSTM": LSTMLayer,
+            "GRU": GRULayer,
+            "Conv1D": Conv1DLayer,
+            "Conv2D": Conv2DLayer,
+            "Conv3D": Conv3DLayer,
+            "MaxPooling1D": MaxPooling1DLayer,
+            "MaxPooling2D": MaxPooling2DLayer,
+            "MaxPooling3D": MaxPooling3DLayer,
+            "Flatten": FlattenLayer,
+            "Reshape": ReshapeLayer,
+        }
+
+        # Dictionary of supported optimizers
+        self._optimizer_dict = {
+            "SGD": SGD,
+            "RMSprop": RMSprop,
+            "Adam": Adam,
+            "AdamW": AdamW,
+            "Adadelta": Adadelta,
+            "Adagrad": Adagrad,
+            "Adamax": Adamax,
+            "Adafactor": Adafactor,
+            "Nadam": Nadam,
+            "Ftrl": Ftrl,
+        }
 
     # ==========================================================================
     # Methods
@@ -62,17 +97,39 @@ class nnHyperModel(HyperModel):
 
         # Iterating though archetecture
         for layer_name in self._structural_params.keys():
-            layer = copy.deepcopy(self._get_layer(layer_name))
-
-            for i in range(layer.num_layers(hp)):
-                model.add(layer.build(hp))
-                layer.increment_layer()
-
-            layer.reset()
+            model = self._build_tree(
+                model, layer_name, self._structural_params[layer_name], hp
+            )
 
         # Compile Model
-        self._compilation_params["optimizer"] = self._get_optimizer(hp).build(hp)
+        self._compilation_params["optimizer"] = self._get_optimizer(hp)
         model.compile(**self._compilation_params)
+        return model
+
+    def _build_tree(self, model, layer_name, structural_params, hp):
+        # Get layer object
+        layer = copy.deepcopy(self._get_layer(layer_name, structural_params))
+
+        # Run through all number of layers
+        for i in range(layer.num_layers(hp)):
+            # Check if there's a wrapper (TimeDistributed, Bidirectional)
+            wrapper_data = layer.wrapper()
+            if wrapper_data is not None:
+                model.add(wrapper_data[0](layer.build(hp), **wrapper_data[1]))
+            else:
+                model.add(layer.build(hp))
+
+            # Check for a sublayer
+            sublayer_data = layer.sublayer(hp)
+            if sublayer_data is not None and sublayer_data[1]:
+                model = self._build_tree(model, sublayer_data[0], sublayer_data[1], hp)
+
+            # Increment current layer
+            layer.increment_layer()
+
+        # Reset the layer object
+        layer.reset()
+
         return model
 
     # Fit function for keras-tuner to allow hyperparameter tuning of fitting parameters
@@ -83,7 +140,11 @@ class nnHyperModel(HyperModel):
                 fitting_params[key] = value.hp(hp, key)
 
         return model.fit(
-            x, y, **fitting_params, **kwargs, verbose=settings.values.verbosity
+            x,
+            y,
+            **fitting_params,
+            verbose=settings.values.verbosity,
+            **kwargs,
         )
 
     # Update parameters after tuning, a common use case is increasing the number of epochs
@@ -108,56 +169,44 @@ class nnHyperModel(HyperModel):
             for key, value in parameters["fitting_params"].items():
                 self._fitting_params[key] = value
 
-    def _get_layer(self, layer_name):
-        if bool(re.search("dense", layer_name)):
-            return DenseLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("dropout", layer_name)):
-            return DropoutLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("lstm", layer_name)):
-            return LstmLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("gru", layer_name)):
-            return GruLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("conv1d", layer_name)):
-            return Conv1dLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("conv2d", layer_name)):
-            return Conv2dLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("conv3d", layer_name)):
-            return Conv3dLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("MaxPooling2D", layer_name)):
-            return MaxPooling2dLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("flatten", layer_name)):
-            return FlattenLayer(layer_name, self._structural_params[layer_name])
-        elif bool(re.search("reshape", layer_name)):
-            return ReshapeLayer(layer_name, self._structural_params[layer_name])
+    def _get_layer(self, layer_name, structural_params):
+        # Search through supported layers dictionary to find layer,
+        # if multiple then take the first as the layer
+        layer = None
+        position = None
+        for key, value in self._layer_dict.items():
+            match_idx = re.search(key, layer_name)
+            if match_idx is not None and (
+                position == None or match_idx.span()[0] > position
+            ):
+                layer = value
+                position = match_idx.span()[0]
+
+        if layer is not None:
+            return layer(layer_name, structural_params)
         else:
-            raise Exception(
-                f"Layer ({layer_name}) is either not supported or spelled incorrectly"
-            )
+            # If not found we throw an error
+            raise RuntimeError(f"Layer ({layer_name}) is not supported")
 
     def _get_optimizer(self, hp):
+        # Get optimizer name
         optimizer = copy.deepcopy(self._optimizer)
         if isinstance(self._optimizer, Choice):
             optimizer = optimizer.hp(hp, "optimizer")
 
+        # Make sure the optimizer parameters were given by the user
         assert self._optimizer_params[optimizer]
 
-        if optimizer == "adam":
-            return AdamOpt(self._optimizer_params[optimizer])
-        elif optimizer == "SGD":
-            return SgdOpt(self._optimizer_params[optimizer])
-        elif optimizer == "RMSprop":
-            return RmsPropOpt(self._optimizer_params[optimizer])
-        elif optimizer == "AdamW":
-            return AdamwOpt(self._optimizer_params[optimizer])
-        elif optimizer == "Adadelta":
-            return AdaDeltaOpt(self._optimizer_params[optimizer])
-        elif optimizer == "Adagrad":
-            return AdaGradOpt(self._optimizer_params[optimizer])
-        elif optimizer == "Adamax":
-            return AdaMaxOpt(self._optimizer_params[optimizer])
-        elif optimizer == "Nadam":
-            return NadamOpt(self._optimizer_params[optimizer])
-        elif optimizer == "Ftrl":
-            return FtrlOpt(self._optimizer_params[optimizer])
-        else:
-            return optimizer
+        # Copy data and sample hyperparameters
+        sampled_data = copy.deepcopy(self._optimizer_params[optimizer])
+        for key, value in sampled_data.items():
+            if isinstance(value, HyperParameters):
+                sampled_data[key] = value.hp(hp, "_".join([optimizer, key]))
+
+        # Search for support optimizer
+        if optimizer in self._optimizer_dict:
+            return self._optimizer_dict[optimizer](**sampled_data)
+
+        # If the optimizer name doesn't exit in supported optimizer
+        # dictionary throw error
+        raise RuntimeError(f"Optimizer ({optimizer}) is not supported")

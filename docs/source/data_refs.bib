@@ -1,0 +1,300 @@
+@article{RADAIDEH2019264,
+            title = {Shapley effect application for variance-based sensitivity
+                     analysis of the few-group cross-sections},
+            journal = {Annals of Nuclear Energy},
+            volume = {129},
+            pages = {264-279},
+            year = {2019},
+            issn = {0306-4549},
+            doi = {https://doi.org/10.1016/j.anucene.2019.02.002},
+            url = {
+                   https://www.sciencedirect.com/science/article/pii/S0306454919300714
+                   },
+            author = {Majdi I. Radaideh and Stuti Surani and Daniel O’Grady and
+                      Tomasz Kozlowski},
+            keywords = {Variance-based sensitivity, Shapley effect, Sobol,
+                        Correlation, Neutron cross-sections, SCALE},
+            abstract = {Analyzing the variance of complex computer models is an
+                        essential practice to assess and improve that model by
+                        identifying the influential parameters that cause the
+                        output variance. Variance-based sensitivity analysis is
+                        the process of decomposing the output variance into
+                        components associated with each input parameter. In this
+                        study, we applied a new concept of variance-based
+                        sensitivity analysis inspired by the game theory proposed
+                        by Shapley. The technique is called the Shapley effect,
+                        and it investigates the contribution of each input
+                        parameter as well as its interactions with every other
+                        parameter in the system by exploring all possible
+                        permutations between them. The Shapley effect is compared
+                        to the common Sobol indices technique (first order and
+                        total effects) to investigate their performance under
+                        correlated and uncorrelated parameters. The Shapley
+                        effect demonstrated superior performance when compared to
+                        the Sobol indices for correlated input parameters.
+                        Shapley effect captured the correlation between the input
+                        parameters, expressing the variance contribution in a
+                        single index instead of two indices, and normalization of
+                        the fractional indices is preserved without over or
+                        underestimation. On the other hand, the two algorithms we
+                        selected to calculate Sobol indices under correlated
+                        inputs experienced different issues including:
+                        over/underestimating the output variance, first order
+                        effect could be larger than the total effect, possibility
+                        of negative indices, unnormalized fractional indices, and
+                        difficulty to interpret the results. However, Sobol
+                        showed satisfactory performance when the inputs are
+                        uncorrelated as the numerical values and input ranking
+                        were in good agreement with Shapley effect. The main
+                        disadvantage of Shapley effect is its large computational
+                        cost especially for high dimensional problems where the
+                        number of possible input subsets becomes very large. The
+                        results of our tests showed that the thermal fission
+                        cross-section carried most of the uncertainty at BOL, and
+                        its contribution declines after fuel burnup, which is
+                        replaced by the uncertainty contribution of the fast
+                        cross-section parameters.},
+}
+@article{RADAIDEH2023112423,
+            title = {NEORL: NeuroEvolution Optimization with Reinforcement
+                     Learning—Applications to carbon-free energy systems},
+            journal = {Nuclear Engineering and Design},
+            volume = {412},
+            pages = {112423},
+            year = {2023},
+            issn = {0029-5493},
+            doi = {https://doi.org/10.1016/j.nucengdes.2023.112423},
+            url = {
+                   https://www.sciencedirect.com/science/article/pii/S0029549323002728
+                   },
+            author = {Majdi I. Radaideh and Katelin Du and Paul Seurin and Devin
+                      Seyler and Xubo Gu and Haijia Wang and Koroush Shirvan},
+            keywords = {Optimization, Deep reinforcement learning, Evolutionary
+                        computation, Neuroevolution, Nuclear reactor design,
+                        Carbon-free energy},
+            abstract = {We present an open-source Python framework for
+                        NeuroEvolution Optimization with Reinforcement Learning
+                        (NEORL) developed at the Massachusetts Institute of
+                        Technology. NEORL offers a global optimization interface
+                        of state-of-the-art algorithms in the field of
+                        evolutionary computation, neural networks through
+                        reinforcement learning, and hybrid neuroevolution
+                        algorithms. NEORL features diverse set of algorithms,
+                        user-friendly interface, parallel computing support,
+                        automatic hyperparameter tuning, detailed documentation,
+                        and demonstration of applications in mathematical and
+                        real-world engineering optimization. NEORL encompasses
+                        various optimization problems from combinatorial,
+                        continuous, mixed discrete/continuous, to
+                        high-dimensional, expensive, and constrained engineering
+                        optimization. In this paper, NEORL is tested in a variety
+                        of engineering applications relevant to low carbon energy
+                        research in addressing solutions to climate change. The
+                        examples include nuclear reactor control, nuclear fuel
+                        optimization, mechanical and structural design
+                        optimization, and fuel cell power production. The results
+                        demonstrate NEORL competitiveness against other
+                        algorithms and optimization frameworks in the literature,
+                        and a potential tool to solve large-scale optimization
+                        problems. More details about NEORL can be found here:
+                        https://neorl.readthedocs.io/en/latest/index.html.},
+}
+@article{RADAIDEH2020106731,
+            title = {Surrogate modeling of advanced computer simulations using
+                     deep Gaussian processes},
+            journal = {Reliability Engineering & System Safety},
+            volume = {195},
+            pages = {106731},
+            year = {2020},
+            issn = {0951-8320},
+            doi = {https://doi.org/10.1016/j.ress.2019.106731},
+            url = {
+                   https://www.sciencedirect.com/science/article/pii/S0951832019301711
+                   },
+            author = {Majdi I. Radaideh and Tomasz Kozlowski},
+            keywords = {Deep GP, Bayesian learning, Gaussian processes,
+                        Uncertainty quantification, Nuclear simulations, Nuclear
+                        reactor safety,},
+            abstract = {The continuous advancements in computer power and
+                        computational modeling through high-fidelity and
+                        multiphysics simulations add more challenges on assessing
+                        their predictive capability. In this work, metamodeling
+                        or surrogate modeling through deep Gaussian processes
+                        (DeepGP) is performed to construct surrogates of advanced
+                        computer simulations drawn from the nuclear engineering
+                        area. This work is centered around three major ideas: (1)
+                        surrogate modeling through deep Gaussian processes
+                        (DeepGP), (2) simulation assessment through
+                        surrogate-based uncertainty quantification (UQ)
+                        methodologies, and (3) drawing conclusions regarding the
+                        underlying uncertainty of the four simulations considered
+                        in this paper. First, DeepGP models are trained,
+                        optimized, and validated to yield variety of features:
+                        (1) achieving high accuracy (small error metrics) on the
+                        validation set, (2) automatically capturing the surrogate
+                        model uncertainty (i.e. interpolation errors), (3)
+                        fitting multiple outputs with different scales
+                        simultaneously, (4) handling high dimensional input
+                        spaces, and (5) learning from small data amounts. Second,
+                        the validated DeepGP surrogates are utilized to
+                        efficiently perform UQ tasks such as uncertainty
+                        propagation (through Monte Carlo sampling), parameter
+                        screening (through Morris screening), and variance
+                        decomposition (through Sobol Indices) to investigate the
+                        selected simulations. Third, the thermal-hydraulics
+                        (fluid flow) results demonstrate the importance of inlet
+                        temperature uncertainty in void fraction predictions. For
+                        the reactor physics application (fuel
+                        depletion/consumption), DeepGP accurately captures the
+                        uncertainty in criticality calculations, which is about
+                        0.6% (i.e. a considerable value for this application).
+                        For the application of kinetic parameters (nuclear data),
+                        DeepGP successfully explains 95% or more of the variance
+                        in all 12 outputs. Finally, DeepGP-based UQ analysis of
+                        the fuel performance application (materials science)
+                        shows the importance of the clad surface temperature,
+                        fuel porosity, and linear heat rate in explaining the
+                        variance of the maximum fuel centerline and surface
+                        temperatures.},
+}
+@article{RADAIDEH2020113699,
+            title = {Neural-based time series forecasting of loss of coolant
+                     accidents in nuclear power plants},
+            journal = {Expert Systems with Applications},
+            volume = {160},
+            pages = {113699},
+            year = {2020},
+            issn = {0957-4174},
+            doi = {https://doi.org/10.1016/j.eswa.2020.113699},
+            url = {
+                   https://www.sciencedirect.com/science/article/pii/S0957417420305236
+                   },
+            author = {Majdi I. Radaideh and Connor Pigg and Tomasz Kozlowski and
+                      Yujia Deng and Annie Qu},
+            keywords = {Time series, Expert systems, LOCA, DNN/LSTM, Nuclear
+                        accidents},
+            abstract = {In the last few years, deep learning in neural networks
+                        demonstrated impressive successes in the areas of
+                        computer vision, speech and image recognition, text
+                        generation, and many others. However, sensitive
+                        engineering areas such as nuclear engineering benefited
+                        less from these efficient techniques. In this work, deep
+                        learning expert systems are utilized to model and predict
+                        time series progression of a design-basis nuclear
+                        accident, featuring a loss of coolant accident. Two major
+                        findings are accomplished in this work. First, the
+                        ability to train expert systems with high accuracy, which
+                        could help nuclear power plant operators to figure out
+                        plant responses during the accident. Second, building
+                        fast, efficient, and accurate deep models to simulate
+                        nuclear phenomena, which could be valuable to nuclear
+                        computational science. In this work, large amount of time
+                        series data is obtained from simulation tools by
+                        simulating different conditions of the base-case/nominal
+                        accident scenario. Four critical outputs/responses are
+                        monitored during the accident (e.g. temperature, pressure
+                        , break flow rate, water level). Two approaches are
+                        adopted in this work. The first approach is to use
+                        feedforward deep neural networks (DNN) to fit all time
+                        steps and outputs in a single model. The second approach
+                        is to use long short-term memory (LSTM) to fit all time
+                        steps together for each reactor response separately. Both
+                        DNN and LSTM demonstrate very good performance in
+                        predicting the test and base-case scenarios, with
+                        accuracy as low as 92% and as high as 99%, where these
+                        test scenarios are unknown to the expert systems and are
+                        not included in the model training. In addition, both
+                        approaches demonstrate a significant reduction in
+                        computational costs, as the deep expert system is able to
+                        accurately predict the accident 100,000 times faster than
+                        the original simulation tool. Given sufficient data, the
+                        methodology adopted in this study demonstrates that
+                        DNN/LSTM expert systems can be used as a decision support
+                        system to model advanced time series phenomena within
+                        nuclear power plants with high accuracy and negligible
+                        computational costs.},
+}
+
+@article{BWR,
+            title = {Large-scale design optimisation of boiling water reactor
+                     bundles with neuroevolution},
+            journal = {Annals of Nuclear Energy},
+            volume = {160},
+            pages = {108355},
+            year = {2021},
+            issn = {0306-4549},
+            doi = {https://doi.org/10.1016/j.anucene.2021.108355},
+            url = {
+                   https://www.sciencedirect.com/science/article/pii/S0306454921002310
+                   },
+            author = {Majdi I. Radaideh and Benoit Forget and Koroush Shirvan},
+            keywords = {Deep reinforcement learning, Evolutionary algorithms,
+                        Combinatorial optimisation, Boiling water reactors,
+                        CASMO4/SIMULATE3},
+            abstract = {We combine advances in deep reinforcement learning (RL)
+                        with evolutionary computation to perform large-scale
+                        optimisation of boiling water reactor (BWR) bundles using
+                        CASMO4/SIMULATE3 codes; cap- turing fine details,
+                        radial/axial fuel heterogeneity, and real-world
+                        constraints. RL constructs neural net- works that learn
+                        how to assign fuel and poison enrichment by narrowing the
+                        search space into the areas where human/physics knowledge
+                        demonstrate merit. Evolution strategies diversify the
+                        search in these areas, through obtaining guidance from RL
+                        candidates. With very efficient/parallel implementation,
+                        our optimisation approach is able to solve a coupled
+                        multi-zone BWR bundle optimisation with ~40 con-
+                        straints. The methodology is applied to a GE14-10x10
+                        bundle, showing the ability of neuroevolution to find ~
+                        100 feasible designs. The optimal bundle has 7 axial
+                        zones with non-uniform enrichment radially and axially.
+                        The results of this work also demonstrate that our
+                        neuroevolution methodology is sufficiently generic to
+                        adapt to other assembly and reactor designs with minor
+                        adjustments.},
+}
+@article{PRICE2022111776,
+            title = {Multiobjective optimization of nuclear microreactor
+                     reactivity control system operation with swarm and
+                     evolutionary algorithms},
+            journal = {Nuclear Engineering and Design},
+            volume = {393},
+            pages = {111776},
+            year = {2022},
+            issn = {0029-5493},
+            doi = {https://doi.org/10.1016/j.nucengdes.2022.111776},
+            url = {
+                   https://www.sciencedirect.com/science/article/pii/S0029549322001303
+                   },
+            author = {Dean Price and Majdi I. Radaideh and Brendan Kochunas},
+            keywords = {Resonant tunneling diodes (RTDs), Physically unclonable
+                        function (PUF), Quantum device simulator, Nano-electronic
+                        simulation software (NESS)},
+            abstract = {To improve the marketability of novel microreactor
+                        designs, there is a need for automated and optimal
+                        control of these reactors. This paper presents a
+                        methodology for performing multiobjective optimization of
+                        control drum operation for a microreactor under normal
+                        and off-nominal conditions. Two different case studies
+                        are used where the control drum configuration is
+                        optimized for the reactor to be critical with some
+                        desired power distribution that would satisfy peaking
+                        limits. A surrogate model for power distribution is
+                        developed based on a feedforward neural network. The
+                        process for determining weights for scalarization of the
+                        multiobjective optimization problem is also detailed. Six
+                        optimization algorithms: evolutionary strategies,
+                        differential evolution, grey wolf optimization, Harris
+                        hawks optimization, moth flame optimization and particle
+                        swarm optimization, are all applied to these cases and
+                        the results analyzed. Although all these algorithms will
+                        demonstrate optima-seeking behavior, for real-time
+                        control it is necessary to identify the best algorithm to
+                        efficiently provide reasonable optima without operator
+                        interference. The moth flame optimization algorithm was
+                        found to perform particularly well on both cases. Overall
+                        , it was found that the algorithms capable of supplying
+                        the best optima were also the most consistent. Finally,
+                        the found optima were verified with the original model
+                        used to train surrogates.},
+}
