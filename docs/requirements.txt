@@ -3,3 +3,14 @@ chardet
 nbsphinx
 sphinx_rtd_theme
 sphinxcontrib.bibtex
+jupyter
+pandas
+numpy
+scikit-learn
+scikit-optimize
+keras
+tensorflow
+keras-tuner
+xarray
+scikeras
+matplotlib
