@@ -73,7 +73,7 @@ def test_new_nn_structure():
         grid_search_space = {
             "nn": {
                 # Sequantial
-                "batch_size": [16, 64],
+                "batch_size": [8, 128],
                 # Starting Layer
                 "start_num_nodes": [100, 400],
                 # Optimizer
@@ -135,7 +135,7 @@ def test_new_nn_structure():
                     "metrics": ["mean_absolute_error"],
                 },
                 "fitting_params": {
-                    "batch_size": mai.Choice([16, 64]),
+                    "batch_size": mai.Choice([8, 128]),
                     "epochs": 50,
                     "validation_split": 0.15,
                 },
@@ -150,6 +150,8 @@ def test_new_nn_structure():
                 n_splits=2, test_size=0.15, random_state=global_settings.random_state
             ),
         )
+
+        new_model_settings = {"nn": {"fitting_params": {"epochs": 200}}}
 
         # Model post-processing
         postprocessor = mai.PostProcessor(
@@ -170,7 +172,7 @@ def test_new_nn_structure():
                 "start_num_nodes"
             ]
             == new_nn_structure_results.loc[0, "Parameter Configurations"][
-                "Dense_input0_units"
+                "Dense_input_0_units"
             ]
         )
         assert (
