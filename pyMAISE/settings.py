@@ -1,31 +1,59 @@
 import os
 import random
 import warnings
+from enum import Enum
 
 import numpy as np
 import tensorflow as tf
 
 
+class ProblemType(Enum):
+    """
+    Enum to define the problem type.
+    """
+
+    #: pyMAISE.ProblemType: Set for a regression problem.
+    REGRESSION = 0
+
+    #: pyMAISE.ProblemType: Set for a classification problem.
+    CLASSIFICATION = 1
+
+    @classmethod
+    def _get_member(cls, problem_type):
+        if isinstance(problem_type, str):
+            for p in ProblemType:
+                if problem_type.upper() == p._name_:
+                    return p
+        else:
+            return ProblemType(problem_type)
+
+        raise ValueError(f"{problem_type} is not a member of {ProblemType.__name__}")
+
+
 # Class for global settings
 class Settings:
-    def __init__(self, update: dict = None):
-        # Defaults
-        self._verbosity = 0
-        self._random_state = None
-        self._test_size = 0.3
-        self._num_configs_saved = 5
-        self._regression = False
-        self._classification = False
+    def __init__(self, problem_type, **kwargs):
+        self._problem_type = ProblemType._get_member(problem_type)
 
-        # If a dictionary of key/value pairs is given,
-        # update settings
-        if update != None:
-            for key, value in update.items():
-                setattr(self, key, value)
+        # Defaults
+        self._verbosity = kwargs.get("verbosity", 0)
+        self._random_state = kwargs.get("random_state", None)
+        self._num_configs_saved = kwargs.get("num_configs_saved", 5)
+        self._new_nn_architecture = kwargs.get("new_nn_architecture", True)
+        self._cuda_visible_devices = kwargs.get("cuda_visible_devices", None)
+
+        if self._cuda_visible_devices is not None:
+            os.environ["CUDA_VISIBLE_DEVICES"] = self._cuda_visible_devices
 
         if self._verbosity <= 1:
             os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
             tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+            tf.keras.utils.disable_interactive_logging()
+        else:
+            print(
+                "Num GPUs Available: ",
+                len(tf.config.experimental.list_physical_devices("GPU")),
+            )
 
             warnings.simplefilter(action="ignore", category=Warning)
             warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -48,10 +76,11 @@ class Settings:
             )
             tf.compat.v1.keras.backend.set_session(sess)
 
-            assert (self._regression == True) | (self._classification == True)
-            assert (self._regression != False) | (self._classification != False)
-
     # Getters
+    @property
+    def problem_type(self) -> ProblemType:
+        return self._problem_type
+
     @property
     def verbosity(self) -> int:
         return self._verbosity
@@ -61,22 +90,22 @@ class Settings:
         return self._random_state
 
     @property
-    def test_size(self) -> float:
-        return self._test_size
-
-    @property
     def num_configs_saved(self) -> int:
         return self._num_configs_saved
 
     @property
-    def regression(self) -> bool:
-        return self._regression
+    def new_nn_architecture(self) -> bool:
+        return self._new_nn_architecture
 
     @property
-    def classification(self) -> bool:
-        return self._classification
+    def cuda_visible_devices(self):
+        return self._cuda_visible_devices
 
     # Setters
+    @problem_type.setter
+    def problem_type(self, problem_type):
+        self._problem_type = ProblemType.get_member(problem_type)
+
     @verbosity.setter
     def verbosity(self, verbosity: int):
         assert isinstance(verbosity, int)
@@ -88,30 +117,48 @@ class Settings:
         assert random_state == None or random_state >= 0
         self._random_state = random_state
 
-    @test_size.setter
-    def test_size(self, test_size: float):
-        assert isinstance(test_size, float)
-        assert test_size >= 0.0 and test_size < 1.0
-        self._test_size = test_size
-
     @num_configs_saved.setter
     def num_configs_saved(self, num_configs_saved: int):
         assert num_configs_saved > 0
         self._num_configs_saved = num_configs_saved
 
-    @regression.setter
-    def regression(self, regression: bool) -> bool:
-        self._classification = not regression
-        self._regression = regression
+    @new_nn_architecture.setter
+    def new_nn_architecture(self, new_nn_architecture: bool) -> bool:
+        self._new_nn_architecture = new_nn_architecture
 
-    @classification.setter
-    def classification(self, classification: bool) -> bool:
-        self._regression = not classification
-        self._classification = classification
+    @cuda_visible_devices.setter
+    def cuda_visible_devices(self, cuda_visible_devices: bool):
+        self._cuda_visible_devices = cuda_visible_devices
 
 
 # Initialization function for global settings
-def init(settings_changes: dict = None):
+def init(problem_type, **kwargs):
+    """
+    Initialize pyMAISE global settings.
+
+    Parameters
+    ----------
+    problem_type: pyMAISE.ProblemType, {'regression', 'classification'}, or {0, 1}
+        Defines a regression or classification problem.
+    verbosity: int, default=0
+        Level of output.
+    random_state: int or None, default=None
+        Controls the randomness of all processes in pyMAISE.
+    num_configs_saved: int, default=5
+        Number of top hyperparameter configurations saved for each
+        type of model.
+    new_nn_architecture: bool, default=True
+        Controls the hyperparameter tuning architecture used for
+        tuning neural network models.
+    cuda_visible_devices: str or None, default=None
+        Devices visible to tensorflow. Sets the CUDA_VISIBLE_DEVICES
+        environment variable.
+
+    Returns
+    -------
+    values: pyMAISE.Settings
+        The settings class with the provided parameters changed.
+    """
     global values
-    values = Settings(settings_changes)
+    values = Settings(problem_type, **kwargs)
     return values

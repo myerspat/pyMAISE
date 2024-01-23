@@ -1,6 +1,4 @@
-from pyMAISE.settings import *
-from pyMAISE.preprocessing import *
-from pyMAISE.methods import *
-from pyMAISE.postprocessing import *
-from pyMAISE.data import *
-from pyMAISE.tuning import *
+from pyMAISE.postprocessor import PostProcessor
+from pyMAISE.settings import ProblemType, init
+from pyMAISE.tuner import Tuner
+from pyMAISE.utils import Boolean, Choice, Fixed, Float, Int
