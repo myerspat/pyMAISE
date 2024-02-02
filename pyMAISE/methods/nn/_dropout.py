@@ -1,8 +1,7 @@
 from keras.layers import Dropout
 
-from pyMAISE.methods.nn._layer import Layer
-
 import pyMAISE.settings as settings
+from pyMAISE.methods.nn._layer import Layer
 
 
 class DropoutLayer(Layer):

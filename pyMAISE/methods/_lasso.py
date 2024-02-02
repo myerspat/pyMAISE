@@ -1,10 +1,10 @@
-import pyMAISE.settings as settings
-
 from sklearn.linear_model import Lasso
+
+import pyMAISE.settings as settings
 
 
 class LassoRegression:
-    def __init__(self, parameters: dict = None):
+    def __init__(self, parameters=None):
         # Model Parameters
         self._alpha = 1.0
         self._fit_intercept = True
@@ -17,7 +17,7 @@ class LassoRegression:
         self._selection = "cyclic"
 
         # Change if user provided changes in dictionary
-        if parameters != None:
+        if parameters is not None:
             for key, value in parameters.items():
                 setattr(self, key, value)
 

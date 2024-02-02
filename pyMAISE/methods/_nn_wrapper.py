@@ -1,10 +1,11 @@
-import pyMAISE.settings as settings
-
 from math import ceil
-from keras.models import Sequential
+
 from keras.layers import Dense, Dropout
-from tensorflow.keras.optimizers import Adam
+from keras.models import Sequential
 from scikeras.wrappers import BaseEstimator, KerasRegressor
+from tensorflow.keras.optimizers import Adam
+
+import pyMAISE.settings as settings
 
 
 class NeuralNetsWrapper(BaseEstimator):
@@ -235,7 +236,7 @@ class NeuralNetsWrapper(BaseEstimator):
 
     def set_params(self, **parameters):
         # Change if user provided changes in dictionary
-        if parameters != None:
+        if parameters is not None:
             for key, value in parameters.items():
                 setattr(self, key, value)
 
@@ -288,7 +289,7 @@ class NeuralNetsWrapper(BaseEstimator):
         )
 
         # Dropout
-        if self._dropout == True:
+        if self._dropout:
             model.add(Dropout(rate=self._rate))
 
         # Hidden layers
