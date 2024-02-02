@@ -5,15 +5,22 @@ import keras_tuner as kt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sklearn.metrics as sklearn_metrics
 from keras_tuner.oracles import (
     BayesianOptimizationOracle,
     GridSearchOracle,
     HyperbandOracle,
     RandomSearchOracle,
 )
-
-# New packages
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+)
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from skopt import BayesSearchCV
 
@@ -1060,7 +1067,7 @@ class Tuner:
         if objective in ["r2_score", "accuracy_score"]:
             return (
                 kt.Objective(objective, direction="max"),
-                eval(f"{sklearn_metrics.__name__}.{objective}"),
+                eval(f"{objective}"),
             )
         elif objective in [
             "f1_score",
@@ -1071,7 +1078,7 @@ class Tuner:
         ]:
             return (
                 kt.Objective(objective, direction="min"),
-                eval(f"{sklearn_metrics.__name__}.{objective}"),
+                eval(f"{objective}"),
             )
         else:
             return (objective, None)
