@@ -37,7 +37,7 @@ class Layer:
             self._base_data["wrapper"] = (parameters["wrapper"], {})
 
         # Assert we have a layer name
-        assert self._layer_name != None
+        assert self._layer_name is not None
 
     # ==========================================================================
     # Methods
@@ -89,9 +89,10 @@ class Layer:
             sublayer_name = self._base_data["sublayer"].hp(
                 hp, f"{self._layer_name}_{self._current_layer}_sublayer"
             )
-            if sublayer_name is not "None":
+            if sublayer_name != "None":
                 return (
-                    f"{self._layer_name}_{self._current_layer}_sublayer_{sublayer_name}",
+                    f"{self._layer_name}_{self._current_layer}"
+                    + f"_sublayer_{sublayer_name}",
                     self._base_data[sublayer_name],
                 )
         elif isinstance(self._base_data["sublayer"], str):
