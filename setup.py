@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=r"Passing", category=FutureWarning)
 
-if sys.version_info < (3, 9) or sys.version_info > (3, 12):
+if sys.version_info < (3, 9) or sys.version_info > (3, 13):
     sys.exit("pyMAISE only supports python>=3.9 and python<=3.12")
 
 # Get version from pyMAISE/__init__.py (always last line)
