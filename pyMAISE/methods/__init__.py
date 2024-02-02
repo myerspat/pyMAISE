@@ -1,5 +1,3 @@
-from pyMAISE.methods.nn import *
-
 from ._dtree import DecisionTree
 from ._kneighbors import KNeighbors
 from ._lasso import LassoRegression
