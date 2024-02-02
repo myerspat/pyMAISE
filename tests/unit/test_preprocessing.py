@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 import xarray as xr
 from sklearn.preprocessing import MinMaxScaler
 
@@ -8,7 +7,6 @@ from pyMAISE.datasets import load_fp, load_loca, load_xs
 from pyMAISE.preprocessing import (
     SplitSequence,
     correlation_matrix,
-    read_csv,
     scale_data,
     train_test_split,
 )
@@ -17,7 +15,7 @@ from pyMAISE.preprocessing import (
 # ================================================================
 def test_read_csv():
     # Init settings
-    settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=1,
         random_state=42,
@@ -176,7 +174,7 @@ def test_read_csv():
 # ================================================================
 def test_split_sequances():
     # Initialize pyMAISE
-    settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=1,
         random_state=42,
@@ -472,7 +470,7 @@ def test_split_sequances():
 # ================================================================
 def test_train_test_split():
     # Init settings
-    settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=1,
         random_state=42,
@@ -593,7 +591,7 @@ def test_train_test_split():
 # ================================================================
 def test_correlation_matrix():
     # Init settings
-    settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=1,
         random_state=42,

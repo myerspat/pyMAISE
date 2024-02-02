@@ -148,7 +148,7 @@ def test_constructor(setup_xs_grid_search_results, setup_xs_nn_grid_search_resul
         assert postprocessor._models["Test Yhat"][i].shape == data[3].shape
         if i < 4:
             assert len(postprocessor._models["Parameter Configurations"][i].keys()) == 1
-            assert postprocessor._models["History"][i] == None
+            assert postprocessor._models["History"][i] is None
         else:
             assert isinstance(
                 postprocessor._models["Parameter Configurations"][i],
@@ -213,9 +213,7 @@ def test_metrics(setup_postprocessor):
         "Test MSE",
         "Test RMSE",
     ]
-    assert metrics["Test R2"].to_numpy()[0] == np.max(
-        metrics["Test R2"].to_numpy()
-    )
+    assert metrics["Test R2"].to_numpy()[0] == np.max(metrics["Test R2"].to_numpy())
 
     # Run metrics function (specify output)
     metrics = setup_postprocessor.metrics(y="k")
@@ -234,9 +232,7 @@ def test_metrics(setup_postprocessor):
         "Test MSE",
         "Test RMSE",
     ]
-    assert metrics["Test R2"].to_numpy()[0] == np.max(
-        metrics["Test R2"].to_numpy()
-    )
+    assert metrics["Test R2"].to_numpy()[0] == np.max(metrics["Test R2"].to_numpy())
 
     # Run metrics function (specify output)
     metrics = setup_postprocessor.metrics(y=0)
@@ -255,9 +251,7 @@ def test_metrics(setup_postprocessor):
         "Test MSE",
         "Test RMSE",
     ]
-    assert metrics["Test R2"].to_numpy()[0] == np.max(
-        metrics["Test R2"].to_numpy()
-    )
+    assert metrics["Test R2"].to_numpy()[0] == np.max(metrics["Test R2"].to_numpy())
 
     # Run metrics function (only fnn)
     metrics = setup_postprocessor.metrics(model_type="fnn")
@@ -276,9 +270,7 @@ def test_metrics(setup_postprocessor):
         "Test MSE",
         "Test RMSE",
     ]
-    assert metrics["Test R2"].to_numpy()[0] == np.max(
-        metrics["Test R2"].to_numpy()
-    )
+    assert metrics["Test R2"].to_numpy()[0] == np.max(metrics["Test R2"].to_numpy())
 
     # Run metrics function (change sort by)
     metrics = setup_postprocessor.metrics(sort_by="Train MSE")
@@ -297,6 +289,4 @@ def test_metrics(setup_postprocessor):
         "Test MSE",
         "Test RMSE",
     ]
-    assert metrics["Train MAE"].to_numpy()[0] == np.min(
-        metrics["Train MAE"].to_numpy()
-    )
+    assert metrics["Train MAE"].to_numpy()[0] == np.min(metrics["Train MAE"].to_numpy())

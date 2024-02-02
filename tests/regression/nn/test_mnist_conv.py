@@ -2,12 +2,9 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from sklearn.model_selection import KFold, ShuffleSplit
-from sklearn.preprocessing import OneHotEncoder
 
 # Import mnist dataset
 from tensorflow.keras.datasets import mnist
-from tensorflow.keras.utils import to_categorical
 
 import pyMAISE as mai
 from pyMAISE.methods import nnHyperModel
@@ -40,7 +37,7 @@ def mnist_data():
 
 def test_mnist_conv(mnist_data):
     # Initialize pyMAISE
-    global_settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.CLASSIFICATION,
         verbosity=1,
         num_configs_saved=1,

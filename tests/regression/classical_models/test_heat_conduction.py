@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import pytest
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 
@@ -62,16 +61,14 @@ def test_heat_conduction():
         and data[0].shape[1] == num_features
     )
     assert (
-        data[1].shape[0] == num_observations * 0.3 
-        and data[1].shape[1] == num_features
+        data[1].shape[0] == num_observations * 0.3 and data[1].shape[1] == num_features
     )
     assert (
         data[2].shape[0] == num_observations * (1 - 0.3)
         and data[2].shape[1] == num_outputs
     )
     assert (
-        data[3].shape[0] == num_observations * 0.3 
-        and data[3].shape[1] == num_outputs
+        data[3].shape[0] == num_observations * 0.3 and data[3].shape[1] == num_outputs
     )
 
     # ===========================================================================

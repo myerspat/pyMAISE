@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
@@ -17,7 +16,7 @@ from pyMAISE.preprocessing import scale_data, train_test_split
 @pytest.fixture
 def setup_xr():
     # Initialize pyMAISE
-    settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=2,
         random_state=42,
@@ -44,7 +43,7 @@ def setup_xr():
 @pytest.fixture
 def setup_fp():
     # Initialize pyMAISE
-    settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=2,
         random_state=42,
@@ -322,10 +321,10 @@ def test_convergence_plot(setup_xr):
         "Linear": {"fit_intercept": [True, False]},
         "Lasso": {"alpha": np.linspace(0.000001, 1, 5)},
     }
-    search_data = tuner.grid_search(
+    _ = tuner.grid_search(
         param_spaces=spaces,
         cv=ShuffleSplit(n_splits=1, test_size=0.15, random_state=42),
     )
 
     # Plot convergence of linear
-    ax = tuner.convergence_plot(model_types="Linear")
+    _ = tuner.convergence_plot(model_types="Linear")
