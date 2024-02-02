@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import ShuffleSplit
@@ -5,7 +7,6 @@ from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
 from pyMAISE.datasets import load_fp
-from pyMAISE.datasets._handler import _get_full_path
 from pyMAISE.preprocessing import scale_data, train_test_split
 
 
@@ -19,10 +20,7 @@ def test_fuel_performance():
 
     # Expected performance metrics
     expected_metrics = pd.read_csv(
-        _get_full_path(
-            "../tests/regression/classical_models/supporting/"
-            + "fuel_performance_testing_metrics.csv"
-        )
+        os.path.dirname(__file__) + "/supporting/fuel_performance_testing_metrics.csv"
     )
 
     # ===========================================================================
