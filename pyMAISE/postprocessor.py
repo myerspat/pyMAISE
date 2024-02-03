@@ -24,7 +24,7 @@ from pyMAISE.utils.cvtuner import determine_class_from_probabilities
 
 class PostProcessor:
     """
-    Assess the performance of the top performing models.
+    Assess the performance of the top-performing models.
 
     Parameters
     ----------
@@ -39,7 +39,7 @@ class PostProcessor:
         `min-max scaler from sklearn <https://scikit-learn.org/stable/\
         modules/generated/sklearn.preprocessing.MinMaxScaler.html>`_
         :cite:`scikit-learn`. This should have been fit using
-        :meth:`pyMAISE.preprocessing.scale_data` prior to hyperparameter
+        :meth:`pyMAISE.preprocessing.scale_data` before hyperparameter
         tuning. If ``None`` then scaling is not undone.
     """
 
@@ -218,7 +218,7 @@ class PostProcessor:
         Calculate model performance of predicting output training and testing data.
         Default metrics are always evaluated depending on the
         :attr:`pyMAISE.Settings.problem_type`. For
-        :attr:`pyMAISE.ProblemType.REGRESSION` problems the default metrics are from
+        :attr:`pyMAISE.ProblemType.REGRESSION` problems, the default metrics are from
         :cite:`scikit-learn` and include:
 
         - ``R2``: `r-squared <https://scikit-learn.org/stable/modules/generated/\
@@ -229,10 +229,10 @@ class PostProcessor:
         - ``MSE``: `mean squared error <https://scikit-learn.org/stable/\
           modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.\
           mean_squared_error>`_,
-        - ``RMSE``: root mean squared error which is the square
+        - ``RMSE``: root mean squared error, the square
           root of ``mean_squared_error``.
 
-        For :attr:`pyMAISE.ProblemType.CLASSIFICATION` problems the default metrics are
+        For :attr:`pyMAISE.ProblemType.CLASSIFICATION` problems, the default metrics are
 
         - ``Accuracy``: `accuracy <https://scikit-learn.org/stable/modules/\
           generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_\
@@ -250,7 +250,7 @@ class PostProcessor:
         Parameters
         ----------
         y: int, str, or None, default=None
-            The output to determine performance for. If ``None`` then all outputs
+            The output to determine performance. If ``None`` then all outputs
             are used.
         model_type: str or None, default=None
             Determine the performance of this model. If ``None`` then all models are
@@ -458,13 +458,13 @@ class PostProcessor:
 
     def get_predictions(self, idx=None, model_type=None, sort_by=None, direction=None):
         """
-        Get a models training and testing predictions.
+        Get a model's training and testing predictions.
 
         Parameters
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -475,7 +475,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
@@ -499,7 +499,7 @@ class PostProcessor:
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -510,7 +510,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
@@ -542,7 +542,7 @@ class PostProcessor:
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -553,7 +553,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
@@ -612,12 +612,12 @@ class PostProcessor:
         Parameters
         ----------
         ax: matplotlib.pyplot.axis or None, default=None
-            If not given then an axis is created.
+            If not given, then an axis is created.
         y: single or list of int or str or None, default=None
             The output to plot. If ``None`` then all outputs are plotted.
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -628,7 +628,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
@@ -706,12 +706,12 @@ class PostProcessor:
         Parameters
         ----------
         ax: matplotlib.pyplot.axis or None, default=None
-            If not given then an axis is created.
+            If not given, then an axis is created.
         y: single or list of int or str or None, default=None
             The output to plot. If ``None`` then all outputs are plotted.
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -722,7 +722,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
@@ -784,7 +784,7 @@ class PostProcessor:
             If not given then an axis is created.
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -795,7 +795,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
@@ -839,7 +839,7 @@ class PostProcessor:
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
             The model name to get. Will get the best model predictions based on
             ``sort_by``.
@@ -850,7 +850,7 @@ class PostProcessor:
             and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
             a default metric.
 
         Returns
