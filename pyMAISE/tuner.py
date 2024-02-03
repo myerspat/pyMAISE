@@ -43,7 +43,8 @@ class Tuner:
     """
     Hyperparameter tuning object.
 
-    .. _models:
+    .. _tuner_models:
+
     .. rubric:: Supported Models
 
     Supported models include
@@ -128,9 +129,9 @@ class Tuner:
     model_settings: dict of int, float, str, or pyMAISE.HyperParameters
         This dictionary specifies the name of the models of interest which are assigned
         as a list to the ``models`` key. The model names are provided in the
-        :ref:`models` section, all names that do not match those keys are assumed to be
-        neural network models. For specific hyperparameters please refer to the links
-        provided for the models.
+        :ref:`tuner_models` section, all names that do not match those keys are assumed
+        to be neural network models. For specific hyperparameters please refer to the
+        links provided for the models.
 
         For classical models, sklearn models :cite:`scikit-learn`, this
         dictionary specifies the hyperparameters which are different from default but

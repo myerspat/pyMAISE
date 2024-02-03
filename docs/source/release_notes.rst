@@ -1,0 +1,17 @@
+.. _versions:
+
+=============
+Release Notes
+=============
+
+---------------
+Stable Versions
+---------------
+
+- `pyMAISE v0.0.2 <https://github.com/myerspat/pyMAISE/releases/tag/v0.0.2>`_
+
+------------
+Dev Versions
+------------
+
+- `pyMAISE v1.0.0-beta <https://github.com/myerspat/pyMAISE/releases/tag/v1.0.0-beta>`_
