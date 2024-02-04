@@ -4,7 +4,7 @@
 [![Tests Status](https://github.com/myerspat/pyMAISE/actions/workflows/CI.yml/badge.svg)](https://github.com/myerspat/pyMAISE/actions/workflows)
 [![Documentation Status](https://readthedocs.org/projects/pymaise/badge/?version=latest)](https://pymaise.readthedocs.io/en/latest/?badge=latest)
 
-pyMAISE is an artificial intelligence (AI) and machine learning (ML) benchmarking library for nuclear reactor applications. It offers to streamline the building, tuning, and comparison of various ML models for user-provided data sets. Also, pyMAISE offers benchmarked data sets, such as Jupyter Notebooks, for AI/ML comparison. Current ML algorithm support includes
+pyMAISE is an artificial intelligence (AI) and machine learning (ML) benchmarking library for nuclear reactor applications. It offers to streamline the building, tuning, and comparison of various ML models for user-provided data sets. Also, pyMAISE offers benchmarked data sets, written in Jupyter Notebooks, for AI/ML comparison. Current ML algorithm support includes
 
 - linear regression,
 - lasso regression,
