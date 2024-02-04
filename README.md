@@ -1,4 +1,4 @@
-# pyMAISE - Michigan Artificial Intelligence Standard Environment
+# pyMAISE: Michigan Artificial Intelligence Standard Environment
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests Status](https://github.com/myerspat/pyMAISE/actions/workflows/test.yml/badge.svg)](https://github.com/myerspat/pyMAISE/actions/workflows)
