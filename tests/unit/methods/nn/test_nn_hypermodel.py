@@ -1,6 +1,5 @@
 import keras
 import keras_tuner
-import pytest
 
 from pyMAISE import Int
 from pyMAISE.methods import nnHyperModel

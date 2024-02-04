@@ -1,12 +1,12 @@
+import os
+
 import numpy as np
 import pandas as pd
-import pytest
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 
 import pyMAISE as mai
 from pyMAISE.datasets import load_xs
-from pyMAISE.datasets._handler import _get_full_path
 from pyMAISE.preprocessing import scale_data, train_test_split
 
 
@@ -20,10 +20,7 @@ def test_reactor_physics():
 
     # Expected performance metrics
     expected_metrics = pd.read_csv(
-        _get_full_path(
-            "../tests/regression/classical_models/supporting/"
-            + "reactor_physics_testing_metrics.csv"
-        )
+        os.path.dirname(__file__) + "/supporting/reactor_physics_testing_metrics.csv"
     )
 
     # ===========================================================================
@@ -45,14 +42,8 @@ def test_reactor_physics():
     data, inputs, outputs = load_xs()
 
     # Assert inputs and outputs are the correct size
-    assert (
-        inputs.shape[0] == num_observations
-        and inputs.shape[1] == num_features
-    )
-    assert (
-        outputs.shape[0] == num_observations
-        and outputs.shape[1] == num_outputs
-    )
+    assert inputs.shape[0] == num_observations and inputs.shape[1] == num_features
+    assert outputs.shape[0] == num_observations and outputs.shape[1] == num_outputs
 
     # Train test split
     xtrain, xtest, ytrain, ytest = train_test_split(
@@ -68,16 +59,14 @@ def test_reactor_physics():
         and data[0].shape[1] == num_features
     )
     assert (
-        data[1].shape[0] == num_observations * 0.3 
-        and data[1].shape[1] == num_features
+        data[1].shape[0] == num_observations * 0.3 and data[1].shape[1] == num_features
     )
     assert (
         data[2].shape[0] == num_observations * (1 - 0.3)
         and data[2].shape[1] == num_outputs
     )
     assert (
-        data[3].shape[0] == num_observations * 0.3
-        and data[3].shape[1] == num_outputs
+        data[3].shape[0] == num_observations * 0.3 and data[3].shape[1] == num_outputs
     )
 
     # ===========================================================================

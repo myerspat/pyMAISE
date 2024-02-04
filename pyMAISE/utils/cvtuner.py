@@ -64,17 +64,17 @@ class CVTuner(kt.Tuner):
                 self._cv = StratifiedKFold(
                     n_splits=self._cv,
                     shuffle=self._shuffle,
-                    random_state=settings.values.random_state
-                    if self._shuffle == True
-                    else None,
+                    random_state=(
+                        settings.values.random_state if self._shuffle is True else None
+                    ),
                 )
             else:
                 self._cv = KFold(
                     n_splits=self._cv,
                     shuffle=self._shuffle,
-                    random_state=settings.values.random_state
-                    if self._shuffle == True
-                    else None,
+                    random_state=(
+                        settings.values.random_state if self._shuffle is True else None
+                    ),
                 )
 
         # Run

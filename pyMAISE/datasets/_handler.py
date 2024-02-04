@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -9,17 +7,18 @@ from pyMAISE.preprocessing import read_csv
 
 
 def _get_full_path(path: str):
-    """Get full pyMAISE data file path"""
+    """Get full pyMAISE data file path."""
     return resource_filename("pyMAISE", path)
 
 
 def load_MITR():
     """
-    Load MIT reactor data. There are 6 inputs, control blade height :math:`[cm]` (labeled as ``CB#``),
-    and 22 outputs (labeled as ``A-#``, ``B-#``, or ``C-#``), fuel element power :math:`[W]`. This
-    data comes from :cite:`RADAIDEH2023112423` and was constructed through the perturbation of
-    the control blade heights and the simulation of the reactor in MCNP to determine the expected
-    power in each element. This data set includes 1000 samples.
+    Load MIT reactor data. There are six inputs: control blade height :math:`[cm]`
+    (labeled as ``CB#``), and 22 outputs (labeled as ``A-#``, ``B-#``, or ``C-#``), fuel
+    element power :math:`[W]`. This data comes from :cite:`RADAIDEH2023112423` and was
+    constructed through the perturbation of the control blade heights and the reactor
+    simulation in MCNP to determine the expected power in each element. This data set
+    includes 1000 samples.
 
     Returns
     -------
@@ -37,7 +36,7 @@ def load_MITR():
 
 def load_xs():
     """
-    Load reactor physics data. There are 1000 samples with 8 cross sections (XS)
+    Load reactor physics data. There are 1000 samples with eight cross sections (XS)
     :math:`[cm^{-1}]` as inputs:
 
     - ``FissionFast``: fast fission,
@@ -54,19 +53,19 @@ def load_xs():
     the Shapley effect. The geometry of the problem is a pressurized water
     reactor (PWR) lattice based on the BEAVRS benchmark. The lattice utilizes
     quarter core symmetry in TRITON and is depleted to :math:`50~GWD/MTU`.
-    The data was constructed using a two step process:
+    The data was constructed using a two-step process:
 
-    1. the uncertainty in the fundamental microscopic XS data was propogated,
+    1. the uncertainty in the fundamental microscopic XS data was propagated,
     2. and these XSs were collapsed into a 2-group form using
 
     .. math::
-        \Sigma_x^g = \\frac{\int_{\Delta E_g}dE\int_V\Sigma_{x, m}(E)\phi(r, E, t)dV}
-        {\int_{\Delta E_g}dE\int_V\phi(r, E, t)dV}.
+        \\Sigma_x^g = \\frac{\\int_{\\Delta E_g}dE\\int_V\\Sigma_{x, m}(E)
+        \\phi(r, E, t)dV}{\\int_{\\Delta E_g}dE\\int_V\\phi(r, E, t)dV}.
 
-    The Sampler module in SCALE was used for uncertainty propogation, and the
+    The Sampler module in SCALE was used for uncertainty propagation, and the
     56-group XS and covariance libraries were used in TRITON to create 56-group
     homogeneous XSs using the above equation. The homogeneous XSs were then collapsed
-    into a 2-group library. 1000 random samples were taken from the Sampler.
+    into a 2-group library. One thousand random samples were taken from the Sampler.
 
     Returns
     -------
@@ -98,17 +97,19 @@ def load_fp():
     - ``clad_T``: cladding surface temperature :math:`[K]`,
     - ``pressure``: pressure :math:`[Pa]`,
 
-    and 4 outputs:
+    and four outputs:
 
     - ``fis_gas_produced``: fission gas production :math:`[mol]`,
     - ``max_fuel_centerline_temp``: max fuel centerline temperature :math:`[K]`,
     - ``max_fuel_surface_temperature``: max fuel surface temperature :math:`[K]`,
-    - ``radial_clad_dia``: radial cladding diameter displacement after irradiation :math:`[m]`,
+    - ``radial_clad_dia``: radial cladding diameter displacement after
+      irradiation :math:`[m]`,
 
-    with 400 data points. This data is case 1 from :cite:`RADAIDEH2020106731` which is
-    based on the pellet-cladding mechanical interaction (PCMI) benchmark. The 13 inputs were
-    uniformly randomly sampled independently within their uncertainty bounds and simulated
-    in BISON. The rod response was recorded in 4 outputs.
+    with 400 data points. This data is case 1 from :cite:`RADAIDEH2020106731`
+    which is based on the pellet-cladding mechanical interaction (PCMI) benchmark.
+    The 13 inputs were uniformly randomly sampled independently within their
+    uncertainty bounds and simulated in BISON. The rod response was recorded in
+    four outputs.
 
     Returns
     -------
@@ -133,33 +134,33 @@ def load_heat():
     - ``Tin``: temperature of the fuel boundary :math:`[K]`,
     - ``R``: fuel radius :math:`[m]`,
     - ``L``: fuel length :math:`[m]`,
-    - ``Cp``: heat capacity :math:`[J/(g\cdot K)]`,
-    - ``k``: thermal conductivity :math:`[W/(m\cdot K)]`,
+    - ``Cp``: heat capacity :math:`[J/(g\\cdot K)]`,
+    - ``k``: thermal conductivity :math:`[W/(m\\cdot K)]`,
 
-    with 1 output:
+    with one output:
 
     - ``T``: fuel centerline temperature :math:`[K]`.
 
-    The data set was constructed through Latin hypercube sampling of the 7 input
+    The data set was constructed through Latin hypercube sampling of the seven input
     parameters for heat conduction through a fuel rod. These samples were then
     used to solve for the fuel centerline temperature analytically. We assume
     volumetric heat generation is uniform radially. The problem is defined by
 
     .. math::
-        \\frac{1}{r}\\frac{d}{dr}\Big(kr\\frac{dT}{dr}\Big) + q''' = 0
+        \\frac{1}{r}\\frac{d}{dr}\\Big(kr\\frac{dT}{dr}\\Big) + q''' = 0
 
-    with two boundary conditions: :math:`\\frac{dT}{dr}\Big|_{r=0}=0` and
+    with two boundary conditions: :math:`\\frac{dT}{dr}\\Big|_{r=0}=0` and
     :math:`T(R) = T_{in}`. Therefore, the temperature profile in the fuel is
 
     .. math::
-        T(r) = \\frac{q'}{4\pi k}(1 - (r/R)^2) + T_{in}.
+        T(r) = \\frac{q'}{4\\pi k}(1 - (r/R)^2) + T_{in}.
 
     Returns
     -------
     data: xarray.DataArray
         Raw heat conduction data.
     inputs: xarray.DataArray
-        7 inputs.
+        Seven inputs.
     outputs: xarray.DataArray
         Fuel centerline temperature.
     """
@@ -168,73 +169,84 @@ def load_heat():
 
 def load_rea():
     """
-    Load NEACRP C1 rod ejection accident (REA) data. This data consists of 2000 samples of 4 inputs:
+    Load NEACRP C1 rod ejection accident (REA) data. This data consists of 2000
+    samples of four inputs:
 
     - ``rod_worth``: reactivity worth of the ejected rod,
     - ``beta``: delayed neutron fraction,
-    - ``h_gap``: gap conductance :math:`[W/(m^2\cdot K)]`,
+    - ``h_gap``: gap conductance :math:`[W/(m^2\\cdot K)]`,
     - ``gamma_frac``: direct heating fraction,
 
-    with 4 outputs:
+    with four outputs:
 
-    - ``max_power``: peak power reached during transient :math:`[\%FP]`,
+    - ``max_power``: peak power reached during transient :math:`[\\%FP]`,
     - ``burst_width``: Width of power burst :math:`[s]`,
     - ``max_TF``: max fuel centerline temperature :math:`[K]`,
     - ``avg_Tcool``: average coolant outlet temperature :math:`[K]`.
 
-    This data set was constructed by perturbing the inputs listed above prior to REA transient
-    simulated in PARCS.
+    This data set was constructed by perturbing the inputs listed above before REA
+    transient simulated in PARCS.
 
     Returns
     -------
     data: xarray.DataArray
         Raw rod ejection data.
     inputs: xarray.DataArray
-        4 inputs.
+        Four inputs.
     outputs: xarray.DataArray
-        4 outputs.
+        Four outputs.
     """
     return read_csv(
-        [_get_full_path("datasets/rea_inputs.csv"), _get_full_path("datasets/rea_outputs.csv")],
+        [
+            _get_full_path("datasets/rea_inputs.csv"),
+            _get_full_path("datasets/rea_outputs.csv"),
+        ],
     )
 
 
 def load_BWR():
     """
     Load BWR Micro Core data. This data consists of 2000 samples of 9 inputs:
-    
+
     - ``PSZ``: Fuel bundle region Power Shaping Zone (PSZ),
     - ``DOM``:  Fuel bundle region Dominant zone (DOM),
     - ``vanA``: Fuel bundle region vanishing zone A (VANA),
     - ``vanB``: Fuel bundle region vanishing zone B (VANB),
-    - ``subcool``: Represents moderator inlet conditions. Core inlet subcooling interpreted to be at the
-      steam dome pressure (i.e., not core-averaged pressure). The input value for subcooling
-      will automatically be increased to account for this fact. (Btu/lb),
+    - ``subcool``: Represents moderator inlet conditions. Core inlet subcooling
+      is interpreted to be at the steam dome pressure (i.e., not core-averaged
+      pressure). The input value for subcooling will automatically be increased
+      to account for this fact. (Btu/lb),
     - ``CRD``: Defines the position of all control rod groups (banks),
-    - ``flow_rate``: Defines essential global design data for rated coolant mass flux for the active core,
-      :math:`\\frac{kg}{(cm^{2}-hr)}`. Coolant   mass flux equals active core flow divided by
-      core cross-section area. Core cross-section area is DXA 2 times the number of assemblies,
-    - ``power_density``: Defines essential global design data for rated power density using cold dimensions,
-      :math:`(\\frac{kw}{liter})`,
-    - ``VFNGAP``: Defines the ratio of narrow water gap width to the sum of the narrow and wide water
-      gap widths,
+    - ``flow_rate``: Defines essential global design data for rated coolant mass
+      flux for the active core, :math:`\\frac{kg}{(cm^{2}-hr)}`. Coolant   mass
+      flux equals active core flow divided by core cross-section area. The core
+      cross-section area is DXA 2 times the number of assemblies,
+    - ``power_density``: Defines essential global design data for rated power
+      density using cold dimensions, :math:`(\\frac{kw}{liter})`,
+    - ``VFNGAP``: Defines the ratio of narrow water gap width to the sum of the
+      narrow and wide water gap widths,
 
-    with 5 outputs:
+    with five outputs:
 
-    - ``K-eff``:  Reactivity coefficient k-effective, the effective neutron multiplication factor,
+    - ``K-eff``:  Reactivity coefficient k-effective, the effective neutron
+      multiplication factor,
     - ``Max3Pin``: Maximum planar-averaged pin power peaking factor,
-    - ``Max4Pin``: maximum pin-power peaking factor, :math:`F_{q}`, (which includes axial intranodal peaking),
+    - ``Max4Pin``: maximum pin-power peaking factor, :math:`F_{q}`, (which includes
+      axial intranodal peaking),
     - ``F-delta-H``: Ratio of max-to-average enthalpy rise in a channel,
     - ``Max-Fxy``: Maximum radial pin-power peaking factor,
 
-    This data set was constructed through uniform and normal sampling of the 9 input parameters for a boiling water
-    reactor (BWR) micro-core. These samples were then used to solve for reactor characteristic changes in heat
-    distribution and neutron flux. This BWR micro-core consists of 4 radially and axially heterogenous assemblies of
-    the same type constructed in a 2x2 grid with a control blade placed in the center. A single assembly was brocken
-    into seven zones where each zones 2D radial cross
-    sectional information was constructed using CASMO-4. These cross sectional libraries were then processed through
-    CMSLINK for SIMULATE-3 to interpret. The core geometry and physics was implemented and modeled using SIMULATE-3.
-    
+    This data set was constructed through uniform and normal sampling of the 9
+    input parameters for a boiling water reactor (BWR) micro-core. These samples
+    were then used to solve for reactor characteristic changes in heat distribution
+    and neutron flux. This BWR micro-core consists of 4 radially and axially
+    heterogeneous assemblies of the same type constructed in a 2x2 grid with a
+    control-blade placed in the center. A single assembly was broken into seven
+    zones where each zone's 2D radial cross-sectional information was constructed
+    using CASMO-4. These cross sectional libraries were then processed through
+    CMSLINK for SIMULATE-3 to interpret. The core geometry and physics were
+    implemented and modeled using SIMULATE-3.
+
     Returns
     -------
     data: xarray.DataArray
@@ -245,22 +257,26 @@ def load_BWR():
         5 outputs.
     """
     return read_csv(
-        [_get_full_path("datasets/bwr_input.csv"), _get_full_path("datasets/bwr_output.csv")],
+        [
+            _get_full_path("datasets/bwr_input.csv"),
+            _get_full_path("datasets/bwr_output.csv"),
+        ],
     )
+
 
 def load_HTGR():
     """
     Load HTGR Micro Reactor data. This data consists of 751 samples of 8 inputs:
-   
-    - ``theta_{1}``: Angle of control drum in quadrant 1 (degrees), 
-    - ``theta_{2}``: Angle of control drum in quadrant 1 (degrees), 
-    - ``theta_{3}``: Angle of control drum in quadrant 2 (degrees),  
+
+    - ``theta_{1}``: Angle of control drum in quadrant 1 (degrees),
+    - ``theta_{2}``: Angle of control drum in quadrant 1 (degrees),
+    - ``theta_{3}``: Angle of control drum in quadrant 2 (degrees),
     - ``theta_{4}``: Angle of control drum in quadrant 2 (degrees),
     - ``theta_{5}``: Angle of control drum in quadrant 3 (degrees),
     - ``theta_{6}``: Angle of control drum in quadrant 3 (degrees),
-    - ``theta_{7}``: Angle of control drum in quadrant 4 (degrees), 
-    - ``theta_{8}``: Angle of control drum in quadrant 4 (degrees),  
-    
+    - ``theta_{7}``: Angle of control drum in quadrant 4 (degrees),
+    - ``theta_{8}``: Angle of control drum in quadrant 4 (degrees),
+
     with 4 outputs:
 
     - ``FluxQ1``: Neutron flux in quadrant 1 :math:`(\\frac{neutrons}{cm^{2} s})`,
@@ -268,36 +284,43 @@ def load_HTGR():
     - ``FluxQ3``: Neutron flux in quadrant 3 :math:`(\\frac{neutrons}{cm^{2} s})`,
     - ``FluxQ4``: Neutron flux in quadrant 4 :math:`(\\frac{neutrons}{cm^{2} s})`,
 
-    This data set is based on the HOLOS-Quad reactor design. This reactor implements modular construction
-    where seperate units can be transported independently and assembled at the plant. The HOLOS-Quad core
-    is a 22 MWt high-temperature gas-cooled microreactor (HTGR) which is controlled by 8 cylindrical
-    control drums. It utilizes TRISO fuel particles contained in hexagonal graphite blocks used as a
-    moderator. These graphite blocks have channels where helium gas can pass through for cooling.
-    The main importance of this data set is the influence of control drum position on the neutron flux
-    distribution. The drums control reactivity by rotating to vary the proximity of :math:`B_{4}C`, located
-    on a portion of the cylindrical surface, to the fuel. Perturbations of the control drums cases the core
-    power shape to shift leading to complex power distributions. Therefore, predictions of control drum
-    reactivity worth for arbitrary configurations makes this problem nontrivial. The data was taken from
-    :cite:`PRICE2022111776` and does not utilizes symmetry preprocessing to expand the data set.
-    
+    This data set is based on the HOLOS-Quad reactor design. This reactor
+    implements modular construction where separate units can be transported
+    independently and assembled at the plant. The HOLOS-Quad core is a
+    8 cylindrical control drums control a 22 MWt high-temperature gas-cooled
+    microreactor (HTGR). It utilizes TRISO fuel particles contained
+    in hexagonal graphite blocks as a moderator. These graphite blocks
+    have channels where helium gas can pass through for cooling. The main
+    importance of this data set is the influence of the control drum position on
+    the neutron flux distribution. The drums control reactivity by rotating to
+    vary the proximity of :math:`B_{4}C`, located on a portion of the cylindrical
+    surface, to the fuel. Perturbations of the control drums cause the core power
+    shape to shift, leading to complex power distributions. Therefore, predictions
+    of control drum reactivity worth for arbitrary configurations make this
+    problem nontrivial. The data was taken from :cite:`PRICE2022111776` and does
+    not utilize symmetry preprocessing to expand the data set.
+
     Returns
     -------
     data: xarray.DataArray
         Raw HTGR Micro Reactor data with no symmetry conditions applied.
     inputs: xarray.DataArray
-        8 inputs.
+        Eight inputs.
     outputs: xarray.DataArray
-        4 outputs.
+        Four outputs.
     """
 
-    return  read_csv(_get_full_path("datasets/microreactor.csv"), slice(29, 37), slice(4, 8))
+    return read_csv(
+        _get_full_path("datasets/microreactor.csv"), slice(29, 37), slice(4, 8)
+    )
+
 
 def load_loca(stack_series=False):
     """
     Load loss of coolant accident (LOCA) time series data. This data comes from
-    :cite:`RADAIDEH2020113699` and consists of 40 time-independent features that describe
-    the initial state of the reactor during the LOCA transient which are propogated out
-    in time. There are 4 sequences:
+    :cite:`RADAIDEH2020113699` and consists of 40 time-independent features that
+    describe the initial state of the reactor during the LOCA transient, which are
+    propagated out in time. There are four sequences:
 
     - ``Pellet Cladding Temperature``: pellet cladding temperature [K],
     - ``Core Pressure``: core pressure [Pa],
@@ -318,12 +341,11 @@ def load_loca(stack_series=False):
     Returns
     -------
     nominal_data: xarray.DataArray
-        The 2D or 3D nominal LOCA data. If 2D it will be shape (400, 44)
+        The 2D or 3D nominal LOCA data. If 2D it will be shaped (400, 44)
         and if 3D then the shape is (1, 400, 44).
     perturbed_data: xarray.DataArray
         The 2D or 3D perturbed LOCA data. If 2D it is shape (800000, 44)
         and if 3D then the shape is (2000, 400, 44).
-
     """
     # Paths
     input_path = _get_full_path("datasets/loca_inp.csv")

@@ -1,73 +1,96 @@
-============
-Installation
-============
+##############
+ Installation
+##############
 
 .. _prerequisites:
 
--------------
-Prerequisites
--------------
+***************
+ Prerequisites
+***************
+
+pyMAISE currently supports Python 3.9, 3.10, and 3.11. Below are the required
+and optional dependencies for pyMAISE. There is no need to install these yourself as
+pyMAISE will also install all needed dependencies.
 
 .. admonition:: Required
    :class: error
 
-   - `NumPy <https://numpy.org/>`_
-   
-   - `pandas <https://pandas.pydata.org/>`_
-
-   - `Xarray <https://docs.xarray.dev/en/stable/index.html>`_
-
-   - `scikit-learn <https://scikit-learn.org/stable/index.html>`_
-
-   - `scikit-optimize <https://scikit-optimize.github.io/stable/>`_
-
-   - `Keras <https://keras.io>`_
-
-   - `KerasTuner <https://keras.io/keras_tuner/>`_
-
-   - `TensorFlow <https://tensorflow.org>`_
-
-   - `SciKeras <https://adriangb.com/scikeras/stable/>`_
-
-   - `Matplotlib <https://matplotlib.org/stable/>`_
+   -  `NumPy <https://numpy.org/>`_
+   -  `pandas <https://pandas.pydata.org/>`_
+   -  `Xarray <https://docs.xarray.dev/en/stable/index.html>`_
+   -  `scikit-learn <https://scikit-learn.org/stable/index.html>`_
+   -  `scikit-optimize <https://scikit-optimize.github.io/stable/>`_
+   -  `Keras <https://keras.io>`_
+   -  `KerasTuner <https://keras.io/keras_tuner/>`_
+   -  `TensorFlow <https://tensorflow.org>`_
+   -  `SciKeras <https://adriangb.com/scikeras/stable/>`_
+   -  `Matplotlib <https://matplotlib.org/stable/>`_
 
 .. admonition:: Optional
    :class: note
 
-   - `pytest <https://docs.pytest/en/7.2.x/contents.html>`_
+   -  `Jupyter <https://jupyter.org/>`_
+   -  `OpenCV <https://opencv.org/>`_
+   -  `SciPy <https://scipy.org/>`_
 
-   - `SciPy <https://scipy.org>`_
+*****
+ Pip
+*****
 
----
-Pip
----
+Install through Pip by running:
 
-Install through Pip by running
+.. code:: sh
 
-.. code-block:: sh
+   pip install pyMAISE
 
-   pip3 install pyMAISE
+To install a specific version of pyMAISE, run:
 
-This approach only supports released versions of pyMAISE. Install from source for latest updates.
+.. code:: sh
 
------------
-From Source
------------
+   pip install pyMAISE==<version>
 
-To install pyMAISE you can clone the repository. Make sure ``git`` is installed and run
+Released versions and a discussion of the changes are listed in the
+:ref:`versions`. Only stable versions are listed on PyPI. For other
+versions or the latest features, install pyMAISE from the source. For
+running or creating pyMAISE benchmarks, install the additional dependencies:
 
-.. code-block:: sh
+.. code:: sh
+
+   pip install "pyMAISE[benchmarks]"
+
+*************
+ From Source
+*************
+
+For the latest features in development or access to benchmark, install
+pyMAISE from source. Clone the repository using ``git`` and running:
+
+.. code:: sh
 
    git clone https://github.com/myerspat/pyMAISE.git
+   cd pyMAISE/
 
-In the ``pyMAISE`` directory you can run 
+For a specific version, then checkout the branch:
 
-.. code-block:: sh
+.. code:: sh
 
-   pip3 install .
+   git checkout v<version>
 
-to install the library. For developers, we recommend you add the ``-e`` option:
+Then install pyMAISE through pip:
 
-.. code-block:: sh
+.. code:: sh
 
-   pip3 install -e .
+   pip install .
+
+For benchmarking, install the additional dependencies:
+
+.. code:: sh
+
+   pip install ".[benchmarks]"
+
+For pyMAISE developers, we recommend using the ``-e`` option and installing
+the ``dev`` extension:
+
+.. code:: sh
+
+   pip install -e ".[dev]"

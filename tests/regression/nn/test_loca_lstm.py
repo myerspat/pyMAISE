@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import MinMaxScaler
 
@@ -11,7 +10,7 @@ from pyMAISE.preprocessing import SplitSequence, scale_data, train_test_split
 
 def test_loca_lstm():
     # Initialize pyMAISE
-    global_settings = mai.init(
+    _ = mai.init(
         problem_type=mai.ProblemType.REGRESSION,
         verbosity=1,
         num_configs_saved=2,

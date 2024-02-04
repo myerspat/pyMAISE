@@ -21,13 +21,21 @@ from sklearn.metrics import (
     r2_score,
     recall_score,
 )
-
-# New packages
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from skopt import BayesSearchCV
 
 import pyMAISE.settings as settings
-from pyMAISE.methods import *
+from pyMAISE.methods import (
+    SVM,
+    DecisionTree,
+    KNeighbors,
+    LassoRegression,
+    LinearRegression,
+    LogisticRegression,
+    NeuralNetsRegression,
+    RandomForest,
+    nnHyperModel,
+)
 from pyMAISE.utils import CVTuner
 
 
@@ -35,7 +43,8 @@ class Tuner:
     """
     Hyperparameter tuning object.
 
-    .. _models:
+    .. _tuner_models:
+
     .. rubric:: Supported Models
 
     Supported models include
@@ -69,7 +78,7 @@ class Tuner:
     .. _layersAndOptimizers:
     .. rubric:: Supported Neural Network Layers and Optimizers
 
-    pyMAISE supports the following neural network layers using 
+    pyMAISE supports the following neural network layers using
     :cite:`chollet2015keras`:
 
     - ``Dense``: `dense <https://keras.io/api/layers/core_layers/dense/>`_,
@@ -108,7 +117,7 @@ class Tuner:
     - ``Ftrl``: `FTRL <https://keras.io/api/optimizers/ftrl/>`_.
 
     .. note:: For additional layer or optimizer support, submit a detailed issue at the
-        `pyMAISE github repository <https://github.com/myerspat/pyMAISE>`_ outlining the
+        `pyMAISE GitHub repository <https://github.com/myerspat/pyMAISE>`_ outlining the
         layer or optimizer required.
 
     Parameters
@@ -118,36 +127,39 @@ class Tuner:
     ytrain: xarray.DataArray
         Output training data.
     model_settings: dict of int, float, str, or pyMAISE.HyperParameters
-        This dictionary specifies the name of the models of interest which are assigned as a list
-        to the ``models`` key. The model names are provided in the :ref:`models` section, all names
-        that do not match those keys are assumed to be neural network models. For specific
-        hyperparameters please refer to the links provided for the models.
+        This dictionary specifies the name of the models of interest, which are assigned
+        as a list to the ``models`` key. The model names are provided in the
+        :ref:`tuner_models` section; all names that do not match those keys are assumed
+        to be neural network models. For specific hyperparameters, please refer to the
+        links provided for the models.
 
         For classical models, sklearn models :cite:`scikit-learn`, this
-        dictionary specifies the hyperparameters which are different from default but remain
-        constant throughout the hyperparameter tuning process. This is done by assigning a
-        sub-dictionary under the key of the model's name.
+        dictionary specifies the hyperparameters different from default but
+        remain constant throughout the hyperparameter tuning process. This is done by
+        assigning a sub-dictionary under the key of the model's name.
 
-        For neural network models :cite:`chollet2015keras`, this dictionary specifies both
-        hyperparameters that remain constant througout tuning and the tuning space using
-        :class:`pyMAISE.Int`, :class:`pyMAISE.Float`, :class:`pyMAISE.Choice`,
-        :class:`pyMAISE.Boolean`, and :class:`pyMAISE.Fixed`. This is done in the same way
-        as classical models where hyperparameters and their values are specified in
-        sub-dictionaries under their model's key. In addition,
-        number of layers, optimizers, wrappers and sublayers can be specified.
+        For neural network models :cite:`chollet2015keras`, this dictionary specifies
+        both hyperparameters that remain constant throughout tuning and the tuning
+        space using :class:`pyMAISE.Int`, :class:`pyMAISE.Float`,
+        :class:`pyMAISE.Choice`, :class:`pyMAISE.Boolean`, and :class:`pyMAISE.Fixed`.
+        This is done in the same way as classical models, where hyperparameters and
+        their values are specified in sub-dictionaries under their model's key. In
+        addition, number of layers, optimizers, wrappers, and sublayers can be
+        specified.
 
 
     .. warning::
-        When hyperparameter tuning a neural network with multiple of the same layer in one model
-        ensure the names of the layers are different but the keywords are still present. For example,
-        a dense sequential neural network with multiple dense layers can use names like
-        ``Dense_input``, ``Dense_hidden``, and ``Dense_output``.
+        When hyperparameter tuning a neural network with multiple of the same layer
+        in one model, ensure the names of the layers are different, but the keywords are
+        still present. For example, a dense sequential neural network with multiple
+        dense layers can use names like ``Dense_input``, ``Dense_hidden``, and
+        ``Dense_output``.
 
     Examples
     --------
 
-    Given 2D input and output training data (``xtrain``, ``ytrain``) an example using linear and
-    random forest models.
+    Given 2D input and output training data (``xtrain``, ``ytrain``) an example using
+    linear and random forest models.
 
     .. code-block:: python
 
@@ -161,11 +173,11 @@ class Tuner:
         }
         tuner = mai.Tuner(xtrain, ytrain, model_settings)
 
-    From the above we see we specify a linear model with default hyperparameters and a random
-    forest model with all default hyperparameters except for 150 estimators.
+    From the above, we see we specify a linear model with default hyperparameters and
+    a random forest model with all default hyperparameters except for 150 estimators.
 
     Given 3D input and 2D output time series data (``xtrain``, ``ytrain``) from
-    :class:`pyMAISE.preprocessing.SplitSequence` we can define a CNN-LSTM.
+    :class:`pyMAISE.preprocessing.SplitSequence`, we can define a CNN-LSTM.
 
     .. code-block:: python
 
@@ -181,7 +193,11 @@ class Tuner:
                 "filters": mai.Int(min_value=50, max_value=150),
                 "kernel_size": 1,
                 "activation": "relu",
-                "wrapper": (TimeDistributed, {"input_shape": (None, 2, xtrain.shape[-1])}),
+                "wrapper": (
+                    TimeDistributed, {
+                        "input_shape": (None, 2, xtrain.shape[-1])
+                    },
+                ),
             },
             "MaxPooling1D": {
                 "pool_size": 2,
@@ -248,7 +264,8 @@ class Tuner:
         }
         tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
-    We see that we defined a neural network with 7 layers with the following tuning space:
+    We see that we defined a neural network with 7 layers with the following
+    tuning space:
 
     - 1D convolutional layer filters,
     - hidden LSTM number of layers,
@@ -260,9 +277,7 @@ class Tuner:
     - Adam clipvalue.
 
     Additionally, the ``Conv1D``, ``MaxPooling1D``, and ``Flatten`` layers use the
-    ``keras.layers.TimeDistributed`` wrapper to accomodate the temporal dimension.
-
-
+    ``keras.layers.TimeDistributed`` wrapper to accommodate the temporal dimension.
     """
 
     #: dict of pyMAISE.methods: Dictionary of supported models.
@@ -301,7 +316,7 @@ class Tuner:
             elif settings.values.new_nn_architecture:
                 self._models[model] = copy.deepcopy(
                     nnHyperModel
-                    if settings.values.new_nn_architecture == True
+                    if settings.values.new_nn_architecture
                     else NeuralNetsRegression
                 )(parameters=parameters)
             else:
@@ -324,7 +339,7 @@ class Tuner:
         """
         Grid search over hyperparameter space for classical models. This function
         uses `sklearn.model_selection.GridSearchCV <https://scikit-learn.org/\
-        stable/modules/generated/sklearn.model_selection.GridSearchCV.html>`_ 
+        stable/modules/generated/sklearn.model_selection.GridSearchCV.html>`_
         :cite:`scikit-learn`.
 
         Parameters
@@ -334,13 +349,13 @@ class Tuner:
             over every configuration of hyperparameter in each model dictionary. Each
             parameter is defined as a dictionary key and assigned a list.
         models: list of str or None, default=None
-            A list of model names that were defined in the initialization of 
-            :class:`pyMAISE.Tuner`. If ``None`` then all classical models are 
+            A list of model names that were defined in the initialization of
+            :class:`pyMAISE.Tuner`. If ``None`` then all classical models are
             subject to grid search.
 
 
         .. note::
-            For information on ``scoring``, ``n_jobs``, ``refit``, ``cv``, 
+            For information on ``scoring``, ``n_jobs``, ``refit``, ``cv``,
             and ``pre_dispatch`` refer to `sklearn's documentation <https://\
             scikit-learn.org/stable/modules/generated/sklearn.model_selection.\
             GridSearchCV.html>`_.
@@ -348,9 +363,10 @@ class Tuner:
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved``
-            for each model. If fewer configurations are provided than
-            ``pyMAISE.Settings.num_configs_saved`` then all are taken.
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved`` for each model. If fewer
+            configurations are provided than ``pyMAISE.Settings.num_configs_saved``
+            then all are taken.
         """
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning with grid search")
@@ -394,7 +410,7 @@ class Tuner:
             parameter is defined as a dictionary key and assigned a list or distribution
             with an ``rvs`` method.
         models: list of str or None, default=None
-            A list of model names that were defined in the initialization of 
+            A list of model names defined in the initialization of
             :class:`pyMAISE.Tuner`. If ``None`` then all classical models are subject
             to grid search.
 
@@ -408,9 +424,10 @@ class Tuner:
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved``
-            for each model. If fewer configurations are provided than 
-            ``pyMAISE.Settings.num_configs_saved`` then all are taken.
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved`` for each model. If fewer
+            configurations are provided than ``pyMAISE.Settings.num_configs_saved``
+            then all are taken.
         """
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning with random search")
@@ -462,23 +479,25 @@ class Tuner:
             or `Categorical <https://scikit-optimize.github.io/stable/modules/\
             generated/skopt.space.space.Categorical.html>`_).
         models: list of str or None, default=None
-            A list of model names that were defined in the initialization of 
+            A list of model names defined in the initialization of
             :class:`pyMAISE.Tuner`. If ``None`` then all classical models are subject
             to Bayesian search.
 
 
         .. note::
-            For information on ``scoring``, ``n_iter``, ``optimizer_kwargs``, 
-            ``fit_params``, ``n_jobs``, ``n_points``, ``refit``, ``cv``, and ``pre_dispatch``
-            refer to `skopt's documentation <https://scikit-optimize.github.io/stable/\
+            For information on ``scoring``, ``n_iter``, ``optimizer_kwargs``,
+            ``fit_params``, ``n_jobs``, ``n_points``, ``refit``, ``cv``, and
+            ``pre_dispatch`` refer to
+            `skopt's documentation <https://scikit-optimize.github.io/stable/\
             modules/generated/skopt.BayesSearchCV.html>`_.
 
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved``
-            for each model. If fewer configurations are provided than 
-            ``pyMAISE.Settings.num_configs_saved`` then all are taken.
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved`` for each model. If fewer
+            configurations are provided than ``pyMAISE.Settings.num_configs_saved``
+            then all are taken.
         """
         if settings.values.verbosity > 0:
             print("Hyper-parameter tuning with bayesian search")
@@ -524,7 +543,7 @@ class Tuner:
             The hyperparameters and models for each model type.
         """
         # Get model types if not provided
-        if models == None:
+        if models is None:
             models = list(self._models.keys())
 
         # Reshape if there is one feature
@@ -538,7 +557,7 @@ class Tuner:
 
             # Run model
             estimator = self._models[model].regressor()
-            if model_settings != None and model in model_settings:
+            if model_settings is not None and model in model_settings:
                 estimator.set_params(model_settings)
 
             resulting_model = estimator.fit(xtrain, ytrain)
@@ -552,13 +571,13 @@ class Tuner:
         return data
 
     def _run_search(self, spaces, search_method, search_kwargs, models=None):
-        if models == None:
+        if models is None:
             models = list(self._models.keys())
         models = [
             model
             for model in models
             if self.supported_classical_models.__contains__(model)
-            or settings.values.new_nn_architecture == False
+            or settings.values.new_nn_architecture is False
         ]
 
         # Reshape if there is one feature
@@ -599,7 +618,8 @@ class Tuner:
 
             else:
                 print(
-                    f"Search space was not provided for {model}, current parameters will be added"
+                    f"Search space was not provided for {model}, "
+                    + "current parameters will be added"
                 )
                 estimator = self._models[model].regressor()
                 search_data = {
@@ -631,45 +651,48 @@ class Tuner:
         shuffle=False,
     ):
         """
-        Grid search for neural networks. This function uses 
+        Grid search for neural networks. This function uses
         `keras_tuner.oracles.GridSearchOracle <https://keras.io/api/keras_tuner/\
         oracles/grid/>`_ with :class:`pyMAISE.CVTuner` for cross validation.
-        Iterate over the defined search space and return the top models for each 
+        Iterate over the defined search space and return the top models for each
         model type.
 
         Parameters
         ----------
         models: list of string or None, default=None
-            The names of the neural network models for grid search. If ``None`` then 
+            The names of the neural network models for grid search. If ``None``, then
             all neural networks are fit with grid search.
         objective: str or keras_tuner.Objective, default=None
-            The objective of the search. If the objective is a ``str`` of an 
-            sklearn.metrics then that is used as the objective. Otherwise the
-            builtin objectives within KerasTuner are used.
+            The objective of the search. If the objective is a ``str`` of a
+            sklearn.metrics, then that is used as the objective. Otherwise, the
+            built-in objectives within KerasTuner are used.
         cv: int or cross-validation generator, default=5
-            If an ``int`` then either 
+            If an ``int``, then either
             `sklearn.model_selection.StratifiedKFold <https://scikit-learn.org/\
-            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_ 
+            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_
             or `sklearn.model_selection.KFold <https://scikit-learn.org/stable/\
-            modules/generated/sklearn.model_selection.KFold.html>`_ are used depending on
-            the ``pyMAISE.Settings.problem_type`` and output data type. If the problem
-            is a classification problem and the output data is either binary or multiclass 
-            then sklearn.model_selection.StratifiedKFold is used.
+            modules/generated/sklearn.model_selection.KFold.html>`_ are used depending
+            on the ``pyMAISE.Settings.problem_type`` and output data type. If the
+            problem is a classification problem and the output data is either binary or
+            multiclass, then sklearn.model_selection.StratifiedKFold is used.
         shuffle: bool, default=False
-            Whether to shuffle the data prior to cross validation split.
+            Whether to shuffle the data before cross-validation split.
 
 
         .. note::
-            For information on ``max_trials``, ``hyperparameters``, ``allow_new_entries``,
-            ``tune_new_entries``, ``max_consecutive_failed_trials``, ``overwrite``, 
+            For information on ``max_trials``, ``hyperparameters``,
+            ``allow_new_entries``,
+            ``tune_new_entries``, ``max_consecutive_failed_trials``, ``overwrite``,
             ``directory``, and ``project_name`` refer to the
-            `KerasTuner documentation <https://keras.io/api/keras_tuner/oracles/grid/>`_.
+            `KerasTuner documentation \
+            <https://keras.io/api/keras_tuner/oracles/grid/>`_.
 
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved`` 
-            for each model. If fewer configurations are provided than 
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved``
+            for each model. If fewer configurations are provided, than
             ``pyMAISE.Settings.num_configs_saved`` then all are taken.
         """
         if settings.values.verbosity > 0:
@@ -724,36 +747,39 @@ class Tuner:
         Parameters
         ----------
         models: list of string or None, default=None
-            The names of the neural network models for random search. If ``None`` then 
+            The names of the neural network models for random search. If ``None``, then
             all neural networks are fit with random search.
         objective: str or keras_tuner.Objective, default=None
-            The objective of the search. If the objective is a ``str`` of an 
-            sklearn.metrics then that is used as the objective. Otherwise the
-            builtin objectives within KerasTuner are used.
+            The objective of the search. If the objective is a ``str`` of a
+            sklearn.metrics, then that is used as the objective. Otherwise, the
+            built-in objectives within KerasTuner are used.
         cv: int or cross-validation generator, default=5
-            If an ``int`` then either 
+            If an ``int``, then either
             `sklearn.model_selection.StratifiedKFold <https://scikit-learn.org/\
-            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_ 
+            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_
             or `sklearn.model_selection.KFold <https://scikit-learn.org/stable/\
-            modules/generated/sklearn.model_selection.KFold.html>`_ are used depending on
-            the ``pyMAISE.Settings.problem_type`` and output data type. If the problem
-            is a classification problem and the output data is either binary or multiclass 
-            then sklearn.model_selection.StratifiedKFold is used.
+            modules/generated/sklearn.model_selection.KFold.html>`_ are used depending
+            on the ``pyMAISE.Settings.problem_type`` and output data type. If the
+            problem is a classification problem and the output data is either binary or
+            multiclass, then sklearn.model_selection.StratifiedKFold is used.
         shuffle: bool, default=False
-            Whether to shuffle the data prior to cross validation split.
+            Whether to shuffle the data before cross-validation split.
 
-        
+
         .. note::
-            For information on ``max_trials``, ``hyperparameters``, ``allow_new_entries``,
-            ``tune_new_entries``, ``max_retries_per_trial``, ``max_consecutive_failed_trials``,
+            For information on ``max_trials``, ``hyperparameters``,
+            ``allow_new_entries``,
+            ``tune_new_entries``, ``max_retries_per_trial``,
+            ``max_consecutive_failed_trials``,
             ``overwrite``, ``directory``, and ``project_name`` refer to `KerasTuner\
              documentation <https://keras.io/api/keras_tuner/oracles/random/>`_.
 
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved`` 
-            for each model. If fewer configurations are provided than 
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved``
+            for each model. If fewer configurations are provided, than
             ``pyMAISE.Settings.num_configs_saved`` then all are taken.
         """
         if settings.values.verbosity > 0:
@@ -804,44 +830,48 @@ class Tuner:
         """
         Bayesian search for neural networks. This function uses
         `keras_tuner.oracles.BayesianOptimizationOracle \
-        <https://keras.io/api/keras_tuner/oracles/bayesian/>`_ with :class:`pyMAISE.CVTuner`
-        for cross validation. Iterate over sampled hyperparameter space using 
+        <https://keras.io/api/keras_tuner/oracles/bayesian/>`_ with
+        :class:`pyMAISE.CVTuner`
+        for cross-validation. Iterate over sampled hyperparameter space using
         Bayesian optimization and return the top models for each model type.
 
         Parameters
         ----------
         models: list of string or None, default=None
-            The names of the neural network models for Bayesian search. If ``None`` then 
-            all neural networks are fit with Bayesian search.
+            The names of the neural network models for Bayesian search. If ``None``,
+            then all neural networks are fit with Bayesian search.
         objective: str or keras_tuner.Objective, default=None
-            The objective of the search. If the objective is a ``str`` of an 
-            sklearn.metrics then that is used as the objective. Otherwise the
+            The objective of the search. If the objective is a ``str`` of a
+            sklearn.metrics, then that is used as the objective. Otherwise the
             builtin objectives within KerasTuner are used.
         cv: int or cross-validation generator, default=5
-            If an ``int`` then either 
+            If an ``int`` then either
             `sklearn.model_selection.StratifiedKFold <https://scikit-learn.org/\
-            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_ 
+            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_
             or `sklearn.model_selection.KFold <https://scikit-learn.org/stable/\
-            modules/generated/sklearn.model_selection.KFold.html>`_ are used depending on
+            modules/generated/sklearn.model_selection.KFold.html>`_
+            are used depending on
             the ``pyMAISE.Settings.problem_type`` and output data type. If the problem
-            is a classification problem and the output data is either binary or multiclass 
-            then sklearn.model_selection.StratifiedKFold is used.
+            is a classification problem and the output data is either binary or
+            multiclass, then sklearn.model_selection.StratifiedKFold is used.
         shuffle: bool, default=False
-            Whether to shuffle the data prior to cross validation split.
+            Whether to shuffle the data before cross-validation split.
 
 
         .. note::
-            For information on ``max_trials``, ``num_initial_points``, ``alpha``, ``beta``,
+            For information on ``max_trials``, ``num_initial_points``,
+            ``alpha``, ``beta``,
             ``hyperparameters``, ``tune_new_entries``, ``max_retries_per_trial``,
             ``max_consecutive_failed_trials``, ``overwrite``, ``directory``,
-            and ``project_name`` refer to `KerasTuner documentation <https://keras.io/api/\
-            keras_tuner/oracles/bayesian/>`_.
+            and ``project_name`` refer to `KerasTuner documentation
+            <https://keras.io/api/keras_tuner/oracles/bayesian/>`_.
 
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved`` 
-            for each model. If fewer configurations are provided than 
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved``
+            for each model. If fewer configurations are provided, than
             ``pyMAISE.Settings.num_configs_saved`` then all are taken.
         """
         if settings.values.verbosity > 0:
@@ -894,44 +924,47 @@ class Tuner:
         """
         Hyperband search for neural networks. This function uses
         `keras_tuner.oracles.HyperbandOracle <https://keras.io/api/\
-        keras_tuner/oracles/hyperband/#hyperbandoracle-class>`_ with :class:`pyMAISE.CVTuner`
+        keras_tuner/oracles/hyperband/#hyperbandoracle-class>`_ with
+        :class:`pyMAISE.CVTuner`
         for cross validation.
 
         Parameters
         ----------
         models: list of string or None, default=None
-            The names of the neural network models for grid search. If ``None`` then 
+            The names of the neural network models for grid search. If ``None``, then
             all neural networks are fit with grid search.
         objective: str or keras_tuner.Objective, default=None
-            The objective of the search. If the objective is a ``str`` of an 
+            The objective of the search. If the objective is a ``str`` of a
             sklearn.metrics then that is used as the objective. Otherwise the
             builtin objectives within KerasTuner are used.
         cv: int or cross-validation generator, default=5
-            If an ``int`` then either 
+            If an ``int``, then either
             `sklearn.model_selection.StratifiedKFold <https://scikit-learn.org/\
-            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_ 
+            stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_
             or `sklearn.model_selection.KFold <https://scikit-learn.org/stable/\
-            modules/generated/sklearn.model_selection.KFold.html>`_ are used depending on
+            modules/generated/sklearn.model_selection.KFold.html>`_ are used
+            depending on
             the ``pyMAISE.Settings.problem_type`` and output data type. If the problem
-            is a classification problem and the output data is either binary or multiclass 
-            then sklearn.model_selection.StratifiedKFold is used.
+            is a classification problem and the output data is either binary or
+            multiclass then sklearn.model_selection.StratifiedKFold is used.
         shuffle: bool, default=False
-            Whether to shuffle the data prior to cross validation split.
+            Whether to shuffle the data before cross-validation split.
 
 
         .. note::
             For information on ``max_epochs``, ``factor``, ``hyperband_iterations``,
             ``hyperparameters``, ``tune_new_entries``, ``allow_new_entries``,
             ``max_retries_per_trial``, ``max_consecutive_failed_trials``,
-            ``overwrite``, ``directory``, and ``project_name`` refer to 
+            ``overwrite``, ``directory``, and ``project_name`` refer to
             `KerasTuner documentation <https://keras.io/api/keras_tuner/oracles/\
             hyperband/#hyperbandoracle-class>`_.
 
         Returns
         -------
         data: dict of tuple(pd.DataFrame, model object)
-            The hyperparameters and models for the top ``pyMAISE.Settings.num_configs_saved`` 
-            for each model. If fewer configurations are provided than 
+            The hyperparameters and models for the top
+            ``pyMAISE.Settings.num_configs_saved``
+            for each model. If fewer configurations are provided, than
             ``pyMAISE.Settings.num_configs_saved`` then all are taken.
         """
         if settings.values.verbosity > 0:
@@ -975,7 +1008,7 @@ class Tuner:
         project_name,
     ):
         # Find all NN models if none are given by user
-        if models == None:
+        if models is None:
             models = [
                 model
                 for model in self._models.keys()
@@ -1023,7 +1056,8 @@ class Tuner:
             print("\nTop Configurations")
             for model, (top_configs, _) in data.items():
                 print(
-                    f"\n-- {model} | Training Time: {time.strftime('%T', time.gmtime(timing[model]))}"
+                    f"\n-- {model} | Training Time: "
+                    + f"{time.strftime('%T', time.gmtime(timing[model]))}"
                 )
                 for param, value in top_configs.iloc[0, 0].values.items():
                     print(f"{param}: {value}")
@@ -1031,11 +1065,12 @@ class Tuner:
         return data
 
     def _determine_kt_objective(self, objective):
-        """
-        Determine objective from sklearn and make it compatible with keras_tuner
-        """
+        """Determine objective from sklearn and make it compatible with keras_tuner."""
         if objective in ["r2_score", "accuracy_score"]:
-            return (kt.Objective(objective, direction="max"), eval(objective))
+            return (
+                kt.Objective(objective, direction="max"),
+                eval(f"{objective}"),
+            )
         elif objective in [
             "f1_score",
             "mean_absolute_error",
@@ -1043,7 +1078,10 @@ class Tuner:
             "precision_score",
             "recall_score",
         ]:
-            return (kt.Objective(objective, direction="min"), eval(objective))
+            return (
+                kt.Objective(objective, direction="min"),
+                eval(f"{objective}"),
+            )
         else:
             return (objective, None)
 
@@ -1067,13 +1105,13 @@ class Tuner:
             Axis object.
         """
         # If no models are provided fit all
-        if model_types == None:
+        if model_types is None:
             model_types = list(self._tuning.keys())
         elif isinstance(model_types, str):
             model_types = [model_types]
 
         # Make axis if not given one
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         # For each model assert the performance metrics are the same size
@@ -1109,7 +1147,7 @@ class Tuner:
     @property
     def cv_performance_data(self):
         """
-        : list of float: Cross validation performance, mean and standard deviation
+        : list of float: Cross-validation performance, mean and standard deviation
                          of the test score, for each model.
         """
         return self._tuning

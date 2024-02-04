@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
@@ -25,7 +24,8 @@ def test_nn_lstm_univariate_series():
 
     # Get univariate timeseries data (airline data)
     data = pd.read_csv(
-        "https://raw.githubusercontent.com/jbrownlee/Datasets/master/airline-passengers.csv"
+        "https://raw.githubusercontent.com/jbrownlee/"
+        + "Datasets/master/airline-passengers.csv"
     )
 
     # Define raw sequence data and pass to preprocessor

@@ -103,8 +103,8 @@ class Int(HyperParameters):
 
 class Float(HyperParameters):
     """
-    Define an floating point hyperparameter. This is used in neural network hyperparameter
-    tuning.
+    Define an floating point hyperparameter. This is used in neural network
+    hyperparameter tuning.
 
     Refer to
     `KerasTuner's documentation <https://keras.io/api/keras_tuner/hyperparameters/>`_
@@ -160,9 +160,8 @@ class Float(HyperParameters):
 
 class Choice(HyperParameters):
     """
-    Define choice hyperparameter. This is used in neural network hyperparameter
-    tuning. This can be used for string or other parameters where a range is not
-    applicable.
+    Define choice hyperparameter. This is used in neural network hyperparameter tuning.
+    This can be used for string or other parameters where a range is not applicable.
 
     Refer to
     `KerasTuner's documentation <https://keras.io/api/keras_tuner/hyperparameters/>`_
@@ -216,8 +215,7 @@ class Choice(HyperParameters):
 
 class Fixed(HyperParameters):
     """
-    Define fixed hyperparameter. This is used in neural network hyperparameter
-    tuning.
+    Define fixed hyperparameter. This is used in neural network hyperparameter tuning.
 
     Refer to
     `KerasTuner's documentation <https://keras.io/api/keras_tuner/hyperparameters/>`_

@@ -51,7 +51,7 @@ class nnHyperModel(HyperModel):
                 assert parameters[self._optimizer]
                 self._optimizer_params[self._optimizer] = parameters[self._optimizer]
         else:
-            raise RuntimeError(f"Optimizer was not given in `optimizer` key")
+            raise RuntimeError("Optimizer was not given in `optimizer` key")
 
         # Model compilation hyperparameters
         self._compilation_params = parameters["compile_params"]
@@ -147,7 +147,8 @@ class nnHyperModel(HyperModel):
             **kwargs,
         )
 
-    # Update parameters after tuning, a common use case is increasing the number of epochs
+    # Update parameters after tuning, a common use case is increasing
+    # the number of epochs
     def set_params(self, parameters: dict = None):
         if "structural_params" in parameters:
             for key, value in parameters["structural_params"].items():
@@ -177,7 +178,7 @@ class nnHyperModel(HyperModel):
         for key, value in self._layer_dict.items():
             match_idx = re.search(key, layer_name)
             if match_idx is not None and (
-                position == None or match_idx.span()[0] > position
+                position is None or match_idx.span()[0] > position
             ):
                 layer = value
                 position = match_idx.span()[0]

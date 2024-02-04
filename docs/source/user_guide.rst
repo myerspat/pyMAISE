@@ -4,13 +4,13 @@ User Guide
 
 ML generation in pyMAISE is done in five steps:
 
-1. :ref:`pyMAISE initialization <pymaise_init>`, 
+1. :ref:`pyMAISE initialization <pymaise_init>`,
 2. :ref:`preprocessing <preprocessing>`,
 3. :ref:`model initialization <model_init>`,
-4. :ref:`hyperparameter tuning <hyperparameter_tun>`, 
+4. :ref:`hyperparameter tuning <hyperparameter_tun>`,
 5. :ref:`postprocessing <postprocessing>`.
 
-Each step and their respective classes are discussed below. While this guide includes basic functionality of pyMAISE, we recommend you refer to the :doc:`pymaise_api` documentation for specifics. Additionally, for an introductory tutorial, follow the :doc:`./examples/mit_reactor` benchmark.
+Each step and their respective classes are discussed below. While this guide includes the basic functionality of pyMAISE, we recommend you refer to the :doc:`pymaise_api` documentation for specifics. Additionally, for an introductory tutorial, follow the :doc:`benchmarks/mit_reactor` benchmark.
 
 .. _pymaise_init:
 
@@ -26,21 +26,21 @@ To access pyMAISE Python, we must import the library. For functions from the :mo
    from pyMAISE.preprocessing import correlation_matrix, train_test_split, scale_data
    import pyMAISE as mai
 
-We shorten ``pyMAISE`` to ``mai`` for convenience. 
+We shorten ``pyMAISE`` to ``mai`` for convenience.
 
 Defining Global Settings
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Every pyMAISE job requires initialization of some global settings used throughout pyMAISE. These global settings and their defaults include:
+Every pyMAISE job requires the initialization of some global settings used throughout pyMAISE. These global settings and their defaults include:
 
-- ``problem_type``: the type of problem either regression or classification defined using a string or :class:`pyMAISE.ProblemType`,
+- ``problem_type``: the type of problem, either regression or classification, defined using a string or :class:`pyMAISE.ProblemType`,
 - ``verbosity = 0``: level of output from pyMAISE,
-- ``random_state = None``: the global random seed used for pseudo random algorithms in ML methods,
+- ``random_state = None``: the global random seed used for pseudo-random algorithms in ML methods,
 - ``num_configs_saved = 5``: the number of hyperparameter configurations to save for each model when tuning,
 - ``new_nn_architecture = True``: pyMAISE's neural network tuning architecture was upgraded using `KerasTuner <https://keras.io/keras_tuner/>`_ :cite:`omalley2019kerastuner`, this boolean defines which architecture you use,
 - ``cuda_visible_devices = None``: sets the ``CUDA_VISIBLE_DEVICES`` environment variable for `TensorFlow <https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars>`_ :cite:`tensorflow2015-whitepaper`.
 
-To initialize pyMAISE we define the settings using :meth:`pyMAISE.init`:
+To initialize pyMAISE, we define the settings using :meth:`pyMAISE.init`:
 
 .. code-block:: python
 
@@ -55,24 +55,24 @@ To initialize pyMAISE we define the settings using :meth:`pyMAISE.init`:
 Preprocessing
 --------------
 
-The :mod:`pyMAISE.preprocessing` offers several methods to read, split, scale, and visualize data prior to tuning.
+The :mod:`pyMAISE.preprocessing` offers several methods to read, split, scale, and visualize data before tuning.
 
 Loading Data
 ^^^^^^^^^^^^
 
-pyMAISE offers several data sets for building and testing ML models. Each of these data sets includes benchmarks in Jupyter Notebooks. These benchmarks have tested classical and neural network models to provide expected performance for common ML models. These benchmarks include
+pyMAISE offers several data sets for building and testing ML models. Each of these data sets includes benchmarks in Jupyter Notebooks. These benchmarks have tested classical and neural network models to provide the expected performance for standard ML models. These benchmarks include
 
-- :doc:`examples/mit_reactor`: effect of control blade height on fuel element power,
-- :doc:`examples/reactor_physics`: effect of cross section on :math:`k`,
-- :doc:`examples/fuel_performance`: effect of fuel parameters on pellet gas production, centerline temperature, surface temperature, and radial displacement,
-- :doc:`examples/heat_conduction`: effect of heat conduction parameters on fuel rod centerline temperature,
-- :doc:`examples/bwr`: effect of BWR core parameters on :math:`k` and peaking factors,
-- :doc:`examples/HTGR_microreactor`: effect of control drum angle on neutron flux,
-- :doc:`examples/rod_ejection`: effect of reactor kinetics parameters on max power, burst width, max fuel centerline temperature, and average coolant temperature.
+- :doc:`benchmarks/mit_reactor`: effect of control blade height on fuel element power,
+- :doc:`benchmarks/reactor_physics`: effect of cross section on :math:`k`,
+- :doc:`benchmarks/fuel_performance`: effect of fuel parameters on pellet gas production, centerline temperature, surface temperature, and radial displacement,
+- :doc:`benchmarks/heat_conduction`: effect of heat conduction parameters on fuel rod centerline temperature,
+- :doc:`benchmarks/bwr`: effect of BWR core parameters on :math:`k` and peaking factors,
+- :doc:`benchmarks/HTGR_microreactor`: effect of control drum angle on neutron flux,
+- :doc:`benchmarks/rod_ejection`: effect of reactor kinetics parameters on max power, burst width, max fuel centerline temperature, and average coolant temperature.
 
-Each of these datasets has a load function in the :mod:`pyMAISE.datasets` module. For details refer to the :doc:`pymaise_api`.
+Each data set has a load function in the :mod:`pyMAISE.datasets` module. For details, refer to the :doc:`pymaise_api`.
 
-To read your own data you can use the :meth:`pyMAISE.preprocessing.read_csv` function. For input and output data in one file, ``file.csv``:
+To read your data, you can use the :meth:`pyMAISE.preprocessing.read_csv` function. For input and output data in one file, ``file.csv``:
 
 .. code-block:: python
 
@@ -89,7 +89,7 @@ where ``x`` is the end plus one position of the inputs and ``y`` is the end plus
 Train/Test Splitting Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Using the :meth:`pyMAISE.preprocessing.train_test_split` method we can split data into training and testing data. For a split of 70% training and 30% testing we can do
+Using the :meth:`pyMAISE.preprocessing.train_test_split` method, we can split data into training and testing data. For a split of 70% training and 30% testing, we can do
 
 .. code-block:: python
 
@@ -99,7 +99,7 @@ Using the :meth:`pyMAISE.preprocessing.train_test_split` method we can split dat
 Scaling Data
 ^^^^^^^^^^^^
 
-Many ML models train best on scaled data. For min-max scaling data we can use the :meth:`pyMAISE.preprocessing.scale_data` method
+Many ML models train best on scaled data. For min-max scaling data, we can use the :meth:`pyMAISE.preprocessing.scale_data` method
 
 .. code-block:: python
 
@@ -114,7 +114,7 @@ The ``scaler`` can be anything that has ``fit_transform``, ``transform``, and ``
 Splitting Time Series Data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For time series data, the :class:`pyMAISE.preprocessing.SplitSequence` class offers to create rolling windows for 2D and 3D time seried data. For more information refer to the :doc:`pymaise_api`.
+For time series data, the :class:`pyMAISE.preprocessing.SplitSequence` class offers to create rolling windows for 2D and 3D time series data. For more information, refer to the :doc:`pymaise_api`.
 
 One-Hot Encoding
 ^^^^^^^^^^^^^^^^
@@ -134,11 +134,11 @@ To better understand the correlation between the inputs and the outputs we can p
 Model Initialization
 --------------------
 
-pyMAISE supports both classical ML methods and sequential neural networks. For a full list of supported models, neural network layers, and neural network optimizers refer to the :class:`pyMAISE.Tuner`. These models originate from `scikit-learn <https://scikit-learn.org/stable/index.html>`_ and `Keras <https://keras.io>`_. Please refer to the model documentation for each of the supported models on specifics of its algorithm. Each of these models are defined by their hyperparameters which define algorithmic parameters for training. For dictionaries for the model hyperparameters refer to :doc:`models`.
+pyMAISE supports both classical ML methods and sequential neural networks. For a complete list of supported models, neural network layers, and neural network optimizers refer to the :class:`pyMAISE.Tuner`. These models originate from `scikit-learn <https://scikit-learn.org/stable/index.html>`_ and `Keras <https://keras.io>`_. Please refer to the model documentation for each supported model on the specifics of its algorithm. Each of these models is defined by their hyperparameters, which define algorithmic parameters for training. For dictionaries for the model hyperparameters refer to :doc:`models`.
 
 .. note:: If a classical model, neural network layer, or neural network optimizer is not currently supported, submit an issue at the `pyMAISE github repository <https://github.com/myerspat/pyMAISE>`_ detailing the object you would like implemented.
 
-To initialize :class:`pyMAISE.Tuner` we define each model using a list of their keys. These keys are given in the :class:`pyMAISE.Tuner` documentation. For classical models, we define the parameters which remain constant throughout tuning. These hyperparameters are given in subdictionaries under each model key. If a subdictionary is not provided for a defined model then the default configuration is used. Here is an example for linear, lasso, and random forest:
+To initialize :class:`pyMAISE.Tuner`, we define each model using a list of their keys. These keys are given in the :class:`pyMAISE.Tuner` documentation. For classical models, we define the parameters which remain constant throughout tuning. These hyperparameters are given in subdictionaries under each model key. The default configuration is used if a subdictionary is not provided for a defined model. Here is an example of linear, lasso, and random forest:
 
 .. code-block:: python
 
@@ -151,77 +151,78 @@ To initialize :class:`pyMAISE.Tuner` we define each model using a list of their 
 
 This indicates that we change the ``"n_estimators"`` hyperparameter to 200, the rest are initialized as default.
 
-For neural networks we define both the hyperparameters that remain constant during tuning and those that change. The hyperparameters that change are set using :class:`pyMAISE.Int`, :class:`pyMAISE.Float`, :class:`pyMAISE.Choice`, :class:`pyMAISE.Boolean`, and :class:`pyMAISE.Fixed`. These hyperparameters are set within the ``"structural_params"``, ``"optimizer"``, ``"compile_params"``, and ``"fitting_params"`` keys within the models subdictionary. For each neural network layer, we can also define the ``"sublayer"``, ``"wrapper"``, and ``"num_layers"`` hyperparameters. For example here is a dense feedforward neural network:
+For neural networks, we define both the hyperparameters that remain constant during tuning and those that change. The hyperparameters that change are set using :class:`pyMAISE.Int`, :class:`pyMAISE.Float`, :class:`pyMAISE.Choice`, :class:`pyMAISE.Boolean`, and :class:`pyMAISE.Fixed`. These hyperparameters are set within the ``"structural_params"``, ``"optimizer"``, ``"compile_params"``, and ``"fitting_params"`` keys within the models subdictionary. For each neural network layer, we can also define the ``"sublayer"``, ``"wrapper"``, and ``"num_layers"`` hyperparameters. For example, here is a dense feedforward neural network:
 
 .. code-block:: python
 
    model_settings = {
-    "models": ["FNN"],
-    "FNN": {
-        "structural_params": {
-            "Dense_input": {
-                "units": mai.Int(min_value=50, max_value=400),
-                "input_dim": xtrain.shape[-1],
-                "activation": "relu",
-                "kernel_initializer": "normal",
-                "sublayer": mai.Choice(["Dropout", "None"]),
-                "Dropout": {
-                    "rate": mai.Float(min_value=0.4, max_value=0.6),
-                },
-            },
-            "Dense_hidden": {
-                "num_layers": mai.Int(min_value=0, max_value=3),
-                "units": mai.Int(min_value=25, max_value=250),
-                "activation": "relu",
-                "kernel_initializer": "normal",
-                "sublayer": mai.Choice(["Dropout_hidden", "None"]),
-                "Dropout_hidden": {
-                    "rate": mai.Float(min_value=0.4, max_value=0.6),
-                },
-            },
-            "Dense_output": {
-                "units": ytrain.shape[-1],
-                "activation": "linear",
-                "kernel_initializer": "normal",
-            },
-        },
-        "optimizer": "Adam",
-        "Adam": {
-            "learning_rate": mai.Float(min_value=1e-5, max_value=0.001),
-        },
-        "compile_params": {
-            "loss": "mean_absolute_error",
-            "metrics": ["mean_absolute_error"],
-        },
-        "fitting_params": {
-            "batch_size": mai.Choice([8, 16, 32]),
-            "epochs": 50,
-            "validation_split": 0.15,
-        },
-    },
-}
+       "models": ["FNN"],
+       "FNN": {
+           "structural_params": {
+               "Dense_input": {
+                   "units": mai.Int(min_value=50, max_value=400),
+                   "input_dim": xtrain.shape[-1],
+                   "activation": "relu",
+                   "kernel_initializer": "normal",
+                   "sublayer": mai.Choice(["Dropout", "None"]),
+                   "Dropout": {
+                       "rate": mai.Float(min_value=0.4, max_value=0.6),
+                   },
+               },
+               "Dense_hidden": {
+                   "num_layers": mai.Int(min_value=0, max_value=3),
+                   "units": mai.Int(min_value=25, max_value=250),
+                   "activation": "relu",
+                   "kernel_initializer": "normal",
+                   "sublayer": mai.Choice(["Dropout_hidden", "None"]),
+                   "Dropout_hidden": {
+                       "rate": mai.Float(min_value=0.4, max_value=0.6),
+                   },
+               },
+               "Dense_output": {
+                   "units": ytrain.shape[-1],
+                   "activation": "linear",
+                   "kernel_initializer": "normal",
+               },
+           },
+           "optimizer": "Adam",
+           "Adam": {
+               "learning_rate": mai.Float(min_value=1e-5, max_value=0.001),
+           },
+           "compile_params": {
+               "loss": "mean_absolute_error",
+               "metrics": ["mean_absolute_error"],
+           },
+           "fitting_params": {
+               "batch_size": mai.Choice([8, 16, 32]),
+               "epochs": 50,
+               "validation_split": 0.15,
+           },
+       },
+   }
 
 .. caution:: The layers within ``"structural_params"`` must be named differently with their keyword present. For example, ``"Dense_input"``, ``"Dense_hidden"``, ``"Dense_output"``. Here ``"Dense"`` is the keyword pyMAISE needs.
 
-With this dictionary of models and parameters we initialize the :class:`pyMAISE.Tuner`:
+With this dictionary of models and parameters, we initialize the :class:`pyMAISE.Tuner`:
 
 .. code-block:: python
 
    tuner = mai.Tuner(xtrain, ytrain, model_settings=model_settings)
 
 .. _hyperparameter_tun:
+
 ----------------------
 Hyperparameter Tuning
 ----------------------
 
-With all the models of interest initialized in the :class:`pyMAISE.Tuner`, we can begin hyperparameter tuning. pyMAISE supports three types of search methods for classical models (grid, random, and Bayesian search) and four types of search methods for neural networks (grid, random, Bayesian, and hyperband search). For the classical model methods we define the search space using the array, distribution or `skopt.space.space <https://scikit-optimize.github.io/stable/modules/classes.html#module-skopt.space.space>`_ for each hyperparameter we want to tune. For neural networks we do not need to redefine the search space. For specifics on the methods and their arguments refer to the :doc:`pymaise_api`.
+With all the models of interest initialized in the :class:`pyMAISE.Tuner`, we can begin hyperparameter tuning. pyMAISE supports three types of search methods for classical models (grid, random, and Bayesian search) and four types for neural networks (grid, random, Bayesian, and hyperband search). For the classical model methods we define the search space using the array, distribution or `skopt.space.space <https://scikit-optimize.github.io/stable/modules/classes.html#module-skopt.space.space>`_ for each hyperparameter we want to tune. For neural networks, we do not need to redefine the search space. For specifics on the methods and their arguments, refer to the :doc:`pymaise_api`.
 
-All methods include a ``cv`` argument which defines the cross validation used during tuning. If an integer is given then the data set is either split with `sklearn.model_selection.KFold <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold>`_ or `sklearn.model_selection.StratifiedKFold <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_ depending on the data set's target type. We can also pass any cross validation callable that includes a ``split`` method.
+All methods include a ``cv`` argument, which defines the cross-validation used during tuning. If an integer is given, then the data set is either split with `sklearn.model_selection.KFold <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold>`_ or `sklearn.model_selection.StratifiedKFold <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html>`_ depending on the data set's target type. We can also pass any cross-validation callable that includes a ``split`` method.
 
 Grid Search with Classical Models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Grid search evaluates all possible combinations of a given parameter space. To define the parameter search space for classical models we define a dictionary of Numpy arrays or lists for each parameter of interest. For the classical models defined in the above section we can define
+Grid search evaluates all possible combinations of a given parameter space. To define the parameter search space for classical models we define a dictionary of Numpy arrays or lists for each parameter of interest. For the classical models defined in the above section, we can define
 
 .. code-block:: python
 
@@ -240,12 +241,12 @@ This dictionary is then passed to the grid search tuning function:
       param_spaces=grid_search_spaces,
    )
 
-Which will run the grid search. Notice that a ``Linear`` search space was not defined; in this case the model's parameters are returned for postprocessing and no tuning takes place.
+Which will run the grid search. Notice that a ``Linear`` search space was not defined; in this case, the model's parameters are returned for postprocessing, and no tuning takes place.
 
 Random Search with Classical Models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Random search evaluates the hyperparameter configurations sampled from distributions. These distributions can be a list or a callable with an ``rvs`` method. In the pyMAISE Jupyter Notebooks we use the distributions from `scipy.stats <https://docs.scipy.org/doc/scipy/reference/stats.html>`_. For example, for linear, lasso, and random forest we can do
+Random search evaluates the hyperparameter configurations sampled from distributions. These distributions can be a list or a callable with an ``rvs`` method. In the pyMAISE Jupyter Notebooks, we use the distributions from `scipy.stats <https://docs.scipy.org/doc/scipy/reference/stats.html>`_. For example, for linear, lasso, and random forest we can do
 
 .. code-block:: python
 
@@ -298,7 +299,7 @@ We can then pass this to :meth:`pyMAISE.Tuner.bayesian_search`:
       n_iter=50,
    )
 
-where we pass the parameter spaces, the number of iterations, and other parameters. Bayesian search will then sample between the limits defined in ``bayesian_search_spaces``. 
+where we pass the parameter spaces, the number of iterations, and other parameters. Bayesian search will then sample between the limits defined in ``bayesian_search_spaces``.
 
 Convergence Plots
 ^^^^^^^^^^^^^^^^^
@@ -318,13 +319,13 @@ Postprocessing
 With our top :attr:`pyMAISE.Settings.num_configs_saved` models we can pass these to the ``PostProcessor`` class for model comparison and testing. To do so we provide the scaled data, configuration(s), and the yscaler:
 
 .. code-block:: python
-  
+
    postprocessor = mai.PostProcessor(
       data=(xtrain, xtest, ytrain, ytest),
       models_list=[random_search_configs, bayesian_search_configs],
       yscaler=yscaler
    )
-   
+
 Additionally, we can pass a dictionary similar to ``model_settings`` of updated model settings to the ``new_model_settings`` parameter such as an increase in epochs for the final neural network models. With our :class:`pyMAISE.PostProcessor` initialized we can begin evaluating our models.
 
 Performance Metrics
@@ -344,7 +345,7 @@ for regression problems where :math:`y` is the actual outcome, :math:`\hat{y}` i
 - precision: :math:`\text{Precision} = \frac{\text{True positives}}{\text{True positives} + \text{False positives}}`,
 - F1: :math:`\text{F1} = 2\frac{\text{Precision}\times\text{Recall}}{\text{Precision} + \text{Recall}}`,
 
-Additionally, we can supply our own metrics to the ``metrics`` as callables. We can choose how the DataFrame is sorted, whether the features are averaged or only the metrics for one feature is computed, and which models to show. With this information we can compare the performance of each of our models on our data set.
+Additionally, we can supply our own metrics to the ``metrics`` as callables. We can choose how the DataFrame is sorted, whether the features are averaged or only the metrics for one feature are computed, and which models to show. With this information, we can compare the performance of each of our models on our data set.
 
 Performance Visualized
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -361,3 +362,9 @@ Finally, the :class:`pyMAISE.PostProcessor` is equipped with several additional 
 - :meth:`pyMAISE.PostProcessor.get_params`: get the parameter configurations from a specific model,
 - :meth:`pyMAISE.PostProcessor.get_model`: get the model wrapper,
 - :meth:`pyMAISE.PostProcessor.get_predictions`: get the training and testing predictions from a specific model.
+
+---------------
+pyMAISE Testing
+---------------
+
+pyMAISE includes a regression and unit testing suite that is run with each push to the repository. These tests ensure the functionality and validity of the results generated with pyMAISE. Regression tests include performance metric checks based on benchmarked scripts. These scripts are provided in the ``scripts`` directory within pyMAISE.

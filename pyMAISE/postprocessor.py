@@ -18,14 +18,13 @@ from sklearn.metrics import (
 )
 
 import pyMAISE.settings as settings
-from pyMAISE.methods import *
 from pyMAISE.tuner import Tuner
 from pyMAISE.utils.cvtuner import determine_class_from_probabilities
 
 
 class PostProcessor:
     """
-    Assess the performance of the top performing models.
+    Assess the performance of the top-performing models.
 
     Parameters
     ----------
@@ -38,9 +37,9 @@ class PostProcessor:
     yscaler: callable or None, default=None
         An object with an ``inverse_transform`` method such as
         `min-max scaler from sklearn <https://scikit-learn.org/stable/\
-        modules/generated/sklearn.preprocessing.MinMaxScaler.html>`_ 
-        :cite:`scikit-learn`. This should have been fit using 
-        :meth:`pyMAISE.preprocessing.scale_data` prior to hyperparameter
+        modules/generated/sklearn.preprocessing.MinMaxScaler.html>`_
+        :cite:`scikit-learn`. This should have been fit using
+        :meth:`pyMAISE.preprocessing.scale_data` before hyperparameter
         tuning. If ``None`` then scaling is not undone.
     """
 
@@ -74,7 +73,7 @@ class PostProcessor:
 
                 # Get all model wrappers and update parameter configurations if needed
                 estimator = configs[1]
-                if new_model_settings != None and model in new_model_settings:
+                if new_model_settings is not None and model in new_model_settings:
                     if (
                         model in Tuner.supported_classical_models
                         or not settings.values.new_nn_architecture
@@ -103,7 +102,7 @@ class PostProcessor:
 
         # Scale predicted data if scaler is given
         self._yscaler = yscaler
-        if self._yscaler != None:
+        if self._yscaler is not None:
             for i in range(len(yhat_train)):
                 yhat_train[i] = self._yscaler.inverse_transform(yhat_train[i])
                 yhat_test[i] = self._yscaler.inverse_transform(yhat_test[i])
@@ -126,10 +125,8 @@ class PostProcessor:
     # ===========================================================
     # Methods
     def _fit(self):
-        """
-        Fit all models with training data and predict both training and testing
-        data.
-        """
+        """Fit all models with training data and predict both training and testing
+        data."""
         # Array for trainig and testing prediceted outcomes
         yhat_train = []
         yhat_test = []
@@ -218,10 +215,11 @@ class PostProcessor:
         self, y=None, model_type=None, metrics=None, sort_by=None, direction=None
     ):
         """
-        Calculate model performance of predicting output training and testing data. Default
-        metrics are always evaluated depending on the :attr:`pyMAISE.Settings.problem_type`.
-        For :attr:`pyMAISE.ProblemType.REGRESSION` problems the default metrics are
-        from :cite:`scikit-learn` and include:
+        Calculate model performance of predicting output training and testing data.
+        Default metrics are always evaluated depending on the
+        :attr:`pyMAISE.Settings.problem_type`. For
+        :attr:`pyMAISE.ProblemType.REGRESSION` problems, the default metrics are from
+        :cite:`scikit-learn` and include:
 
         - ``R2``: `r-squared <https://scikit-learn.org/stable/modules/generated/\
           sklearn.metrics.r2_score.html#sklearn.metrics.r2_score>`_,
@@ -231,17 +229,19 @@ class PostProcessor:
         - ``MSE``: `mean squared error <https://scikit-learn.org/stable/\
           modules/generated/sklearn.metrics.mean_squared_error.html#sklearn.metrics.\
           mean_squared_error>`_,
-        - ``RMSE``: root mean squared error which is the square
+        - ``RMSE``: root mean squared error, the square
           root of ``mean_squared_error``.
 
-        For :attr:`pyMAISE.ProblemType.CLASSIFICATION` problems the default metrics are
+        For :attr:`pyMAISE.ProblemType.CLASSIFICATION` problems, the default metrics are
 
         - ``Accuracy``: `accuracy <https://scikit-learn.org/stable/modules/\
-          generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score>`_,
+          generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_\
+          score>`_,
         - ``Recall``: `recall <https://scikit-learn.org/stable/modules/generated/\
           sklearn.metrics.recall_score.html#sklearn.metrics.recall_score>`_,
         - ``Precision``: `precision <https://scikit-learn.org/stable/modules/\
-          generated/sklearn.metrics.precision_score.html#sklearn.metrics.precision_score>`_,
+          generated/sklearn.metrics.precision_score.html#sklearn.metrics.precision_\
+          score>`_,
         - ``F1``: `f1 <https://scikit-learn.org/stable/modules/generated/sklearn.\
           metrics.f1_score.html#sklearn.metrics.f1_score>`_.
 
@@ -250,22 +250,25 @@ class PostProcessor:
         Parameters
         ----------
         y: int, str, or None, default=None
-            The output to determine performance for. If ``None`` then all outputs are used.
+            The output to determine performance. If ``None`` then all outputs
+            are used.
         model_type: str or None, default=None
-            Determine the performance of this model. If ``None`` then all models are evaluated.
+            Determine the performance of this model. If ``None`` then all models are
+            evaluated.
         metrics: dict of callable or None, default=None
-            Dictionary of callable metrics such as `sklearn's metrics <https://scikit-learn.org/\
-            stable/modules/model_evaluation.html>`_ other than those already default to this
-            method. Must take two arguments: ``(y_true, y_pred)``. The key is used as the name
-            in ``performance_data``.
+            Dictionary of callable metrics such as `sklearn's metrics <https://scikit-\
+            learn.org/stable/modules/model_evaluation.html>`_ other than those already
+            default to this method. Must take two arguments: ``(y_true, y_pred)``. The
+            key is used as the name in ``performance_data``.
         sort_by: str or None, default=None
-            The metric to sort the return by. This should differentiate training and testing.
-            For example, we can sort by ``testing mean_squared_error``. If ``None`` then
-            the default is ``test r2_score`` for :attr:`pyMAISE.ProblemType.REGRESSION`
-            and ``test accuracy_score`` for :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
+            The metric to sort the return by. This should differentiate training
+            and testing. For example, we can sort by ``testing mean_squared_error``.
+            If ``None`` then the default is ``test r2_score`` for
+            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score``
+            for :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: `min`, `max`, or None
-            Direction to ``sort_by``. Only required if a metric is defined in ``metrics``
-            that you want to sort the return by.
+            Direction to ``sort_by``. Only required if a metric is defined in
+            ``metrics`` that you want to sort the return by.
 
         Returns
         -------
@@ -289,27 +292,31 @@ class PostProcessor:
 
         # Get the list of y if not provided
         num_outputs = self._ytrain.shape[-1]
-        if y == None:
+        if y is None:
             y = slice(0, num_outputs + 1)
         elif isinstance(y, str):
             y = np.where(self._ytrain.coords[self._ytrain.dims[-1]].to_numpy() == y)[0]
 
         # Scale training and testing output
         y_true = {
-            "Train": self._ytrain.values.reshape(-1, num_outputs)[:, y]
-            if self._yscaler == None
-            else self._yscaler.inverse_transform(
-                self._ytrain.values.reshape(-1, num_outputs)
-            )[:, y],
-            "Test": self._ytest.values.reshape(-1, num_outputs)
-            if self._yscaler == None
-            else self._yscaler.inverse_transform(
+            "Train": (
+                self._ytrain.values.reshape(-1, num_outputs)[:, y]
+                if self._yscaler is None
+                else self._yscaler.inverse_transform(
+                    self._ytrain.values.reshape(-1, num_outputs)
+                )[:, y]
+            ),
+            "Test": (
                 self._ytest.values.reshape(-1, num_outputs)
-            )[:, y],
+                if self._yscaler is None
+                else self._yscaler.inverse_transform(
+                    self._ytest.values.reshape(-1, num_outputs)
+                )[:, y]
+            ),
         }
 
         # Get all metrics functions
-        metrics = metrics if metrics != None else {}
+        metrics = metrics if metrics is not None else {}
         if settings.values.problem_type == settings.ProblemType.REGRESSION:
             metrics = {
                 "R2": r2_score,
@@ -343,11 +350,11 @@ class PostProcessor:
                     )
 
         # Determine sort_by depending on problem
-        sort_by = f"Test {next(iter(metrics))}" if sort_by == None else sort_by
+        sort_by = f"Test {next(iter(metrics))}" if sort_by is None else sort_by
 
         ascending = (
-            not sort_by
-            in (
+            sort_by
+            not in (
                 "Train R2",
                 "Test R2",
                 "Train Accuracy",
@@ -376,7 +383,7 @@ class PostProcessor:
 
         models["Parameter Configurations"] = hyperparams
 
-        if model_type == None:
+        if model_type is None:
             return models.sort_values(sort_by, ascending=[ascending])
         else:
             return models[models["Model Types"] == model_type].sort_values(
@@ -386,10 +393,8 @@ class PostProcessor:
     def _get_idx(
         self, idx=None, model_type=None, sort_by=None, direction=None, nns_only=False
     ):
-        """
-        Get index of model in ``pandas.DataFrame`` based on model type and
-        sort_by condition.
-        """
+        """Get index of model in ``pandas.DataFrame`` based on model type and sort_by
+        condition."""
         filter = self._models["Model Types"].unique()
         if model_type is not None:
             if not self._models["Model Types"].str.contains(model_type).any():
@@ -407,9 +412,10 @@ class PostProcessor:
                 sort_by = "Test Accuracy"
 
         # Determine the index of the model in the DataFrame
-        if idx == None:
-            if model_type != None:
-                # If an index is not given but a model type is, get index based on sort_by
+        if idx is None:
+            if model_type is not None:
+                # If an index is not given but a model type is, get index
+                # based on sort_by
                 if (
                     sort_by
                     in (
@@ -428,8 +434,8 @@ class PostProcessor:
                         sort_by
                     ].idxmin()
             else:
-                # If an index is not given and the model type is not given, return index
-                # of best in sort_by
+                # If an index is not given and the model type is not given,
+                # return index of best in sort_by
                 if (
                     sort_by
                     in (
@@ -452,27 +458,31 @@ class PostProcessor:
 
     def get_predictions(self, idx=None, model_type=None, sort_by=None, direction=None):
         """
-        Get a models training and testing predictions.
+        Get a model's training and testing predictions.
 
         Parameters
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
         yhat: tuple of numpy.array
-            The predicted training and testing data given as ``(train_yhat, test_yhat)``.
+            The predicted training and testing data given as
+            ``(train_yhat, test_yhat)``.
         """
         # Determine the index of the model in the DataFrame
         idx = self._get_idx(
@@ -489,16 +499,19 @@ class PostProcessor:
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
@@ -523,23 +536,25 @@ class PostProcessor:
 
     def get_model(self, idx=None, model_type=None, sort_by=None, direction=None):
         """
-        Get a model. The model with the chosen hyperparameters is refit and
-        returned.
+        Get a model. The model with the chosen hyperparameters is refit and returned.
 
         Parameters
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
@@ -597,21 +612,24 @@ class PostProcessor:
         Parameters
         ----------
         ax: matplotlib.pyplot.axis or None, default=None
-            If not given then an axis is created.
+            If not given, then an axis is created.
         y: single or list of int or str or None, default=None
             The output to plot. If ``None`` then all outputs are plotted.
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
@@ -625,15 +643,15 @@ class PostProcessor:
 
         # Get the list of y if not provided
         if not isinstance(y, list):
-            y = [y] if y != None else list(range(self._ytrain.shape[-1]))
+            y = [y] if y is not None else list(range(self._ytrain.shape[-1]))
 
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         ytrain = self._ytrain.values
         ytest = self._ytest.values
 
-        if self._yscaler != None:
+        if self._yscaler is not None:
             ytrain = self._yscaler.inverse_transform(
                 ytrain.reshape(-1, ytrain.shape[-1])
             )
@@ -688,21 +706,24 @@ class PostProcessor:
         Parameters
         ----------
         ax: matplotlib.pyplot.axis or None, default=None
-            If not given then an axis is created.
+            If not given, then an axis is created.
         y: single or list of int or str or None, default=None
             The output to plot. If ``None`` then all outputs are plotted.
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
@@ -716,16 +737,16 @@ class PostProcessor:
 
         # Get the list of y if not provided
         if not isinstance(y, list):
-            y = [y] if y != None else list(range(self._ytrain.shape[-1]))
+            y = [y] if y is not None else list(range(self._ytrain.shape[-1]))
 
         # Get prediected and actual outputs
         ytest = self._ytest.values
         yhat_test = self._models["Test Yhat"][idx]
 
-        if self._yscaler != None:
+        if self._yscaler is not None:
             ytest = self._yscaler.inverse_transform(ytest.reshape(-1, ytest.shape[-1]))
 
-        if ax == None:
+        if ax is None:
             ax = plt.gca()
 
         for y_idx in y:
@@ -763,16 +784,19 @@ class PostProcessor:
             If not given then an axis is created.
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
@@ -815,16 +839,19 @@ class PostProcessor:
         ----------
         idx: int or None, default=None
             The index in the :meth:`pyMAISE.PostProcessor.metrics` pandas.DataFrame.
-            If ``None`` then ``sort_by`` is used.
+            If ``None``, then ``sort_by`` is used.
         model_type: str or None, default=None
-            The model name to get. Will get the best model predictions based on ``sort_by``.
+            The model name to get. Will get the best model predictions based on
+            ``sort_by``.
         sort_by: str or None, detault=None
-            The metric to sort the pandas.DataFrame from :meth:`pyMAISE.PostProcessor.metrics`
-            by. If ``None`` then ``test r2_score`` is used for
-            :attr:`pyMAISE.ProblemType.REGRESSION` and ``test accuracy_score`` is used for
+            The metric to sort the pandas.DataFrame from
+            :meth:`pyMAISE.PostProcessor.metrics` by. If ``None`` then
+            ``test r2_score`` is used for :attr:`pyMAISE.ProblemType.REGRESSION`
+            and ``test accuracy_score`` is used for
             :attr:`pyMAISE.ProblemType.CLASSIFICATION`.
         direction: 'min', 'max', or None, default=None
-            The direction to ``sort_by``. Only required if ``sort_by`` is not a default metric.
+            The direction to ``sort_by``. It is only required if ``sort_by`` is not
+            a default metric.
 
         Returns
         -------
@@ -843,7 +870,7 @@ class PostProcessor:
         ytrain = self._ytrain.values
         ytest = self._ytest.values
 
-        if self._yscaler != None:
+        if self._yscaler is not None:
             ytrain = self._yscaler.inverse_transform(
                 ytrain.reshape(-1, ytrain.shape[-1])
             )

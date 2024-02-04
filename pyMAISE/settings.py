@@ -8,9 +8,7 @@ import tensorflow as tf
 
 
 class ProblemType(Enum):
-    """
-    Enum to define the problem type.
-    """
+    """Enum to define the problem type."""
 
     #: pyMAISE.ProblemType: Set for a regression problem.
     REGRESSION = 0
@@ -58,7 +56,7 @@ class Settings:
             warnings.simplefilter(action="ignore", category=Warning)
             warnings.simplefilter(action="ignore", category=FutureWarning)
 
-        if self._random_state != None:
+        if self._random_state is not None:
             os.environ["PYTHONHASHSEED"] = str(self._random_state)
             random.seed(self._random_state)
             np.random.seed(self._random_state)
@@ -114,7 +112,7 @@ class Settings:
 
     @random_state.setter
     def random_state(self, random_state: int):
-        assert random_state == None or random_state >= 0
+        assert random_state is None or random_state >= 0
         self._random_state = random_state
 
     @num_configs_saved.setter

@@ -213,10 +213,11 @@ Classification
    }
 
 .. _nn_templates:
+
 ------------------------
 Neural Network Templates
 ------------------------
-   
+
 Layers
 ^^^^^^
 
@@ -279,7 +280,7 @@ Layers
 **GRU**
 
 .. code-block:: python
-   
+
    "GRU": {
        "units": ,
        "activation": "tanh",
@@ -309,7 +310,7 @@ Layers
 **Conv1D**
 
 .. code-block:: python
-   
+
    "Conv1D": {
        "filters": ,
        "kernel_size": ,
@@ -332,7 +333,7 @@ Layers
 **Conv2D**
 
 .. code-block:: python
-   
+
    "Conv2D": {
        "filters": ,
        "kernel_size": ,
@@ -356,7 +357,7 @@ Layers
 **Conv3D**
 
 .. code-block:: python
-   
+
    "Conv3D": {
        "filters": ,
        "kernel_size": ,
@@ -424,7 +425,7 @@ Layers
    "Reshape": {
        "target_shape": None,
    }
-   
+
 Optimizers
 ^^^^^^^^^^
 
@@ -475,7 +476,7 @@ Optimizers
        "epsilon": 1e-07,
        "amsgrad": False,
        "weight_decay": None,
-       "clipnorm": None, 
+       "clipnorm": None,
        "clipvalue": None,
        "global_clipnorm": None,
        "use_ema": False,
@@ -494,7 +495,7 @@ Optimizers
        "beta_2": 0.999,
        "epsilon": 1e-07,
        "amsgrad": False,
-       "clipnorm": None, 
+       "clipnorm": None,
        "clipvalue": None,
        "global_clipnorm": None,
        "use_ema": False,

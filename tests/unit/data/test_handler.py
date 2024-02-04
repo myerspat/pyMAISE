@@ -1,5 +1,3 @@
-import numpy as np
-import pytest
 import xarray as xr
 
 import pyMAISE as mai

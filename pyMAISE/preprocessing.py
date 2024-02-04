@@ -1,5 +1,3 @@
-import copy
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -16,8 +14,8 @@ def read_csv(
     header="infer",
 ):
     """
-    Read comma-separated values (csv) file into ``xarray.DataArray``. This is
-    used for an entire data set and/or its inputs and outputs.
+    Read comma-separated values (csv) file into ``xarray.DataArray``. This is used for
+    an entire data set and/or its inputs and outputs.
 
     Parameters
     ----------
@@ -48,8 +46,8 @@ def read_csv(
         is given and ``input_slice`` and ``output_slice`` is none then only
         ``data`` is returned.
     outputs : xarray.DataArray
-        The output data produced in the same fassion as ``inputs`` using 
-        ``output_slice``. If a list of file paths are given for ``data`` then this
+        The output data is produced in the same fashion as ``inputs`` using
+        ``output_slice``. If a list of file paths is given for ``data`` then this
         corresponds to the second.
     """
     if settings.values.verbosity > 0:
@@ -144,45 +142,46 @@ def one_hot_encode(data, **kwargs):
 class SplitSequence:
     """
     Split sequence function for rolling windows of time series data. Using a rolling
-    windows, 2D time series data of dimensions (time steps, features) is split according
-    to the features defined in ``sequence_inputs``, ``sequence_outputs``, and the windows
-    width and positional information. This results in a 3D input data set and 2D or 3D
-    output data set.
+    windows, 2D-time series data of dimensions (time steps, features) is split according
+    to the features defined in ``sequence_inputs``, ``sequence_outputs``, and the
+    windows width and positional information. This results in a 3D input data set and a
+    2D or 3D output data set.
 
-    If the data set is 3D then rolling windows is applied to the sequences specified in
-    ``sequence_inputs`` and ``sequence_outputs`` resulting in a 4D array. The features
-    and windows (last two dimensions) are combined to create a 3D data set. Features without
-    rolling windows are specified in ``feature_inputs`` and ``feature_outputs`` and are
-    concatenated to get 3D input and output ``xarray.DataArray`` objects.
+    If the data set is 3D, then rolling windows are applied to the sequences specified
+    in ``sequence_inputs`` and ``sequence_outputs`` resulting in a 4D array. The
+    features and windows (the last two dimensions) are combined to create a 3D data set.
+    Features without rolling windows are specified in ``feature_inputs`` and
+    ``feature_outputs`` and are concatenated to get 3D input and output
+    ``xarray.DataArray`` objects.
 
     Parameters
     ----------
     input_steps: int
-        The size of the window or number of time steps to take for each input sample.
+        The window size or number of time steps for each input sample.
     output_steps: int
-        The size of the window or number of time steps to take for each output sample.
+        The window size or number of time steps for each output sample.
     output_position: int
         The position to start the output window relative to the position of the final
         time step in the input window. If the last time step in the input window is
-        at index 5 and ``output_position=1``, then the output window begins at index
-        6.
+        at index five and ``output_position=1``, then the output window begins at index
+        six.
     sequence_inputs: None or array/list of int or str
-        Corresponds to the features (last dimension of ``data``) that are taken for inputs.
-        If ``None`` then the entire data set is used for inputs.
+        Corresponds to the features (last dimension of ``data``) taken
+        for inputs. If ``None`` then the entire data set is used for inputs.
     sequence_outputs: None or array/list of int or str
-        Corresponds to the labels (last dimension of ``data``) that are taken for outputs.
-        If ``None`` then the entire data set is used for outputs.
+        Corresponds to the labels (last dimension of ``data``) that are taken for
+        outputs. If ``None`` then the entire data set is used for outputs.
     const_inputs: None or array/list of int or str
-        The features that are concatenated to the input windows that are not used in rolling
-        windows. This is only used when ``data`` is 3D.
+        The features concatenated to the input windows that are not used in
+        rolling windows. This is only used when ``data`` is 3D.
     const_outputs: None or array/list of int or str
-        The labels that are concatenated to the output windows that are not used in rolling
-        windows. This is only used when ``data`` is 3D.
+        The labels concatenated to the input windows that are not used in
+        rolling windows. This is only used when ``data`` is 3D.
 
     Examples
     --------
 
-    Using the 2D LOCA data set we demonstrate rolling windows on the
+    Using the 2D LOCA data set, we demonstrate rolling windows on the
     perturbed data.
 
     >>> from pyMAISE import datasets, preprocessing
@@ -195,7 +194,12 @@ class SplitSequence:
             "Water Level",
             "Break Flow Rate"
         ]
-    >>> split_sequences = preprocessing.SplitSequence(4, 1, 1, sequence_outputs=sequence_outputs)
+    >>> split_sequences = preprocessing.SplitSequence(
+            4,
+            1,
+            1,
+            sequence_outputs=sequence_outputs
+        )
     >>> perturbed_input, perturbed_output = split_sequences.split(perturbed)
     >>> perturbed_input.shape
     (1599996, 4, 44)
@@ -244,12 +248,13 @@ class SplitSequence:
         ----------
         data: xarray.DataArray
             A data set that includes both input and output sequence data.
-            This data can be either 2 or 3 dimensional.
+            This data can be either 2 or 3-dimensional.
 
         Returns
         -------
         split_input : xarray.DataArray
-            The 3D data set of input data with dimensions (samples, time steps, features).
+            The 3D data set of input data with dimensions (samples, time steps,
+            features).
         split_output : xarray.DataArray
             The 3D or 2D data set of output data with either dimensions
             (samples, time steps, labels) or (samples, labels). If ``output_steps=1``
@@ -418,7 +423,7 @@ def train_test_split(
     Parameters
     ----------
     data: xarray.DataArray or list of 2 xarray.DataArray[s]
-        Data to be split. Assumes the first dimension is the samples dimension.
+        Data to be split. Assumes the first dimension is the sample dimension.
     test_size: float between 0 and 1
         Percentage of the data used for testing.
 
@@ -468,7 +473,7 @@ def scale_data(train_data, test_data, scaler):
     scaler: callable
         An object with ``fit_transform`` and ``transform`` methods such as
         `min-max scaler from sklearn <https://scikit-learn.org/stable/\
-        modules/generated/sklearn.preprocessing.MinMaxScaler.html>`_ 
+        modules/generated/sklearn.preprocessing.MinMaxScaler.html>`_
         :cite:`scikit-learn`.
 
     Returns
@@ -478,7 +483,7 @@ def scale_data(train_data, test_data, scaler):
     test_data: xarray.DataArray
         Scaled testing data based on ``scaler`` fit on ``train_data``.
     scaler: callable
-        The scaler given fit and used to scale the given data.
+        The scaler given, fit and used to scale the given data.
     """
     # Check that our train_data and test_data are xarray.DataArray[s]
     if not (
@@ -517,7 +522,7 @@ def correlation_matrix(
     """
     Create a correlation matrix for a data set. This function uses
     `pandas.DataFrame.corr <https://pandas.pydata.org/pandas-docs/stable/\
-    reference/api/pandas.DataFrame.corr.html>`_ :cite:`mckinney2010data`, 
+    reference/api/pandas.DataFrame.corr.html>`_ :cite:`mckinney2010data`,
     for ``method`` and ``min_periods`` please refer to their documentation.
 
     Parameters
@@ -544,7 +549,7 @@ def correlation_matrix(
     corr = data.to_dataset(dim=data.dims[-1]).to_dataframe().corr(method, min_periods)
 
     # Get figure and axis object if not provided
-    if ax == None and fig == None:
+    if ax is None and fig is None:
         fig, ax = plt.subplots()
 
     # Create heatmap

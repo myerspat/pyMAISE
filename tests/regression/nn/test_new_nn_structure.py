@@ -1,4 +1,3 @@
-import pytest
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MinMaxScaler
 
@@ -55,7 +54,7 @@ def test_new_nn_structure():
                 "start_activation": "relu",
                 "input_dim": xtrain.shape[1],  # Number of inputs
                 # Middle Layers
-                "mid_num_node_strategy": "constant",  # Middle layer nodes vary linearly from 'start_num_nodes' to 'end_num_nodes'
+                "mid_num_node_strategy": "constant",
                 "mid_kernel_initializer": "normal",
                 "mid_activation": "relu",
                 # Ending Layer
