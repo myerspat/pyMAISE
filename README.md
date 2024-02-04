@@ -32,12 +32,12 @@ Refer to the [installation guide](https://pymaise.readthedocs.io/en/latest/insta
 
 ## Benchmark Jupyter Notebooks
 
-You can find the pyMAISE benchmarks [here](https://pymaise.readthedocs.io/en/latest/examples/index.html) or below.
+You can find the pyMAISE benchmarks [here](https://pymaise.readthedocs.io/en/latest/benchmarks.html) or below.
 
-- [MIT Reactor](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/mit_reactor.ipynb)
-- [Reactor Physics](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/reactor_physics.ipynb)
-- [Fuel Performance](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/fuel_performance.ipynb)
-- [Heat Conduction](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/heat_conduction.ipynb)
-- [BWR Micro Core](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/bwr.ipynb)
-- [HTGR Micro-Core Quadrant Power](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/HTGR_microreactor.ipynb)
-- [NEACRP C1 Rod Ejection Accident](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/examples/rod_ejection.ipynb)
+- [MIT Reactor](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/mit_reactor.ipynb)
+- [Reactor Physics](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/reactor_physics.ipynb)
+- [Fuel Performance](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/fuel_performance.ipynb)
+- [Heat Conduction](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/heat_conduction.ipynb)
+- [BWR Micro Core](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/bwr.ipynb)
+- [HTGR Micro-Core Quadrant Power](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/HTGR_microreactor.ipynb)
+- [NEACRP C1 Rod Ejection Accident](https://nbviewer.org/github/myerspat/pyMAISE/blob/develop/docs/source/benchmarks/rod_ejection.ipynb)
