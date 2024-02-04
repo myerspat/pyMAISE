@@ -74,7 +74,7 @@ For a specific version, then checkout the branch:
 
 .. code:: sh
 
-   git checkout v<version>
+   git checkout <version>
 
 Then install pyMAISE through pip:
 
