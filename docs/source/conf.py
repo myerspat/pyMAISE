@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath("../../"))
 project = "pyMAISE"
 copyright = "2023, Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh"
 author = "Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh"
-release = "0.0.1"
+release = "1.0.0-beta"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -31,7 +31,7 @@ extensions = [
 ]
 
 autosummary_generate = True
-autodoc_default_flags = ['members']
+autodoc_default_flags = ["members"]
 autosummary_imported_members = True
 bibtex_bibfiles = ["software_refs.bib", "data_refs.bib"]
 templates_path = ["_templates"]
