@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath("../../"))
 project = "pyMAISE"
 copyright = "2023, Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh"
 author = "Patrick Myers, Connor Craig, Veda Joynt, Majdi Radaideh"
-release = "1.0.0-beta"
+release = "1.0.0b0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
