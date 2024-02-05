@@ -14,4 +14,4 @@ Stable Versions
 Dev Versions
 ------------
 
-- `pyMAISE v1.0.0-beta <https://github.com/myerspat/pyMAISE/releases/tag/v1.0.0-beta>`_
+- `pyMAISE v1.0.0b0 <https://github.com/myerspat/pyMAISE/releases/tag/v1.0.0b0>`_
