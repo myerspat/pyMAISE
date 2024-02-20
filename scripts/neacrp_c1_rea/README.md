@@ -18,26 +18,26 @@ The sampling distributions used include:
 
 | Input Parameter | Distribution Type | Distribution Parameters
 | ---| ---| ---|
-| Rod Worth $`(\\rho)`$ | Uniform $`[\\rho^{Max}(1 - 0.15), \\rho^{Max}]`$ | $`\\rho^{Max} = 0.009438`$|
-| Delayed Neutron Fraction $`(\\beta)`$ | Normal $`[\\mu, \\sigma]`$ | $`\\mu = 0.076, \\sigma=0.05\\mu`$|
-| Gap Conductance $`\\Big(h_{gap}\\Big[\\frac{W}{m^2\\cdot K}\\Big]\\Big)`$ | Normal $`[\\mu, \\sigma]`$ | $`\\mu = 10000, \\sigma=0.20\\mu`$|
-| Direct Heating Fraction $`(\\gamma_{frac})`$ | Normal $`[\\mu, \\sigma]`$ | $`\\mu = 0.019, \\sigma=0.20\\mu`$|
+| Rod Worth $`(\rho)`$ | Uniform $`[\rho^{Max}(1 - 0.15), \rho^{Max}]`$ | $`\rho^{Max} = 0.009438`$|
+| Delayed Neutron Fraction $`(\beta)`$ | Normal $`[\mu, \sigma]`$ | $`\mu = 0.076, \sigma=0.05\\mu`$|
+| Gap Conductance $`\Big(h_{gap}\Big[\frac{W}{m^2\cdot K}\Big]\Big)`$ | Normal $`[\mu, \sigma]`$ | $`\mu = 10000, \sigma=0.20\mu`$|
+| Direct Heating Fraction $`(\gamma_{frac})`$ | Normal $`[\mu, \sigma]`$ | $`\mu = 0.019, \sigma=0.20\mu`$|
 
 When these distributions are sampled in `data_generation.py`, `new_gamma_frac` and `new_hgap` are replaced with their result for each configuration of `C1B1b1.inp`. The sampled rod worth is used to lin-lin interpolate the bank8 position according to the `rod_worth.csv` table. The generation of this table is discussed in the next section. The `new_bank8_pos` in `C1B1b1.inp` is then replaced. The delayed neutron fraction is sampled such that the fraction of delayed neutron fraction is preserved for each group. This follows
 
-$$
-\\beta_i^{Sampled} = \\frac{\\beta_i^{Ref}}{{\\sum}_{j=1}^{6} \\beta_j^{Ref}} \\beta^{Sampled},
-$$
+```math
+\beta_i^{Sampled} = \frac{\beta_i^{Ref}}{{\sum}_{j=1}^{6} \beta_j^{Ref}} \beta^{Sampled},
+```
 
-where $`\\beta_i^{Ref} \\in \\{0.0002584,0.00152,0.0013908,0.0030704,0.001102,0.0002584\\}`$.
+where $`\beta_i^{Ref} \in \{0.0002584,0.00152,0.0013908,0.0030704,0.001102,0.0002584\}`$.
 
 ## Construction of Rod Worth Interpolation Table
 
 To construct the rod worth interpolation table, we pertubed the bank position for 400 linearly spaced positions between 0 and 228. These configurations were run in PARCS, and the rod worth is given by
 
-$$
-\\rho = \\frac{k_{eff} - 1}{k_{eff}}.
-$$
+```math
+\rho = \frac{k_{eff} - 1}{k_{eff}}.
+```
 
 The rod worth curve is shown in the figure below.
 
