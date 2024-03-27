@@ -422,12 +422,12 @@ def load_anomaly(path, stack_series, multiclass, propagate_output):
     Returns:
     - Y_processed (numpy.ndarray): The processed labels for classification.
         """
-    system='RFQ'  #pick a system to load and plot. Choose RFQ, DTL, CCL, or SCL
+    #system='RFQ'  #pick a system to load and plot. Choose RFQ, DTL, CCL, or SCL
    # n = np.load('%s_labels.npy'%system, allow_pickle=True)
     
     # Load the data
-    X = np.load('%s.npy'%system)
-    Y = np.load('%s_labels.npy'%system, allow_pickle=True)
+    X = np.load(path[0])
+    Y = np.load(path[1], allow_pickle=True)
     Y = Y[:, 1:] #Remove Filepath
     if multiclass:
         Y_df = pd.DataFrame(Y, columns=['state', 'type'])
@@ -460,7 +460,7 @@ def load_anomaly(path, stack_series, multiclass, propagate_output):
     else:
         # Binary classification: Convert 'Run' to 1 and 'Fault' to 0
         Y_processed = Y[:, :-1]  
-        Y_processed[:, 0] = (np.where(Y_processed[:, 0] == 'Run', 1, 0)).astype(int)#Change run/fail str to 1/0 int
+       # Y_processed[:, 0] = (np.where(Y_processed[:, 0] == 'Run', 1, 0)).astype(int)#Change run/fail str to 1/0 int
 
     if not stack_series:
             if not multiclass:
